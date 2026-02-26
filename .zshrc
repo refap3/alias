@@ -26,20 +26,16 @@ function allal() {
 
 # Cleanup Function (Equivalent to your PowerShell 'sl')
 function sl() {
-    # 1. AGGRESSIVE CLEANUP
-    # Unalias all 2-4 letter commands starting with 'g' (ga, gaca, etc.)
-    # We use 'unalias -m' which supports patterns
-    unalias -m 'g[a-z]'      # ga, gb, gc...
-    unalias -m 'g[a-z][a-z]'   # gcl, gco...
-    unalias -m 'g[a-z][a-z][a-z]' # gaca, gdin...
-
-    # 2. Unfunction specific git functions (like gs)
-    unfunction gs 2>/dev/null
-
-    # 3. RELOAD PROFILE
-    # Now that we are clean, we reload the base config.
-    # Since we fixed Step 1, this will NOT reload the git aliases.
+    # 1. Reload profile (this re-sources gitalias.zsh via the *alias*.zsh glob)
     source ~/.zshrc
+
+    # 2. AGGRESSIVE CLEANUP (must happen AFTER source, not before)
+    unalias -m 'g[a-z]'
+    unalias -m 'g[a-z][a-z]'
+    unalias -m 'g[a-z][a-z][a-z]'
+
+    # 3. Unfunction specific git functions (like gs)
+    unfunction gs 2>/dev/null
 
     echo ". sl executed! (Profile reloaded, Git aliases unloaded)"
 }
