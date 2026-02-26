@@ -54,27 +54,28 @@ aalias() {
 alias ddd='ls -d */'
 
 # Display folder/file tree rooted at current (or given) directory, like Windows tree
+# Pure shell — no external commands (no find, sort, basename, uname)
 _tree_helper() {
     local dir="$1" prefix="$2"
-    local entries=() path entry i=0 count out
-    if [ "$_ALIAS_OS" = "darwin" ]; then
-        out=$(find -s "$dir" -maxdepth 1 -mindepth 1 ! -name ".*" 2>/dev/null)
+    local entries=() entry i=0 count
+    if [ -n "$ZSH_VERSION" ]; then
+        for entry in "$dir"/*(N); do entries+=("$entry"); done
     else
-        out=$(find "$dir" -maxdepth 1 -mindepth 1 ! -name ".*" 2>/dev/null | /usr/bin/sort)
+        local _ng; _ng=$(shopt -p nullglob 2>/dev/null)
+        shopt -s nullglob 2>/dev/null
+        for entry in "$dir"/*; do entries+=("$entry"); done
+        eval "$_ng" 2>/dev/null
     fi
-    while IFS= read -r path; do
-        [ -n "$path" ] && entries+=("$path")
-    done <<< "$out"
     count=${#entries[@]}
-    for path in "${entries[@]}"; do
+    for entry in "${entries[@]}"; do
         i=$((i+1))
-        entry=$(basename "$path")
+        local name="${entry##*/}"
         if [ "$i" -eq "$count" ]; then
-            echo "${prefix}└── $entry"
-            [ -d "$path" ] && _tree_helper "$path" "${prefix}    "
+            echo "${prefix}└── $name"
+            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}    "
         else
-            echo "${prefix}├── $entry"
-            [ -d "$path" ] && _tree_helper "$path" "${prefix}│   "
+            echo "${prefix}├── $name"
+            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}│   "
         fi
     done
 }
@@ -87,25 +88,25 @@ tree() {
 # Like tree but directories only
 _treed_helper() {
     local dir="$1" prefix="$2"
-    local entries=() path entry i=0 count out
-    if [ "$_ALIAS_OS" = "darwin" ]; then
-        out=$(find -s "$dir" -maxdepth 1 -mindepth 1 -type d ! -name ".*" 2>/dev/null)
+    local entries=() entry i=0 count
+    if [ -n "$ZSH_VERSION" ]; then
+        for entry in "$dir"/*(N/); do entries+=("$entry"); done
     else
-        out=$(find "$dir" -maxdepth 1 -mindepth 1 -type d ! -name ".*" 2>/dev/null | /usr/bin/sort)
+        local _ng; _ng=$(shopt -p nullglob 2>/dev/null)
+        shopt -s nullglob 2>/dev/null
+        for entry in "$dir"/*; do [ -d "$entry" ] && entries+=("$entry"); done
+        eval "$_ng" 2>/dev/null
     fi
-    while IFS= read -r path; do
-        [ -n "$path" ] && entries+=("$path")
-    done <<< "$out"
     count=${#entries[@]}
-    for path in "${entries[@]}"; do
+    for entry in "${entries[@]}"; do
         i=$((i+1))
-        entry=$(basename "$path")
+        local name="${entry##*/}"
         if [ "$i" -eq "$count" ]; then
-            echo "${prefix}└── $entry"
-            _treed_helper "$path" "${prefix}    "
+            echo "${prefix}└── $name"
+            _treed_helper "$entry" "${prefix}    "
         else
-            echo "${prefix}├── $entry"
-            _treed_helper "$path" "${prefix}│   "
+            echo "${prefix}├── $name"
+            _treed_helper "$entry" "${prefix}│   "
         fi
     done
 }
