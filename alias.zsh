@@ -76,6 +76,32 @@ tree() {
     _tree_helper "$dir" ""
 }
 
+# Like tree but directories only
+_treed_helper() {
+    local dir="$1" prefix="$2"
+    local entries=() entry i=0 count path
+    while IFS= read -r entry; do
+        [[ -n "$entry" && -d "$dir/$entry" ]] && entries+=("$entry")
+    done < <(ls -1 "$dir" 2>/dev/null)
+    count=${#entries[@]}
+    for entry in "${entries[@]}"; do
+        i=$((i+1))
+        path="$dir/$entry"
+        if [ "$i" -eq "$count" ]; then
+            echo "${prefix}└── $entry"
+            _treed_helper "$path" "${prefix}    "
+        else
+            echo "${prefix}├── $entry"
+            _treed_helper "$path" "${prefix}│   "
+        fi
+    done
+}
+treed() {
+    local dir="${1:-.}"
+    echo "$dir"
+    _treed_helper "$dir" ""
+}
+
 # Find file recursively from current directory (ff <partial name>)
 ff()  { find . -not -path "*/.*" -iname "*$1*" 2>/dev/null; }   # skips hidden files/dirs
 fff() { find . -iname "*$1*" 2>/dev/null; }                      # includes hidden (dot) files/dirs
