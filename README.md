@@ -55,7 +55,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `.zshrc` | zsh config — sets `DOTFILES`, loads alias files, defines `j` jump function |
 | `.bashrc` | bash config — sets `DOTFILES` via `readlink`, loads alias files |
 | `alias.zsh` | General aliases (`up`, `home`, `cls`, `dt`, `aalias`, `ddd`, etc.) |
-| `gitalias.zsh` | Git shortcuts (load on demand with `gital`) |
+| `gitalias.zsh` | Git shortcuts (auto-loaded at login, unload with `sl`) |
 | `raspberryalias.zsh` | SSH/SFTP aliases for Raspberry Pi hosts |
 | `jump.sh` | Directory jump function (`j`) |
 | `deploy.sh` | Install script — 4 variants: zsh/bash × home/custom |
@@ -78,6 +78,9 @@ source ~/.zshrc     # or source ~/.bashrc
 | `ff <name>` | Find file by name (skips hidden dirs) |
 | `fff <name>` | Find file by name (includes hidden) |
 | `sshfp` | Show fingerprints of all `~/.ssh` key pairs (private + public) to verify they match |
+| `tree [dir]` | Display full file/folder tree from current (or given) directory |
+| `treed [dir]` | Display directory-only tree |
+| `treed -j [dir]` | Directory tree and add all dirs to `~/.jumplocations` |
 
 **Raspberry Pi** (auto-loaded, key read from `~/.ssh/id_rsa`):
 
@@ -106,7 +109,7 @@ racpri 59    # copies Mac's private key to Pi .59 (needed for Pi-to-Pi SSH)
 
 After `raauth`, `rap <octet>` works from the Mac. After `racpri`, the Pi can also SSH into other Pis that have been set up with `raauth`.
 
-**Git** (not auto-loaded — run `gital` to load, `gh` to list):
+**Git** (auto-loaded at login — `sl` to unload, `gital` to reload, `gh` to list):
 
 | Command | Description |
 |---------|-------------|
@@ -128,7 +131,10 @@ After `raauth`, `rap <octet>` works from the Mac. After `racpri`, the Pi can als
 
 | Command | Description |
 |---------|-------------|
+| `j <name>` | Jump to a previously-visited directory by partial name |
+| `j -d` | Remove current directory from jump cache |
+| `j -dr` | Remove current directory and all subdirs from jump cache |
 | `allal` | Reload all alias files from scratch |
 | `sl` | Unload git aliases and reload shell profile |
-| `gital` | Load git aliases on demand |
-| `gh` | List all loaded git aliases |
+| `gital` | Reload git aliases |
+| `gh` | List all git aliases |
