@@ -85,9 +85,15 @@ tree() {
     _tree_helper "$dir" ""
 }
 
-# Like tree but directories only
+# Like tree but directories only; -j/--jumplocations adds all dirs to ~/.jumplocations
+_treed_in_jump() {
+    local entry="$1" cache="$HOME/.jumplocations" line
+    [ -f "$cache" ] || return 1
+    while IFS= read -r line; do [ "$line" = "$entry" ] && return 0; done < "$cache"
+    return 1
+}
 _treed_helper() {
-    local dir="$1" prefix="$2"
+    local dir="$1" prefix="$2" jump="${3:-0}"
     local entries=() entry i=0 count
     if [ -n "$ZSH_VERSION" ]; then
         for entry in "$dir"/*(N/); do entries+=("$entry"); done
@@ -101,19 +107,35 @@ _treed_helper() {
     for entry in "${entries[@]}"; do
         i=$((i+1))
         local name="${entry##*/}"
+        [ "$jump" = "1" ] && { _treed_in_jump "$entry" || echo "$entry" >> "$HOME/.jumplocations"; }
         if [ "$i" -eq "$count" ]; then
             echo "${prefix}└── $name"
-            _treed_helper "$entry" "${prefix}    "
+            _treed_helper "$entry" "${prefix}    " "$jump"
         else
             echo "${prefix}├── $name"
-            _treed_helper "$entry" "${prefix}│   "
+            _treed_helper "$entry" "${prefix}│   " "$jump"
         fi
     done
 }
 treed() {
-    local dir="${1:-.}"
-    echo "$dir"
-    _treed_helper "$dir" ""
+    local dir="." jump=0
+    for arg in "$@"; do
+        case "$arg" in
+            -j|--jumplocations) jump=1 ;;
+            *) dir="$arg" ;;
+        esac
+    done
+    # Resolve to absolute path so jump entries are always absolute
+    local abs_dir
+    case "$dir" in
+        /*) abs_dir="$dir" ;;
+        .)  abs_dir="$PWD" ;;
+        *)  abs_dir="$PWD/$dir" ;;
+    esac
+    [ "$jump" = "1" ] && { _treed_in_jump "$abs_dir" || echo "$abs_dir" >> "$HOME/.jumplocations"; }
+    echo "$abs_dir"
+    _treed_helper "$abs_dir" "" "$jump"
+    [ "$jump" = "1" ] && echo "Directories added to ~/.jumplocations"
 }
 
 # Find file recursively from current directory (ff <partial name>)
