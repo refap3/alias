@@ -91,9 +91,19 @@ source ~/.zshrc     # or source ~/.bashrc
 | `raw <octet>` | SFTP → `pi@192.168.1.<octet>` with key |
 | `rawv <host>` | SFTP → `pi@<host>.ssb8.local` with key |
 | `rawa <host>` | SFTP → `pi@<host>.pi.hole` with key |
+| `raauth <octet>` | Add Mac's `id_rsa.pub` to `pi@192.168.1.<octet>:~/.ssh/authorized_keys` |
 | `racpub <octet>` | Copy `id_rsa.pub` to `pi@192.168.1.<octet>:~/.ssh/` |
 | `racpri <octet>` | Copy `id_rsa` to `pi@192.168.1.<octet>:~/.ssh/` and `chmod 600` |
 | `rah` | Show this alias reference |
+
+**SSH key setup for a new Pi** (run from Mac, using password auth):
+
+```bash
+raauth 59    # adds Mac's public key to Pi .59's authorized_keys
+racpri 59    # copies Mac's private key to Pi .59 (needed for Pi-to-Pi SSH)
+```
+
+After `raauth`, `rap <octet>` works from the Mac. After `racpri`, the Pi can also SSH into other Pis that have been set up with `raauth`.
 
 **Git** (not auto-loaded — run `gital` to load, `gh` to list):
 
