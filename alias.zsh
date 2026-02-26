@@ -50,16 +50,18 @@ aalias() {
 # List only directories in current directory
 alias ddd='ls -d */'
 
-# Sorted find: macOS supports find -s natively; Linux needs | sort
-_tree_find() { [ "$(uname)" = "Darwin" ] && find -s "$@" || find "$@" | /usr/bin/sort; }
-
 # Display folder/file tree rooted at current (or given) directory, like Windows tree
 _tree_helper() {
     local dir="$1" prefix="$2"
-    local entries=() path entry i=0 count
+    local entries=() path entry i=0 count out
+    if [ "$(uname)" = "Darwin" ]; then
+        out=$(find -s "$dir" -maxdepth 1 -mindepth 1 ! -name ".*" 2>/dev/null)
+    else
+        out=$(find "$dir" -maxdepth 1 -mindepth 1 ! -name ".*" 2>/dev/null | /usr/bin/sort)
+    fi
     while IFS= read -r path; do
-        entries+=("$path")
-    done < <(_tree_find "$dir" -maxdepth 1 -mindepth 1 ! -name ".*" 2>/dev/null)
+        [ -n "$path" ] && entries+=("$path")
+    done <<< "$out"
     count=${#entries[@]}
     for path in "${entries[@]}"; do
         i=$((i+1))
@@ -82,10 +84,15 @@ tree() {
 # Like tree but directories only
 _treed_helper() {
     local dir="$1" prefix="$2"
-    local entries=() path entry i=0 count
+    local entries=() path entry i=0 count out
+    if [ "$(uname)" = "Darwin" ]; then
+        out=$(find -s "$dir" -maxdepth 1 -mindepth 1 -type d ! -name ".*" 2>/dev/null)
+    else
+        out=$(find "$dir" -maxdepth 1 -mindepth 1 -type d ! -name ".*" 2>/dev/null | /usr/bin/sort)
+    fi
     while IFS= read -r path; do
-        entries+=("$path")
-    done < <(_tree_find "$dir" -maxdepth 1 -mindepth 1 -type d ! -name ".*" 2>/dev/null)
+        [ -n "$path" ] && entries+=("$path")
+    done <<< "$out"
     count=${#entries[@]}
     for path in "${entries[@]}"; do
         i=$((i+1))
