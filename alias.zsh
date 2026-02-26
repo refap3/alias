@@ -34,9 +34,17 @@ alias cls='clear'
 # List all files in current directory created/modified today
 dt() { find . -maxdepth 1 -newermt "$(date +%Y-%m-%d)" ! -name "." | sort; }
 
-# Show the definition of an alias or function (aalias <name>)
+# Show alias/function definitions. No arg = show all. Arg = case-insensitive wildcard match.
 aalias() {
-    builtin alias "$1" 2>/dev/null || declare -f "$1" || echo "$1: not found"
+    if [[ -z "$1" ]]; then
+        alias
+        declare -f
+    else
+        alias | grep -i "$1"
+        declare -F 2>/dev/null | awk '{print $NF}' | grep -i "$1" | while IFS= read -r fn; do
+            declare -f "$fn"
+        done
+    fi
 }
 
 # List only directories in current directory
