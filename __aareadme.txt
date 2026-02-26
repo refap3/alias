@@ -33,25 +33,25 @@ OPTIONS
 INSTALL VARIANTS
 ----------------
     zsh + home:
-        ~/.zshrc        -> <repo>/dotfiles/.zshrc
-        ~/.gitalias.zsh -> <repo>/dotfiles/gitalias.zsh
-        ~/.jump.sh      -> <repo>/dotfiles/jump.sh
+        ~/.zshrc        -> <repo>/.zshrc
+        ~/.gitalias.zsh -> <repo>/gitalias.zsh
+        ~/.jump.sh      -> <repo>/jump.sh
 
     zsh + custom (e.g. --path ~/dots):
-        ~/dots/.zshrc           -> <repo>/dotfiles/.zshrc
-        ~/dots/.bashrc          -> <repo>/dotfiles/.bashrc
-        ~/dots/.gitalias.zsh    -> <repo>/dotfiles/gitalias.zsh
-        ~/dots/alias.zsh        -> <repo>/dotfiles/alias.zsh
-        ~/dots/raspberryalias.zsh -> <repo>/dotfiles/raspberryalias.zsh
-        ~/dots/jump.sh          -> <repo>/dotfiles/jump.sh
+        ~/dots/.zshrc           -> <repo>/.zshrc
+        ~/dots/.bashrc          -> <repo>/.bashrc
+        ~/dots/.gitalias.zsh    -> <repo>/gitalias.zsh
+        ~/dots/alias.zsh        -> <repo>/alias.zsh
+        ~/dots/raspberryalias.zsh -> <repo>/raspberryalias.zsh
+        ~/dots/jump.sh          -> <repo>/jump.sh
         ~/.zshrc        -> ~/dots/.zshrc
         ~/.gitalias.zsh -> ~/dots/.gitalias.zsh
         ~/.jump.sh      -> ~/dots/jump.sh
 
     bash + home:
-        ~/.bashrc       -> <repo>/dotfiles/.bashrc
-        ~/.gitalias.zsh -> <repo>/dotfiles/gitalias.zsh
-        ~/.jump.sh      -> <repo>/dotfiles/jump.sh
+        ~/.bashrc       -> <repo>/.bashrc
+        ~/.gitalias.zsh -> <repo>/gitalias.zsh
+        ~/.jump.sh      -> <repo>/jump.sh
 
     bash + custom (e.g. --path ~/dots):
         (same dotfile symlinks into ~/dots as zsh+custom above)
@@ -91,6 +91,6 @@ EXAMPLES
 FIRST-TIME SETUP ON A NEW MACHINE
 ----------------------------------
     sudo apt install git -y          # (Debian/Ubuntu — skip on macOS)
-    git clone https://github.com/refap3/deb ~/deb
-    ~/deb/dotfiles/deploy.sh
+    git clone https://github.com/refap3/alias ~/alias
+    ~/alias/deploy.sh
     source ~/.zshrc     # or source ~/.bashrc
