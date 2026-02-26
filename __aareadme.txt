@@ -40,12 +40,12 @@ INSTALL VARIANTS
     zsh + custom (e.g. --path ~/dots):
         ~/dots/.zshrc           -> <repo>/.zshrc
         ~/dots/.bashrc          -> <repo>/.bashrc
-        ~/dots/.gitalias.zsh    -> <repo>/gitalias.zsh
+        ~/dots/gitalias.zsh     -> <repo>/gitalias.zsh
         ~/dots/alias.zsh        -> <repo>/alias.zsh
         ~/dots/raspberryalias.zsh -> <repo>/raspberryalias.zsh
         ~/dots/jump.sh          -> <repo>/jump.sh
         ~/.zshrc        -> ~/dots/.zshrc
-        ~/.gitalias.zsh -> ~/dots/.gitalias.zsh
+        ~/.gitalias.zsh -> ~/dots/gitalias.zsh
         ~/.jump.sh      -> ~/dots/jump.sh
 
     bash + home:

@@ -100,8 +100,8 @@ if [[ "$INSTALL_MODE" == "home" ]]; then
     echo "  $HOME/$RC_FILE → $REPO_DIR/$RC_FILE"
 
     backup_if_file "$HOME/.gitalias.zsh"
-    ln -sf "$REPO_DIR/.gitalias.zsh" "$HOME/.gitalias.zsh"
-    echo "  $HOME/.gitalias.zsh → $REPO_DIR/.gitalias.zsh"
+    ln -sf "$REPO_DIR/gitalias.zsh" "$HOME/.gitalias.zsh"
+    echo "  $HOME/.gitalias.zsh → $REPO_DIR/gitalias.zsh"
 
     backup_if_file "$HOME/.jump.sh"
     ln -sf "$REPO_DIR/jump.sh"      "$HOME/.jump.sh"
@@ -118,7 +118,7 @@ else
     mkdir -p "$CUSTOM_DIR"
 
     # Symlink every dotfile into the custom dir
-    for f in .zshrc .bashrc .gitalias.zsh alias.zsh raspberryalias.zsh jump.sh; do
+    for f in .zshrc .bashrc gitalias.zsh alias.zsh raspberryalias.zsh jump.sh; do
         ln -sf "$REPO_DIR/$f" "$CUSTOM_DIR/$f"
         echo "  $CUSTOM_DIR/$f → $REPO_DIR/$f"
     done
@@ -131,8 +131,8 @@ else
     echo "  $HOME/$RC_FILE → $CUSTOM_DIR/$RC_FILE"
 
     backup_if_file "$HOME/.gitalias.zsh"
-    ln -sf "$CUSTOM_DIR/.gitalias.zsh" "$HOME/.gitalias.zsh"
-    echo "  $HOME/.gitalias.zsh → $CUSTOM_DIR/.gitalias.zsh"
+    ln -sf "$CUSTOM_DIR/gitalias.zsh" "$HOME/.gitalias.zsh"
+    echo "  $HOME/.gitalias.zsh → $CUSTOM_DIR/gitalias.zsh"
 
     backup_if_file "$HOME/.jump.sh"
     ln -sf "$CUSTOM_DIR/jump.sh"      "$HOME/.jump.sh"

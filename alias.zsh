@@ -1,5 +1,5 @@
 # macOS/zsh equivalents of ALIAS.DAT
-# Source this file from ~/.zshrc with: source ~/Downloads/alias.zsh
+# Sourced automatically by .zshrc / .bashrc via DOTFILES glob
 
 # Navigation
 alias up='cd ..'          # up = cd ..
