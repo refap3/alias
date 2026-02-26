@@ -27,8 +27,9 @@ raphav() { _pikey; ssh -p 22222 -i "$PI_KEY" root@hassio.ssb8.local; }
 raphaa() { _pikey; ssh -p 22222 -i "$PI_KEY" root@hassio.pi.hole; }
 
 # --- Copy SSH keys to remote host (password auth — use before key auth is set up) ---
-racpub()  { scp ~/.ssh/id_rsa.pub pi@192.168.1.$1:~/.ssh/; }                                              # racpub <octet>  — copy public key
+racpub()  { scp ~/.ssh/id_rsa.pub pi@192.168.1.$1:~/.ssh/; }                                              # racpub <octet>  — copy public key file
 racpri()  { ssh pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh" && scp ~/.ssh/id_rsa pi@192.168.1.$1:~/.ssh/ && ssh pi@192.168.1.$1 "chmod 600 ~/.ssh/id_rsa"; } # racpri <octet>  — copy private key + fix perms
+raauth()  { cat ~/.ssh/id_rsa.pub | ssh pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"; }  # raauth <octet>  — add Mac pubkey to authorized_keys
 
 # --- SFTP: pi user (WinSCP equivalent) ---
 raw()   { _pikey; sftp -i "$PI_KEY" pi@192.168.1.$1; }  # raw  <octet>  — with key
