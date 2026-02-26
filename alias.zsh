@@ -53,14 +53,14 @@ alias ddd='ls -d */'
 # Display folder/file tree rooted at current (or given) directory, like Windows tree
 _tree_helper() {
     local dir="$1" prefix="$2"
-    local entries=() entry i=0 count path
-    while IFS= read -r entry; do
-        [[ -n "$entry" ]] && entries+=("$entry")
-    done < <(ls -1 "$dir" 2>/dev/null)
+    local entries=() path entry i=0 count
+    while IFS= read -r path; do
+        entries+=("$path")
+    done < <(find "$dir" -maxdepth 1 -mindepth 1 ! -name ".*" 2>/dev/null | sort)
     count=${#entries[@]}
-    for entry in "${entries[@]}"; do
+    for path in "${entries[@]}"; do
         i=$((i+1))
-        path="$dir/$entry"
+        entry=$(basename "$path")
         if [ "$i" -eq "$count" ]; then
             echo "${prefix}└── $entry"
             [ -d "$path" ] && _tree_helper "$path" "${prefix}    "
@@ -79,14 +79,14 @@ tree() {
 # Like tree but directories only
 _treed_helper() {
     local dir="$1" prefix="$2"
-    local entries=() entry i=0 count path
-    while IFS= read -r entry; do
-        [[ -n "$entry" && -d "$dir/$entry" ]] && entries+=("$entry")
-    done < <(ls -1 "$dir" 2>/dev/null)
+    local entries=() path entry i=0 count
+    while IFS= read -r path; do
+        entries+=("$path")
+    done < <(find "$dir" -maxdepth 1 -mindepth 1 -type d ! -name ".*" 2>/dev/null | sort)
     count=${#entries[@]}
-    for entry in "${entries[@]}"; do
+    for path in "${entries[@]}"; do
         i=$((i+1))
-        path="$dir/$entry"
+        entry=$(basename "$path")
         if [ "$i" -eq "$count" ]; then
             echo "${prefix}└── $entry"
             _treed_helper "$path" "${prefix}    "
