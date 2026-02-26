@@ -7,8 +7,8 @@ _t=$(readlink "$HOME/.bashrc" 2>/dev/null)
 DOTFILES=$(dirname "${_t:-$HOME/.bashrc}")
 unset _t
 
-# Aliases — load all *alias*.zsh files
-for _f in "$DOTFILES"/*alias*.zsh; do [ -f "$_f" ] && source "$_f"; done
+# Aliases — load all *alias*.zsh files except gitalias.zsh (loaded on demand via gital)
+for _f in "$DOTFILES"/*alias*.zsh; do [[ "$_f" == *gitalias* ]] && continue; [ -f "$_f" ] && source "$_f"; done
 unset _f
 
 gital() {
@@ -23,7 +23,7 @@ gh() {
 # Reload all aliases fresh
 allal() {
     unalias -a
-    for _f in "$DOTFILES"/*alias*.zsh; do [ -f "$_f" ] && source "$_f"; done
+    for _f in "$DOTFILES"/*alias*.zsh; do [[ "$_f" == *gitalias* ]] && continue; [ -f "$_f" ] && source "$_f"; done
     unset _f
     echo "All aliases reloaded."
 }
