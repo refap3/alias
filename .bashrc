@@ -28,11 +28,14 @@ allal() {
     echo "All aliases reloaded."
 }
 
-# Unload git aliases and reload profile (bash equivalent of zsh sl)
+# Unload git aliases and reload profile
 sl() {
-    unalias -a
-    unset -f gs 2>/dev/null
     source ~/.bashrc
+    # Bash lacks unalias -m; parse gitalias.zsh and unalias each entry
+    while read -r name; do
+        unalias "$name" 2>/dev/null
+    done < <(grep '^alias ' "$DOTFILES/gitalias.zsh" | sed 's/alias \([^=]*\)=.*/\1/')
+    unset -f gs _git_default_branch 2>/dev/null
     echo ". sl executed! (Profile reloaded, Git aliases unloaded)"
 }
 
