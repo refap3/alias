@@ -77,6 +77,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `ia` | Network info (`ifconfig`) |
 | `ff <name>` | Find file by name (skips hidden dirs) |
 | `fff <name>` | Find file by name (includes hidden) |
+| `sshfp` | Show fingerprints of all `~/.ssh` key pairs (private + public) to verify they match |
 
 **Raspberry Pi** (auto-loaded, key read from `~/.ssh/id_rsa`):
 
