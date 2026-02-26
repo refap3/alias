@@ -2,8 +2,8 @@ export PATH="$HOME/.local/bin:$PATH"
 
 DOTFILES="${${:-$HOME/.zshrc}:A:h}"
 
-# Aliases — load all *alias*.zsh files except gitalias.zsh (loaded on demand via gital)
-for _f in "$DOTFILES"/*alias*.zsh; do [[ "$_f" == *gitalias* ]] && continue; [[ -f "$_f" ]] && source "$_f"; done
+# Aliases — load all *alias*.zsh files
+for _f in "$DOTFILES"/*alias*.zsh; do [[ -f "$_f" ]] && source "$_f"; done
 unset _f
 
 # Delayed Git Alias Loader
@@ -19,14 +19,14 @@ function gh() {
 # Reload all aliases fresh
 function allal() {
     unalias -a
-    for _f in "$DOTFILES"/*alias*.zsh; do [[ "$_f" == *gitalias* ]] && continue; source "$_f"; done
+    for _f in "$DOTFILES"/*alias*.zsh; do source "$_f"; done
     unset _f
     echo "All aliases reloaded."
 }
 
 # Cleanup Function (Equivalent to your PowerShell 'sl')
 function sl() {
-    # 1. Reload profile (gitalias.zsh is excluded from the glob, so not reloaded)
+    # 1. Reload profile (reloads all aliases including gitalias.zsh)
     source ~/.zshrc
 
     # 2. AGGRESSIVE CLEANUP (must happen AFTER source, not before)
