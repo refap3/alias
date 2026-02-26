@@ -46,3 +46,13 @@ alias ddd='ls -d */'
 ff()  { find . -not -path "*/.*" -iname "*$1*" 2>/dev/null; }   # skips hidden files/dirs
 fff() { find . -iname "*$1*" 2>/dev/null; }                      # includes hidden (dot) files/dirs
 
+# Show fingerprints of all keys in ~/.ssh (private + public, to verify they match)
+sshfp() {
+    for pub in ~/.ssh/id_*.pub; do
+        pri="${pub%.pub}"
+        echo "--- $(basename $pri) ---"
+        [[ -f "$pri" ]] && echo "  private: $(ssh-keygen -lf "$pri" 2>/dev/null | awk '{print $1, $2}')" || echo "  private: not found"
+        echo "  public:  $(ssh-keygen -lf "$pub" | awk '{print $1, $2}')"
+    done
+}
+
