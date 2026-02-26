@@ -26,12 +26,44 @@ _j_nth() {
 
 # j — jump to a previously-visited directory by partial folder name
 j() {
+    local cache="$HOME/.jumplocations"
+
+    # -d / --delete-current: remove $PWD from cache
+    if [ "$1" = "-d" ] || [ "$1" = "--delete-current" ]; then
+        [ ! -f "$cache" ] && echo "No cache file found." && return 1
+        local found=0 tmp="" line
+        while IFS= read -r line; do
+            if [ "$line" = "$PWD" ]; then found=1
+            else tmp="${tmp}${line}"$'\n'
+            fi
+        done < "$cache"
+        printf '%s' "$tmp" > "$cache"
+        [ "$found" = "1" ] && echo "Removed: $PWD" || echo "Not in cache: $PWD"
+        return 0
+    fi
+
+    # -dr / --delete-current-recursive: remove $PWD and all subdirectories
+    if [ "$1" = "-dr" ] || [ "$1" = "--delete-current-recursive" ]; then
+        [ ! -f "$cache" ] && echo "No cache file found." && return 1
+        local count=0 tmp="" line
+        while IFS= read -r line; do
+            case "$line" in
+                "$PWD"|"$PWD"/*) count=$((count+1)) ;;
+                *) tmp="${tmp}${line}"$'\n' ;;
+            esac
+        done < "$cache"
+        printf '%s' "$tmp" > "$cache"
+        echo "Removed $count director$([ "$count" -eq 1 ] && echo y || echo ies) under $PWD"
+        return 0
+    fi
+
     if [ -z "$1" ]; then
         echo "Usage: j <partial-folder-name>"
+        echo "       j -d  | --delete-current            remove current dir from jump cache"
+        echo "       j -dr | --delete-current-recursive  remove current dir and all subdirs"
         return 1
     fi
 
-    local cache="$HOME/.jumplocations"
     local query
     query=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
 
