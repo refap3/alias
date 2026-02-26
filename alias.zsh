@@ -1,6 +1,9 @@
 # macOS/zsh equivalents of ALIAS.DAT
 # Sourced automatically by .zshrc / .bashrc via DOTFILES glob
 
+# Detect OS once at source time for use in tree functions
+[ "$(/usr/bin/uname 2>/dev/null)" = "Darwin" ] && _ALIAS_OS=darwin || _ALIAS_OS=linux
+
 # Navigation
 alias up='cd ..'          # up = cd ..
 alias hom='cd ~'         # home = cd \  (root on Windows = home on Mac)
@@ -54,7 +57,7 @@ alias ddd='ls -d */'
 _tree_helper() {
     local dir="$1" prefix="$2"
     local entries=() path entry i=0 count out
-    if [ "$(uname)" = "Darwin" ]; then
+    if [ "$_ALIAS_OS" = "darwin" ]; then
         out=$(find -s "$dir" -maxdepth 1 -mindepth 1 ! -name ".*" 2>/dev/null)
     else
         out=$(find "$dir" -maxdepth 1 -mindepth 1 ! -name ".*" 2>/dev/null | /usr/bin/sort)
@@ -85,7 +88,7 @@ tree() {
 _treed_helper() {
     local dir="$1" prefix="$2"
     local entries=() path entry i=0 count out
-    if [ "$(uname)" = "Darwin" ]; then
+    if [ "$_ALIAS_OS" = "darwin" ]; then
         out=$(find -s "$dir" -maxdepth 1 -mindepth 1 -type d ! -name ".*" 2>/dev/null)
     else
         out=$(find "$dir" -maxdepth 1 -mindepth 1 -type d ! -name ".*" 2>/dev/null | /usr/bin/sort)
