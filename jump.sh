@@ -65,7 +65,7 @@ j() {
         echo "No match found for: $1"
         return 1
     elif [ "$count" -eq 1 ]; then
-        builtin cd "$(_j_nth 1 "${matches[@]}")"
+        builtin cd "$(_j_nth 1 "${matches[@]}")" && pwd
     else
         echo "Multiple matches:"
         local i=1
@@ -83,7 +83,7 @@ j() {
                 ;;
         esac
         if [ "$selection" -ge 1 ] && [ "$selection" -le "$count" ]; then
-            builtin cd "$(_j_nth "$selection" "${matches[@]}")"
+            builtin cd "$(_j_nth "$selection" "${matches[@]}")" && pwd
         else
             echo "Invalid selection."
             return 1
