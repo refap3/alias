@@ -41,11 +41,11 @@ dt() { find . -maxdepth 1 -newermt "$(date +%Y-%m-%d)" ! -name "." | sort; }
 aalias() {
     if [[ -z "$1" ]]; then
         alias
-        declare -f
+        typeset -f
     else
         alias | grep -i "$1"
-        declare -F 2>/dev/null | awk '{print $NF}' | grep -i "$1" | while IFS= read -r fn; do
-            declare -f "$fn"
+        print -l ${(k)functions} | grep -i "$1" | while IFS= read -r fn; do
+            typeset -f "$fn"
         done
     fi
 }
