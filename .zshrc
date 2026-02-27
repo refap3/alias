@@ -1,3 +1,7 @@
+unsetopt SHARE_HISTORY
+unsetopt INC_APPEND_HISTORY
+setopt LOCAL_HISTORY
+
 export PATH="$HOME/.local/bin:$PATH"
 
 DOTFILES="${${:-$HOME/.zshrc}:A:h}"
