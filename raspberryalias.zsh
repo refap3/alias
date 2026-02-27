@@ -38,4 +38,44 @@ rawa()  { _pikey; sftp -i "$PI_KEY" pi@$1.pi.hole; }    # rawa  <host>  — with
 rawpv() { sftp pi@$1.ssb8.local; }              # rawpv <host>  — without key
 rawpa() { sftp pi@$1.pi.hole; }                 # rawpa <host>  — without key
 
+# --- SFTP one-liners: non-interactive file operations (on top of raw/rawv/rawa) ---
+# Tools: scp for get/put (simpler), sftp -b for ls/mkdir/rm
+# Address variants: <octet>=192.168.1.x  v=.ssb8.local  a=.pi.hole
+_rasftp() { printf '%s\n' "${@:2}" | sftp -i "$PI_KEY" -b - "$1"; }  # _rasftp <host> <cmd...>
 
+# list remote dir
+rawl()   { _pikey; _rasftp "pi@192.168.1.$1" "ls ${2:-.}"; }         # rawl   <octet> [dir]
+rawlv()  { _pikey; _rasftp "pi@$1.ssb8.local" "ls ${2:-.}"; }        # rawlv  <host>  [dir]
+rawla()  { _pikey; _rasftp "pi@$1.pi.hole"    "ls ${2:-.}"; }        # rawla  <host>  [dir]
+
+# get (download) — scp; use -r for dirs
+rawg()   { _pikey; scp -r -i "$PI_KEY" "pi@192.168.1.$1:$2" "${3:-.}"; }   # rawg   <octet> <remote> [local]
+rawgv()  { _pikey; scp -r -i "$PI_KEY" "pi@$1.ssb8.local:$2" "${3:-.}"; }  # rawgv  <host>  <remote> [local]
+rawga()  { _pikey; scp -r -i "$PI_KEY" "pi@$1.pi.hole:$2"    "${3:-.}"; }  # rawga  <host>  <remote> [local]
+
+# put (upload) — scp; use -r for dirs
+rawu()   { _pikey; scp -r -i "$PI_KEY" "$2" "pi@192.168.1.$1:${3:-.}"; }   # rawu   <octet> <local> [remote]
+rawuv()  { _pikey; scp -r -i "$PI_KEY" "$2" "pi@$1.ssb8.local:${3:-.}"; }  # rawuv  <host>  <local> [remote]
+rawua()  { _pikey; scp -r -i "$PI_KEY" "$2" "pi@$1.pi.hole:${3:-.}"; }     # rawua  <host>  <local> [remote]
+
+# mkdir on remote
+rawmk()  { _pikey; _rasftp "pi@192.168.1.$1" "mkdir $2"; }           # rawmk  <octet> <dir>
+rawmkv() { _pikey; _rasftp "pi@$1.ssb8.local" "mkdir $2"; }          # rawmkv <host>  <dir>
+rawmka() { _pikey; _rasftp "pi@$1.pi.hole"    "mkdir $2"; }          # rawmka <host>  <dir>
+
+# rm on remote (with confirmation)
+rawrm()  { _pikey; echo "rm $2? [y/N] "; read -rq && _rasftp "pi@192.168.1.$1" "rm $2"; }  # rawrm  <octet> <path>
+rawrmv() { _pikey; echo "rm $2? [y/N] "; read -rq && _rasftp "pi@$1.ssb8.local" "rm $2"; } # rawrmv <host>  <path>
+rawrma() { _pikey; echo "rm $2? [y/N] "; read -rq && _rasftp "pi@$1.pi.hole"    "rm $2"; } # rawrma <host>  <path>
+
+# help
+rawh() {
+  echo "SFTP one-liners  (raw* = SFTP/SCP, variants: plain=IP octet, v=.ssb8.local, a=.pi.hole)"
+  echo "  rawl [v|a]  <host>  [dir]            — list remote directory (default: ~)"
+  echo "  rawg [v|a]  <host>  <remote> [local] — download file/dir (scp -r; default local: .)"
+  echo "  rawu [v|a]  <host>  <local> [remote] — upload   file/dir (scp -r; default remote: ~)"
+  echo "  rawmk[v|a] <host>  <dir>             — mkdir on remote"
+  echo "  rawrm[v|a] <host>  <path>            — rm on remote (confirms first)"
+  echo "  raw [v|a]  <host>                    — interactive SFTP session (supports cd)"
+  echo "  Note: no cd — use full remote paths, e.g. rawl 42 /home/pi/mydir"
+}
