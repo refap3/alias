@@ -59,7 +59,7 @@ _tree_helper() {
     local dir="$1" prefix="$2"
     local entries=() entry i=0 count
     if [ -n "$ZSH_VERSION" ]; then
-        for entry in "$dir"/*(N); do entries+=("$entry"); done
+        eval 'for entry in "$dir"/*(N); do entries+=("$entry"); done'
     else
         local _ng; _ng=$(shopt -p nullglob 2>/dev/null)
         shopt -s nullglob 2>/dev/null
@@ -96,7 +96,7 @@ _treed_helper() {
     local dir="$1" prefix="$2" jump="${3:-0}"
     local entries=() entry i=0 count
     if [ -n "$ZSH_VERSION" ]; then
-        for entry in "$dir"/*(N/); do entries+=("$entry"); done
+        eval 'for entry in "$dir"/*(N/); do entries+=("$entry"); done'
     else
         local _ng; _ng=$(shopt -p nullglob 2>/dev/null)
         shopt -s nullglob 2>/dev/null
