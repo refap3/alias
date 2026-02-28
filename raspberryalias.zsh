@@ -28,7 +28,7 @@ rap()   { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" pi@192.168.1.$1; }   # ra
 rapp()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1; }                        # rapp <octet>  — without key
 # Build a remote bash -i -c string: enables alias expansion and loads ~/.bash_aliases.
 # Uses bash -i so .bashrc (and its aliases) is auto-loaded; TTY warnings are filtered by the caller.
-_ra_cmd() { printf 'shopt -s expand_aliases; [ -f ~/.bash_aliases ] && . ~/.bash_aliases 2>/dev/null; %s' "$(printf '%q ' "$@")"; }
+_ra_cmd() { printf 'shopt -s expand_aliases; [ -f ~/.bash_aliases ] && . ~/.bash_aliases 2>/dev/null; %s' "$*"; }
 # Run a command on one Pi (octet) or multiple Pis (comma-separated octets)
 rac() {
     _pikey
