@@ -18,6 +18,17 @@ rah() { clear; echo "USE breevy ras for pw!"; echo "ra Put|Win [P] Vie|Aig"; ech
 # --- SSH: pi user, by IP (last octet as argument) ---
 rap()   { _pikey; ssh -i "$PI_KEY" "${_PIOPT[@]}" pi@192.168.1.$1; }   # rap  <octet>  — with key
 rapp()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1; }                        # rapp <octet>  — without key
+rac()   { _pikey; ssh -i "$PI_KEY" "${_PIOPT[@]}" pi@192.168.1.$1 "${@:2}"; }  # rac  <octet> <cmd...>
+
+# Execute a command on multiple Pis (comma-separated octets, spaces around commas OK)
+rax() {
+    _pikey
+    local oct
+    for oct in $(printf '%s' "$1" | tr ',' ' '); do
+        printf '\n── 192.168.1.%s ──\n' "$oct"
+        ssh -i "$PI_KEY" "${_PIOPT[@]}" "pi@192.168.1.$oct" "${@:2}"
+    done
+}
 
 # --- SSH: pi user, by hostname ---
 rapv()  { _pikey; ssh -i "$PI_KEY" "${_PIOPT[@]}" pi@$1.ssb8.local; }  # rapv  <host>  — with key

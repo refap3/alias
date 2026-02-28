@@ -152,3 +152,78 @@ sshfp() {
     done
 }
 
+
+# Open file/folder/URL in default app (equivalent of Windows start/ShellExecute)
+alias w='open'
+
+# System dashboard — run on Raspberry Pi after SSH'ing in
+cpu() {
+    echo "=== CPU ==="
+    grep -m1 "Model" /proc/cpuinfo 2>/dev/null || grep -m1 "model name" /proc/cpuinfo 2>/dev/null || echo "(unknown)"
+    echo ""
+    echo "=== Memory ==="
+    free -h 2>/dev/null || echo "(free not available)"
+    echo ""
+    echo "=== Storage ==="
+    df -h 2>/dev/null || echo "(df not available)"
+    echo ""
+    echo "=== Network ==="
+    ip -brief addr 2>/dev/null || ip addr 2>/dev/null || echo "(ip not available)"
+    echo ""
+    echo "=== Last Reboot ==="
+    uptime -s 2>/dev/null || who -b 2>/dev/null || uptime
+}
+
+# Run htop; auto-install via apt-get on Linux if missing (never installs on macOS)
+htop() {
+    if ! command -v htop >/dev/null 2>&1; then
+        if [ "$_ALIAS_OS" = "darwin" ]; then
+            echo "htop is not installed. Install it manually (e.g. brew install htop)." >&2
+            return 1
+        else
+            echo "htop not found — installing via apt-get..." >&2
+            sudo apt-get install -y -qq htop
+        fi
+    fi
+    command htop "$@"
+}
+
+# Count all files in current directory tree, grouped by extension
+# Output: extension (left-aligned) + count (right-aligned), sorted by count desc
+psfe() {
+    find . -type f | awk -F/ '
+    {
+        name = $NF
+        dot = index(name, ".")
+        if (dot > 1) { ext = substr(name, dot) } else { ext = "(none)" }
+        count[ext]++
+    }
+    END { for (ext in count) print count[ext], ext }
+    ' | sort -rn | awk '{printf "%-16s %5d\n", $2, $1}'
+}
+
+# Find empty directories; -d: delete leaves; -dr: delete recursively until none remain
+psfed() {
+    case "$1" in
+        -dr)
+            local result
+            while result=$(find . -mindepth 1 -depth -type d -empty 2>/dev/null) && [ -n "$result" ]; do
+                echo "$result"
+                find . -mindepth 1 -depth -type d -empty -delete 2>/dev/null
+            done
+            ;;
+        -d)
+            find . -mindepth 1 -depth -type d -empty -delete 2>/dev/null
+            ;;
+        "")
+            find . -mindepth 1 -type d -empty 2>/dev/null
+            ;;
+        *)
+            echo "Usage: psfed [-d|-dr]" >&2
+            echo "  (no args) — list empty directories" >&2
+            echo "  -d        — delete empty leaf directories" >&2
+            echo "  -dr       — delete empty directories recursively until none remain" >&2
+            return 1
+            ;;
+    esac
+}
