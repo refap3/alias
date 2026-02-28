@@ -26,9 +26,10 @@ rah() { clear; echo "USE breevy ras for pw!"; echo "ra Put|Win [P] Vie|Aig"; ech
 # --- SSH: pi user, by IP (last octet as argument) ---
 rap()   { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" pi@192.168.1.$1; }   # rap  <octet>  — with key
 rapp()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1; }                        # rapp <octet>  — without key
-# Build a remote bash -i -c string: enables alias expansion and loads ~/.bash_aliases.
-# Uses bash -i so .bashrc (and its aliases) is auto-loaded; TTY warnings are filtered by the caller.
-_ra_cmd() { printf 'shopt -s expand_aliases; [ -f ~/.bash_aliases ] && . ~/.bash_aliases 2>/dev/null; %s' "$*"; }
+# Build the remote command string piped to bash -i via stdin.
+# bash -i loads .bashrc (aliases/functions); expand_aliases is on by default in interactive mode.
+# Stdin piping avoids all SSH quoting issues — no -c, no printf %q needed.
+_ra_cmd() { printf 'shopt -s expand_aliases; %s' "$*"; }
 # Run a command on one Pi (octet) or multiple Pis (comma-separated octets)
 rac() {
     _pikey
@@ -38,16 +39,16 @@ rac() {
             local oct
             for oct in $(printf '%s' "$1" | tr ',' ' '); do
                 printf '\n-- 192.168.1.%s --\n' "$oct"
-                ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@192.168.1.$oct" "bash -i -c $(printf '%q' "$_cmd")" 2> >(grep -Ev '^bash: (cannot set terminal|no job control|warning: setlocale)' >&2)
+                printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@192.168.1.$oct" bash -i 2>/dev/null
             done
             ;;
         *)
-            ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@192.168.1.$1" "bash -i -c $(printf '%q' "$_cmd")" 2> >(grep -Ev '^bash: (cannot set terminal|no job control|warning: setlocale)' >&2)
+            printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@192.168.1.$1" bash -i 2>/dev/null
             ;;
     esac
 }
-racv() { _pikey; local _cmd; _cmd=$(_ra_cmd "${@:2}"); ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.ssb8.local" "bash -i -c $(printf '%q' "$_cmd")" 2> >(grep -Ev '^bash: (cannot set terminal|no job control|warning: setlocale)' >&2); }  # racv <host> <cmd...>
-raca() { _pikey; local _cmd; _cmd=$(_ra_cmd "${@:2}"); ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.pi.hole"    "bash -i -c $(printf '%q' "$_cmd")" 2> >(grep -Ev '^bash: (cannot set terminal|no job control|warning: setlocale)' >&2); }  # raca <host> <cmd...>
+racv() { _pikey; local _cmd; _cmd=$(_ra_cmd "${@:2}"); printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.ssb8.local" bash -i 2>/dev/null; }  # racv <host> <cmd...>
+raca() { _pikey; local _cmd; _cmd=$(_ra_cmd "${@:2}"); printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.pi.hole"    bash -i 2>/dev/null; }  # raca <host> <cmd...>
 
 # --- SSH: pi user, by hostname ---
 rapv()  { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" pi@$1.ssb8.local; }  # rapv  <host>  — with key
