@@ -7,7 +7,7 @@ DOTFILES="${DOTFILES:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/dotfile
 PI_KEY="$HOME/.ssh/id_rsa"
 
 # Lab: skip host key checking — OS reinstalls change the host key frequently
-_PIOPT=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null)
+_PIOPT=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR)
 
 # Fix key permissions if present; set _PIKEYOPT for ssh/sftp/scp calls.
 # When key is absent (e.g. on a Pi) _PIKEYOPT is empty → falls back to ssh-agent.
@@ -26,8 +26,11 @@ rah() { clear; echo "USE breevy ras for pw!"; echo "ra Put|Win [P] Vie|Aig"; ech
 # --- SSH: pi user, by IP (last octet as argument) ---
 rap()   { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" pi@192.168.1.$1; }   # rap  <octet>  — with key
 rapp()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1; }                        # rapp <octet>  — without key
-# Run a command on one Pi (octet) or multiple Pis (comma-separated octets).
-# Remote shell is login+interactive (-lic) so ~/.bashrc aliases are available.
+# Build a remote bash -c string: enables alias expansion and loads ~/.bash_aliases.
+# Uses plain bash -c (no -l/-i) to avoid locale warnings and TTY/job-control noise.
+_ra_cmd() { printf 'shopt -s expand_aliases; [ -f ~/.bash_aliases ] && . ~/.bash_aliases 2>/dev/null; %s' "$(printf '%q ' "$@")"; }
+
+# Run a command on one Pi (octet) or multiple Pis (comma-separated octets)
 rac() {
     _pikey
     case "$1" in
@@ -35,16 +38,16 @@ rac() {
             local oct
             for oct in $(printf '%s' "$1" | tr ',' ' '); do
                 printf '\n-- 192.168.1.%s --\n' "$oct"
-                ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@192.168.1.$oct" bash -lic "$(printf '%q ' "${@:2}")"
+                ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@192.168.1.$oct" bash -c "$(_ra_cmd "${@:2}")"
             done
             ;;
         *)
-            ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@192.168.1.$1" bash -lic "$(printf '%q ' "${@:2}")"
+            ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@192.168.1.$1" bash -c "$(_ra_cmd "${@:2}")"
             ;;
     esac
 }
-racv() { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.ssb8.local" bash -lic "$(printf '%q ' "${@:2}")"; }  # racv <host> <cmd...>
-raca() { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.pi.hole"    bash -lic "$(printf '%q ' "${@:2}")"; }  # raca <host> <cmd...>
+racv() { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.ssb8.local" bash -c "$(_ra_cmd "${@:2}")"; }  # racv <host> <cmd...>
+raca() { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.pi.hole"    bash -c "$(_ra_cmd "${@:2}")"; }  # raca <host> <cmd...>
 
 # --- SSH: pi user, by hostname ---
 rapv()  { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" pi@$1.ssb8.local; }  # rapv  <host>  — with key
