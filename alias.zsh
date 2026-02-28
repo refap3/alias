@@ -161,6 +161,7 @@ alias w='open'
 cpu() {
     echo "=== CPU ==="
     grep -m1 "Model" /proc/cpuinfo 2>/dev/null || grep -m1 "model name" /proc/cpuinfo 2>/dev/null || echo "(unknown)"
+    echo "Cores: $(nproc 2>/dev/null || grep -c '^processor' /proc/cpuinfo 2>/dev/null || echo '?')"
     echo ""
     echo "=== Memory ==="
     free -h 2>/dev/null || echo "(free not available)"
