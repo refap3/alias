@@ -18,17 +18,25 @@ rah() { clear; echo "USE breevy ras for pw!"; echo "ra Put|Win [P] Vie|Aig"; ech
 # --- SSH: pi user, by IP (last octet as argument) ---
 rap()   { _pikey; ssh -i "$PI_KEY" "${_PIOPT[@]}" pi@192.168.1.$1; }   # rap  <octet>  — with key
 rapp()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1; }                        # rapp <octet>  — without key
-rac()   { _pikey; ssh -i "$PI_KEY" "${_PIOPT[@]}" pi@192.168.1.$1 "${@:2}"; }  # rac  <octet> <cmd...>
-
-# Execute a command on multiple Pis (comma-separated octets, spaces around commas OK)
-rax() {
+# Run a command on one Pi (octet) or multiple Pis (comma-separated octets).
+# Remote shell is login+interactive (-lic) so ~/.bashrc aliases are available.
+rac() {
     _pikey
-    local oct
-    for oct in $(printf '%s' "$1" | tr ',' ' '); do
-        printf '\n── 192.168.1.%s ──\n' "$oct"
-        ssh -i "$PI_KEY" "${_PIOPT[@]}" "pi@192.168.1.$oct" "${@:2}"
-    done
+    case "$1" in
+        *,*)
+            local oct
+            for oct in $(printf '%s' "$1" | tr ',' ' '); do
+                printf '\n-- 192.168.1.%s --\n' "$oct"
+                ssh -i "$PI_KEY" "${_PIOPT[@]}" "pi@192.168.1.$oct" bash -lic "$(printf '%q ' "${@:2}")"
+            done
+            ;;
+        *)
+            ssh -i "$PI_KEY" "${_PIOPT[@]}" "pi@192.168.1.$1" bash -lic "$(printf '%q ' "${@:2}")"
+            ;;
+    esac
 }
+racv() { _pikey; ssh -i "$PI_KEY" "${_PIOPT[@]}" "pi@$1.ssb8.local" bash -lic "$(printf '%q ' "${@:2}")"; }  # racv <host> <cmd...>
+raca() { _pikey; ssh -i "$PI_KEY" "${_PIOPT[@]}" "pi@$1.pi.hole"    bash -lic "$(printf '%q ' "${@:2}")"; }  # raca <host> <cmd...>
 
 # --- SSH: pi user, by hostname ---
 rapv()  { _pikey; ssh -i "$PI_KEY" "${_PIOPT[@]}" pi@$1.ssb8.local; }  # rapv  <host>  — with key

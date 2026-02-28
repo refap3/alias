@@ -181,7 +181,7 @@ htop() {
             echo "htop is not installed. Install it manually (e.g. brew install htop)." >&2
             return 1
         else
-            echo "htop not found — installing via apt-get..." >&2
+            echo "htop not found -- installing via apt-get..." >&2
             sudo apt-get install -y -qq htop
         fi
     fi
@@ -191,15 +191,7 @@ htop() {
 # Count all files in current directory tree, grouped by extension
 # Output: extension (left-aligned) + count (right-aligned), sorted by count desc
 psfe() {
-    find . -type f | awk -F/ '
-    {
-        name = $NF
-        dot = index(name, ".")
-        if (dot > 1) { ext = substr(name, dot) } else { ext = "(none)" }
-        count[ext]++
-    }
-    END { for (ext in count) print count[ext], ext }
-    ' | sort -rn | awk '{printf "%-16s %5d\n", $2, $1}'
+    find . -type f | awk -F/ '{n=$NF; d=index(n,"."); if(d>1){e=substr(n,d)}else{e="(none)"}; c[e]++} END{for(e in c) print c[e],e}' | sort -rn | awk '{printf "%-16s %5d\n", $2, $1}'
 }
 
 # Find empty directories; -d: delete leaves; -dr: delete recursively until none remain
@@ -220,9 +212,9 @@ psfed() {
             ;;
         *)
             echo "Usage: psfed [-d|-dr]" >&2
-            echo "  (no args) — list empty directories" >&2
-            echo "  -d        — delete empty leaf directories" >&2
-            echo "  -dr       — delete empty directories recursively until none remain" >&2
+            echo "  (no args) -- list empty directories" >&2
+            echo "  -d        -- delete empty leaf directories" >&2
+            echo "  -dr       -- delete empty directories recursively until none remain" >&2
             return 1
             ;;
     esac
