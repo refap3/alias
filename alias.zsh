@@ -51,7 +51,7 @@ aalias() {
 }
 
 # List only directories in current directory
-alias ddd='ls -d */'
+alias dd='ls -d */'
 
 # Display folder/file tree rooted at current (or given) directory, like Windows tree
 # Pure shell — no external commands (no find, sort, basename, uname)
