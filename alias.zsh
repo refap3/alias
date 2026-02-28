@@ -155,6 +155,7 @@ sshfp() {
 
 # Open file/folder/URL in default app (equivalent of Windows start/ShellExecute)
 alias w='open'
+[ -n "$BASH_VERSION" ] && complete -o default -o filenames w
 
 # System dashboard — run on Raspberry Pi after SSH'ing in
 cpu() {
