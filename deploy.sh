@@ -159,5 +159,14 @@ else
     echo "No SSH key found at $ICLOUD_KEY — skipping. Copy id_rsa to ~/.ssh/id_rsa manually."
 fi
 
+# ---------------------------------------------------------------------------
+# SSH config — symlink ~/.ssh/config → repo/ssh_config
+# ---------------------------------------------------------------------------
+mkdir -p "$HOME/.ssh"
+chmod 700 "$HOME/.ssh"
+backup_if_file "$HOME/.ssh/config"
+ln -sf "$REPO_DIR/ssh_config" "$HOME/.ssh/config"
+echo "SSH config: $HOME/.ssh/config → $REPO_DIR/ssh_config"
+
 echo ""
 echo "Done. Open a new shell (or: source ~/$RC_FILE) to activate."

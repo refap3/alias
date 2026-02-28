@@ -1,0 +1,2 @@
+Host 192.168.1.* *.ssb8.local *.pi.hole
+    ForwardAgent yes
