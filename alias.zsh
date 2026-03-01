@@ -43,14 +43,16 @@ else
         if [ -z "${SSH_CLIENT:-}" ]; then
             echo "vsc: not in an SSH session — use 'vscr <octet>' from your Mac" >&2; return 1
         fi
-        local _mac _piip _path _qpath
+        local _mac _piip _path _qpath _mac_user
         _mac=$(printf '%s' "$SSH_CLIENT" | awk '{print $1}')
         _piip=$(hostname -I 2>/dev/null | awk '{print $1}')
         _path=$(realpath "${1:-$PWD}" 2>/dev/null || echo "${1:-$PWD}")
         _qpath=$(printf '%q' "$_path")
-        ssh -o BatchMode=yes -o ConnectTimeout=5 "$_mac" \
+        # Extract Mac username from the key comment in authorized_keys (e.g. "rainer@ENVY" → "rainer")
+        _mac_user=$(awk '/^ssh-/{split($NF,a,"@"); if(a[1]!="") print a[1]; exit}' ~/.ssh/authorized_keys 2>/dev/null)
+        ssh -o BatchMode=yes -o ConnectTimeout=5 "${_mac_user:+${_mac_user}@}${_mac}" \
             "code --remote ssh-remote+pi@${_piip} ${_qpath}" 2>/dev/null \
-            || echo "vsc: could not reach Mac at $_mac — enable System Settings > Sharing > Remote Login and add Pi's key to authorized_keys" >&2
+            || echo "vsc: could not reach Mac at ${_mac_user:+${_mac_user}@}${_mac} — enable System Settings > Sharing > Remote Login and add Pi's key to authorized_keys" >&2
     }
 fi
 
