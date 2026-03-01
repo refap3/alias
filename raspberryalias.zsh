@@ -68,7 +68,7 @@ raphaa() { _pikey; ssh -p 22222 "${_PIKEYOPT[@]}" "${_PIOPT[@]}" root@hassio.pi.
 # --- Copy SSH keys to remote host (password auth — use before key auth is set up) ---
 racpub()  { scp "${_PIOPT[@]}" ~/.ssh/id_rsa.pub pi@192.168.1.$1:~/.ssh/; }                                              # racpub <octet>  — copy public key file
 racpri()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh" && scp "${_PIOPT[@]}" ~/.ssh/id_rsa pi@192.168.1.$1:~/.ssh/ && ssh "${_PIOPT[@]}" pi@192.168.1.$1 "chmod 600 ~/.ssh/id_rsa"; } # racpri <octet>  — copy private key + fix perms
-raauth()  { cat ~/.ssh/id_rsa.pub | ssh "${_PIOPT[@]}" pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"; ssh "${_PIOPT[@]}" pi@192.168.1.$1 "grep -q 'export MAC_USER=' ~/.bashrc || echo 'export MAC_USER=$(whoami)' >> ~/.bashrc"; echo "MAC_USER=$(whoami) written to Pi .bashrc"; }  # raauth <octet>  — add Mac pubkey + write MAC_USER
+raauth()  { local _u; _u=$(whoami); cat ~/.ssh/id_rsa.pub | ssh "${_PIOPT[@]}" pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && grep -q 'export MAC_USER=' ~/.bashrc || echo 'export MAC_USER=$_u' >> ~/.bashrc"; echo "raauth done: key added, MAC_USER=$_u written to Pi .bashrc"; }  # raauth <octet>  — add Mac pubkey + write MAC_USER (single SSH = one password prompt)
 
 # --- SFTP: pi user (WinSCP equivalent) ---
 raw()   { _pikey; sftp "${_PIKEYOPT[@]}" "${_PIOPT[@]}" pi@192.168.1.$1; }  # raw  <octet>  — with key
