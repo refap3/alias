@@ -28,8 +28,11 @@ alias move='mv'
 alias rd='rmdir'
 alias md='mkdir'
 
-# claude 
+# claude
 alias cdsp='claude --dangerously-skip-permissions'
+
+# Open Visual Studio Code
+alias vsc='code'
 
 # Clear screen
 alias cls='clear'
@@ -158,22 +161,62 @@ alias w='open'
 [ -n "$BASH_VERSION" ] && complete -o default -o filenames w
 
 # System dashboard — run on Raspberry Pi after SSH'ing in
+# Usage: cpu [-b|--brief]  (default)   compact one-screen summary
+#        cpu [-v|--verbose]            full section-by-section view
 cpu() {
-    echo "=== CPU ==="
-    grep -m1 "Model" /proc/cpuinfo 2>/dev/null || grep -m1 "model name" /proc/cpuinfo 2>/dev/null || echo "(unknown)"
-    echo "Cores: $(nproc 2>/dev/null || grep -c '^processor' /proc/cpuinfo 2>/dev/null || echo '?')"
-    echo ""
-    echo "=== Memory ==="
-    free -h 2>/dev/null || echo "(free not available)"
-    echo ""
-    echo "=== Storage ==="
-    df -h 2>/dev/null || echo "(df not available)"
-    echo ""
-    echo "=== Network ==="
-    ip -brief addr 2>/dev/null || ip addr 2>/dev/null || echo "(ip not available)"
-    echo ""
-    echo "=== Last Reboot ==="
-    uptime -s 2>/dev/null || who -b 2>/dev/null || uptime
+    local _mode=brief
+    case "${1:-}" in
+        -v|--verbose) _mode=verbose ;;
+        -b|--brief|'') _mode=brief ;;
+        *) echo "Usage: cpu [-b|--brief] [-v|--verbose]" >&2; return 1 ;;
+    esac
+
+    local _model _cores _os _docker
+    _model=$(grep -m1 "Model" /proc/cpuinfo 2>/dev/null | sed 's/.*: //' || \
+             grep -m1 "model name" /proc/cpuinfo 2>/dev/null | sed 's/.*: //' || echo "(unknown)")
+    _cores=$(nproc 2>/dev/null || grep -c '^processor' /proc/cpuinfo 2>/dev/null || echo '?')
+    _os=$(grep PRETTY_NAME /etc/os-release 2>/dev/null | cut -d'"' -f2 || echo "(unknown)")
+    _docker=$(docker --version 2>/dev/null | sed 's/Docker version \(.*\),.*/\1/' || echo "(not installed)")
+
+    if [ "$_mode" = "brief" ]; then
+        local _mem _swap _disk _since
+        _mem=$(free -m 2>/dev/null | awk '/^Mem:/ {printf "%dM / %dM", $3, $2}')
+        _swap=$(free -m 2>/dev/null | awk '/^Swap:/{printf "%dM / %dM", $3, $2}')
+        _disk=$(df -h / 2>/dev/null | awk 'NR==2{printf "%s / %s (%s)", $3, $2, $5}')
+        _since=$(uptime -s 2>/dev/null || who -b 2>/dev/null | awk '{print $3,$4}' || uptime)
+        printf "CPU:    %s (%s cores)\n" "$_model" "$_cores"
+        printf "OS:     %s\n" "$_os"
+        printf "Mem:    %s   swap: %s\n" "$_mem" "$_swap"
+        printf "Disk:   %s [/]\n" "$_disk"
+        ip -brief addr 2>/dev/null | grep -v '^lo\|^veth\|^br-\|^docker' | \
+            awk 'NR==1{printf "Net:    %s\n",$0} NR>1{printf "        %s\n",$0}' || \
+            echo "Net:    (unavailable)"
+        printf "Docker: %s\n" "$_docker"
+        printf "Since:  %s\n" "$_since"
+        echo "(use cpu -v for full details)"
+    else
+        echo "=== CPU ==="
+        echo "$_model"
+        echo "Cores: $_cores"
+        echo ""
+        echo "=== OS ==="
+        echo "$_os"
+        echo ""
+        echo "=== Memory ==="
+        free -h 2>/dev/null || echo "(free not available)"
+        echo ""
+        echo "=== Storage ==="
+        df -h 2>/dev/null || echo "(df not available)"
+        echo ""
+        echo "=== Network ==="
+        ip -brief addr 2>/dev/null || ip addr 2>/dev/null || echo "(ip not available)"
+        echo ""
+        echo "=== Docker ==="
+        echo "$_docker"
+        echo ""
+        echo "=== Last Reboot ==="
+        uptime -s 2>/dev/null || who -b 2>/dev/null || uptime
+    fi
 }
 
 # Run htop; auto-install via apt-get on Linux if missing (never installs on macOS)
