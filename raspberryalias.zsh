@@ -50,6 +50,11 @@ rac() {
 racv() { _pikey; local _cmd; _cmd=$(_ra_cmd "${@:2}"); printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.ssb8.local" bash -i 2>/dev/null; }  # racv <host> <cmd...>
 raca() { _pikey; local _cmd; _cmd=$(_ra_cmd "${@:2}"); printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.pi.hole"    bash -i 2>/dev/null; }  # raca <host> <cmd...>
 
+# --- VS Code Remote SSH: open VS Code on Mac connected to a Pi ---
+vscr()  { code --remote "ssh-remote+pi@192.168.1.$1" "${2:-/home/pi}"; }  # vscr  <octet> [path]
+vscrv() { code --remote "ssh-remote+pi@$1.ssb8.local" "${2:-/home/pi}"; } # vscrv <host>  [path]
+vscra() { code --remote "ssh-remote+pi@$1.pi.hole"    "${2:-/home/pi}"; } # vscra <host>  [path]
+
 # --- SSH: pi user, by hostname ---
 rapv()  { _pikey; ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" pi@$1.ssb8.local; }  # rapv  <host>  — with key
 rappv() { ssh "${_PIOPT[@]}" pi@$1.ssb8.local; }                        # rappv <host>  — without key

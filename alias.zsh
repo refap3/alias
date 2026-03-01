@@ -31,8 +31,28 @@ alias md='mkdir'
 # claude
 alias cdsp='claude --dangerously-skip-permissions'
 
-# Open Visual Studio Code
-alias vsc='code'
+# Open Visual Studio Code.
+# Mac: simple wrapper for the 'code' CLI.
+# Pi/Linux: SSH back to the connecting Mac and open VS Code with Remote SSH
+#   pointing at this Pi. Requires Mac Remote Login enabled and Pi's key in
+#   the Mac user's ~/.ssh/authorized_keys.
+if [ "$_ALIAS_OS" = "darwin" ]; then
+    alias vsc='code'
+else
+    vsc() {
+        if [ -z "${SSH_CLIENT:-}" ]; then
+            echo "vsc: not in an SSH session — use 'vscr <octet>' from your Mac" >&2; return 1
+        fi
+        local _mac _piip _path _qpath
+        _mac=$(printf '%s' "$SSH_CLIENT" | awk '{print $1}')
+        _piip=$(hostname -I 2>/dev/null | awk '{print $1}')
+        _path=$(realpath "${1:-$PWD}" 2>/dev/null || echo "${1:-$PWD}")
+        _qpath=$(printf '%q' "$_path")
+        ssh -o BatchMode=yes -o ConnectTimeout=5 "$_mac" \
+            "code --remote ssh-remote+pi@${_piip} ${_qpath}" 2>/dev/null \
+            || echo "vsc: could not reach Mac at $_mac — enable System Settings > Sharing > Remote Login and add Pi's key to authorized_keys" >&2
+    }
+fi
 
 # Clear screen
 alias cls='clear'
