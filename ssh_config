@@ -1,3 +1,7 @@
 Host 192.168.1.* *.ssb8.local *.pi.hole
     ForwardAgent yes
     SendEnv -LANG -LC_*
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    IdentityFile ~/.ssh/id_rsa
+    LogLevel ERROR
