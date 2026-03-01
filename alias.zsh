@@ -48,11 +48,12 @@ else
         _piip=$(hostname -I 2>/dev/null | awk '{print $1}')
         _path=$(realpath "${1:-$PWD}" 2>/dev/null || echo "${1:-$PWD}")
         _qpath=$(printf '%q' "$_path")
-        # Extract Mac username from the key comment in authorized_keys (e.g. "rainer@ENVY" → "rainer")
-        _mac_user=$(awk '/^ssh-/{split($NF,a,"@"); if(a[1]!="") print a[1]; exit}' ~/.ssh/authorized_keys 2>/dev/null)
-        ssh -o BatchMode=yes -o ConnectTimeout=5 "${_mac_user:+${_mac_user}@}${_mac}" \
+        # Mac username: use MAC_USER env var (set via raauth, or manually in ~/.bashrc)
+        _mac_user="${MAC_USER:-}"
+        local _target="${_mac_user:+${_mac_user}@}${_mac}"
+        ssh -o BatchMode=yes -o ConnectTimeout=5 "$_target" \
             "code --remote ssh-remote+pi@${_piip} ${_qpath}" 2>/dev/null \
-            || echo "vsc: could not reach Mac at ${_mac_user:+${_mac_user}@}${_mac} — enable System Settings > Sharing > Remote Login and add Pi's key to authorized_keys" >&2
+            || echo "vsc: could not reach Mac at $_target — ensure Remote Login is on and run 'raauth <octet>' from Mac to set MAC_USER on this Pi" >&2
     }
 fi
 
