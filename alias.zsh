@@ -52,7 +52,7 @@ else
         _mac_user="${MAC_USER:-}"
         local _target="${_mac_user:+${_mac_user}@}${_mac}"
         ssh -o BatchMode=yes -o ConnectTimeout=5 "$_target" \
-            "code --remote ssh-remote+pi@${_piip} ${_qpath}" 2>/dev/null \
+            "PATH=\"\$PATH:/usr/local/bin:/opt/homebrew/bin\" code --remote ssh-remote+pi@${_piip} ${_qpath}" 2>/dev/null \
             || echo "vsc: could not reach Mac at $_target — ensure Remote Login is on and run 'raauth <octet>' from Mac to set MAC_USER on this Pi" >&2
     }
 fi
