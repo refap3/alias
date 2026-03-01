@@ -70,7 +70,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `home` / `hom` | `cd ~` |
 | `cls` | Clear screen |
 | `dt` | List files created/modified today in current dir |
-| `ddd` | List only directories in current dir |
+| `dd` | List only directories in current dir |
 | `aalias <name>` | Show definition of any alias or function |
 | `x` | Open current directory in Finder |
 | `np <file>` | Open file in TextEdit |
@@ -81,6 +81,9 @@ source ~/.zshrc     # or source ~/.bashrc
 | `tree [dir]` | Display full file/folder tree from current (or given) directory |
 | `treed [dir]` | Display directory-only tree |
 | `treed -j [dir]` | Directory tree and add all dirs to `~/.jumplocations` |
+| `cpu` | System dashboard: CPU, OS, mem, disk, net, Docker, uptime (brief by default) |
+| `cpu -v` | Same info in full section-by-section view |
+| `vsc [path]` | **Mac:** open VS Code. **Pi:** open VS Code on Mac with Remote SSH to this Pi |
 
 **Raspberry Pi** (auto-loaded, key read from `~/.ssh/id_rsa`):
 
@@ -92,22 +95,48 @@ source ~/.zshrc     # or source ~/.bashrc
 | `rapa <host>` | SSH → `pi@<host>.pi.hole` with key |
 | `raphav` | SSH → `root@hassio.ssb8.local` port 22222 with key |
 | `raphaa` | SSH → `root@hassio.pi.hole` port 22222 with key |
+| `rac <octet> <cmd>` | Run command on Pi by IP octet (or comma-separated list) |
+| `racv <host> <cmd>` | Run command on Pi by `.ssb8.local` hostname |
+| `raca <host> <cmd>` | Run command on Pi by `.pi.hole` hostname |
 | `raw <octet>` | SFTP → `pi@192.168.1.<octet>` with key |
 | `rawv <host>` | SFTP → `pi@<host>.ssb8.local` with key |
 | `rawa <host>` | SFTP → `pi@<host>.pi.hole` with key |
-| `raauth <octet>` | Add Mac's `id_rsa.pub` to `pi@192.168.1.<octet>:~/.ssh/authorized_keys` |
+| `raauth <octet>` | Add Mac's `id_rsa.pub` to Pi's `authorized_keys` + write `MAC_USER` to Pi's `.bashrc` |
 | `racpub <octet>` | Copy `id_rsa.pub` to `pi@192.168.1.<octet>:~/.ssh/` |
 | `racpri <octet>` | Copy `id_rsa` to `pi@192.168.1.<octet>:~/.ssh/` and `chmod 600` |
+| `vscr <octet> [path]` | Open VS Code with Remote SSH to `pi@192.168.1.<octet>` |
+| `vscrv <host> [path]` | Open VS Code with Remote SSH to `pi@<host>.ssb8.local` |
+| `vscra <host> [path]` | Open VS Code with Remote SSH to `pi@<host>.pi.hole` |
 | `rah` | Show this alias reference |
 
 **SSH key setup for a new Pi** (run from Mac, using password auth):
 
 ```bash
-raauth 59    # adds Mac's public key to Pi .59's authorized_keys
-racpri 59    # copies Mac's private key to Pi .59 (needed for Pi-to-Pi SSH)
+raauth 59    # adds Mac's public key to Pi .59's authorized_keys + writes MAC_USER to Pi .bashrc
+racpri 59    # copies Mac's private key to Pi .59 (needed for Pi-to-Pi SSH and vsc)
 ```
 
 After `raauth`, `rap <octet>` works from the Mac. After `racpri`, the Pi can also SSH into other Pis that have been set up with `raauth`.
+
+**VS Code Remote SSH** (`vsc` from a Pi, or `vscr`/`vscrv`/`vscra` from the Mac):
+
+- **From Mac:** `vscr 52` opens VS Code connected to Pi 52 at `/home/pi`.
+- **From Pi:** type `vsc` (or `vsc /some/path`) — it reverse-SSHes to the Mac and opens VS Code with a Remote SSH session pointing at the Pi.
+
+Prerequisites:
+1. Mac **Remote Login** enabled: System Settings → General → Sharing → Remote Login → ON
+2. Run `raauth <octet>` from the Mac for each Pi (adds Mac key to Pi + writes `MAC_USER` to Pi's `.bashrc`)
+3. Run `racpri <octet>` from the Mac for each Pi (copies private key to Pi so it can reverse-SSH back)
+
+```bash
+# One-time setup per Pi (from Mac, password auth):
+raauth 52    # authorize Mac key on Pi + set MAC_USER
+racpri 52    # copy private key to Pi
+
+# Then from Pi 52 (via rap 52):
+vsc          # opens VS Code on Mac → Remote SSH → Pi 52:/home/pi
+vsc ~/myproject  # opens a specific folder
+```
 
 **Git** (auto-loaded at login — `sl` to unload, `gital` to reload, `gh` to list):
 
