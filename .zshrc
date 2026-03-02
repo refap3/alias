@@ -1,6 +1,6 @@
 unsetopt SHARE_HISTORY
 unsetopt INC_APPEND_HISTORY
-setopt LOCAL_HISTORY
+setopt APPEND_HISTORY
 
 export PATH="$HOME/.local/bin:$PATH"
 
@@ -23,8 +23,7 @@ function gh() {
 # Reload all aliases fresh
 function allal() {
     unalias -a
-    for _f in "$DOTFILES"/*alias*.zsh; do source "$_f"; done
-    unset _f
+    source ~/.zshrc
     echo "All aliases reloaded."
 }
 

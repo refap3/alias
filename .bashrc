@@ -23,8 +23,7 @@ gh() {
 # Reload all aliases fresh
 allal() {
     unalias -a
-    for _f in "$DOTFILES"/*alias*.zsh; do [ -f "$_f" ] && source "$_f"; done
-    unset _f
+    source ~/.bashrc
     echo "All aliases reloaded."
 }
 
