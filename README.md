@@ -69,16 +69,22 @@ source ~/.zshrc     # or source ~/.bashrc
 | `up` | `cd ..` |
 | `home` / `hom` | `cd ~` |
 | `cls` | Clear screen |
-| `dt` | List files created/modified today in current dir |
 | `dd` | List only directories in current dir |
 | `aalias <name>` | Show definition of any alias or function |
+| `alh` | One-line help for every alias and function (parsed from source comments) |
 | `x` | Open current directory in Finder |
 | `np <file>` | Open file in TextEdit |
 | `ia` | Network info (`ifconfig`) |
-| `ff <name>` | Find file by name (skips hidden dirs) |
-| `fff <name>` | Find file by name (includes hidden) |
+| `dt [dir]` | List files created/modified today (default: current dir) |
+| `ff <name> [dir]` | Find file by name (skips hidden dirs; default: current dir) |
+| `fff <name> [dir]` | Find file by name (includes hidden; default: current dir) |
+| `psfe [dir]` | Count files by extension, sorted by count (default: current dir) |
+| `psfed [dir]` | List empty directories (default: current dir) |
+| `psfed -d [dir]` | Delete empty leaf directories |
+| `psfed -dr [dir]` | Delete empty directories recursively until none remain |
 | `sshfp` | Show fingerprints of all `~/.ssh` key pairs (private + public) to verify they match |
 | `tree [dir]` | Display full file/folder tree from current (or given) directory |
+| `tree -u [dir]` | Same, with human-readable sizes on each node |
 | `treed [dir]` | Display directory-only tree |
 | `treed -j [dir]` | Directory tree and add all dirs to `~/.jumplocations` |
 | `cpu` | System dashboard: CPU, OS, mem, disk, net, Docker, uptime (brief by default) |

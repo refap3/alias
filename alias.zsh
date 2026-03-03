@@ -61,7 +61,7 @@ fi
 alias cls='clear'
 
 # List all files in current directory created/modified today
-dt() { find . -maxdepth 1 -newermt "$(date +%Y-%m-%d)" ! -name "." | sort; }
+dt() { find "${1:-.}" -maxdepth 1 -newermt "$(date +%Y-%m-%d)" ! -name "." | sort; }
 
 # Show alias/function definitions. No arg = show all. Arg = case-insensitive wildcard match.
 aalias() {
@@ -81,8 +81,24 @@ alias dd='ls -d */'
 
 # Display folder/file tree rooted at current (or given) directory, like Windows tree
 # Pure shell — no external commands (no find, sort, basename, uname)
+# Return file size in bytes (cross-platform)
+_tree_filesize() {
+    if [ "$_ALIAS_OS" = "darwin" ]; then
+        stat -f%z "$1" 2>/dev/null || echo 0
+    else
+        stat -c%s "$1" 2>/dev/null || echo 0
+    fi
+}
+# Format bytes as human-readable string (e.g. 4.2M)
+_tree_humansize() {
+    local b="$1"
+    if [ "$b" -ge 1073741824 ]; then awk "BEGIN{printf \"%.1fG\", $b/1073741824}"
+    elif [ "$b" -ge 1048576 ];   then awk "BEGIN{printf \"%.1fM\", $b/1048576}"
+    elif [ "$b" -ge 1024 ];      then awk "BEGIN{printf \"%.1fK\", $b/1024}"
+    else echo "${b}B"; fi
+}
 _tree_helper() {
-    local dir="$1" prefix="$2"
+    local dir="$1" prefix="$2" show_usage="${3:-0}"
     local entries=() entry i=0 count
     if [ -n "$ZSH_VERSION" ]; then
         eval 'for entry in "$dir"/*(N); do entries+=("$entry"); done'
@@ -96,19 +112,40 @@ _tree_helper() {
     for entry in "${entries[@]}"; do
         i=$((i+1))
         local name="${entry##*/}"
+        local size_tag=""
+        if [ "$show_usage" = "1" ]; then
+            if [ -d "$entry" ]; then
+                local sz; sz=$(du -sk "$entry" 2>/dev/null | awk '{print $1*1024}')
+                size_tag="[$(_tree_humansize "${sz:-0}")] "
+            else
+                size_tag="[$(_tree_humansize "$(_tree_filesize "$entry")")] "
+            fi
+        fi
         if [ "$i" -eq "$count" ]; then
-            echo "${prefix}└── $name"
-            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}    "
+            echo "${prefix}└── ${size_tag}${name}"
+            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}    " "$show_usage"
         else
-            echo "${prefix}├── $name"
-            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}│   "
+            echo "${prefix}├── ${size_tag}${name}"
+            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}│   " "$show_usage"
         fi
     done
 }
+# Display folder/file tree; -u adds human-readable sizes on each node
 tree() {
-    local dir="${1:-.}"
-    echo "$dir"
-    _tree_helper "$dir" ""
+    local dir="." show_usage=0
+    for arg in "$@"; do
+        case "$arg" in
+            -u) show_usage=1 ;;
+            *)  dir="$arg" ;;
+        esac
+    done
+    if [ "$show_usage" = "1" ]; then
+        local total; total=$(du -sk "$dir" 2>/dev/null | awk '{print $1*1024}')
+        echo "$dir  [$(_tree_humansize "${total:-0}")]"
+    else
+        echo "$dir"
+    fi
+    _tree_helper "$dir" "" "$show_usage"
 }
 
 # Like tree but directories only; -j/--jumplocations adds all dirs to ~/.jumplocations
@@ -164,9 +201,9 @@ treed() {
     [ "$jump" = "1" ] && echo "Directories added to ~/.jumplocations"
 }
 
-# Find file recursively from current directory (ff <partial name>)
-ff()  { find . -not -path "*/.*" -iname "*$1*" 2>/dev/null; }   # skips hidden files/dirs
-fff() { find . -iname "*$1*" 2>/dev/null; }                      # includes hidden (dot) files/dirs
+# Find file recursively from current directory (ff <partial name> [dir])
+ff()  { find "${2:-.}" -not -path "*/.*" -iname "*$1*" 2>/dev/null; }   # skips hidden files/dirs
+fff() { find "${2:-.}" -iname "*$1*" 2>/dev/null; }                      # includes hidden (dot) files/dirs
 
 # Show fingerprints of all keys in ~/.ssh (private + public, to verify they match)
 sshfp() {
@@ -256,34 +293,58 @@ htop() {
     command htop "$@"
 }
 
-# Count all files in current directory tree, grouped by extension
+# Count all files in current directory tree, grouped by extension; optional start dir
 # Output: extension (left-aligned) + count (right-aligned), sorted by count desc
 psfe() {
-    find . -type f | awk -F/ '{n=$NF; d=index(n,"."); if(d>1){e=substr(n,d)}else{e="(none)"}; c[e]++} END{for(e in c) print c[e],e}' | sort -rn | awk '{printf "%-16s %5d\n", $2, $1}'
+    find "${1:-.}" -type f | awk -F/ '{n=$NF; d=index(n,"."); if(d>1){e=substr(n,d)}else{e="(none)"}; c[e]++} END{for(e in c) print c[e],e}' | sort -rn | awk '{printf "%-16s %5d\n", $2, $1}'
 }
 
-# Find empty directories; -d: delete leaves; -dr: delete recursively until none remain
+# Find empty directories; -d: delete leaves; -dr: delete recursively until none remain; optional start dir
 psfed() {
-    case "$1" in
+    local dir="." flag=""
+    for arg in "$@"; do
+        case "$arg" in
+            -d|-dr) flag="$arg" ;;
+            *) dir="$arg" ;;
+        esac
+    done
+    case "$flag" in
         -dr)
             local result
-            while result=$(find . -mindepth 1 -depth -type d -empty 2>/dev/null) && [ -n "$result" ]; do
+            while result=$(find "$dir" -mindepth 1 -depth -type d -empty 2>/dev/null) && [ -n "$result" ]; do
                 echo "$result"
-                find . -mindepth 1 -depth -type d -empty -delete 2>/dev/null
+                find "$dir" -mindepth 1 -depth -type d -empty -delete 2>/dev/null
             done
             ;;
         -d)
-            find . -mindepth 1 -depth -type d -empty -delete 2>/dev/null
+            find "$dir" -mindepth 1 -depth -type d -empty -delete 2>/dev/null
             ;;
         "")
-            find . -mindepth 1 -type d -empty 2>/dev/null
+            find "$dir" -mindepth 1 -type d -empty 2>/dev/null
             ;;
         *)
-            echo "Usage: psfed [-d|-dr]" >&2
-            echo "  (no args) -- list empty directories" >&2
-            echo "  -d        -- delete empty leaf directories" >&2
-            echo "  -dr       -- delete empty directories recursively until none remain" >&2
+            echo "Usage: psfed [-d|-dr] [dir]" >&2
             return 1
             ;;
     esac
+}
+
+# Show one-line help for every alias and function (from source-file comments)
+alh() {
+    awk '
+        /^[[:space:]]*#/ {
+            sub(/^[[:space:]]*#[[:space:]]?/, ""); last_comment = $0; next
+        }
+        /^alias [a-zA-Z]/ {
+            name = $2; sub(/=.*/, "", name)
+            if (name != "" && last_comment != "") print name "\t" last_comment
+            last_comment = ""; next
+        }
+        /^[a-zA-Z][a-zA-Z0-9_]*[[:space:]]*\(\)/ {
+            name = $1; sub(/[[:space:]]*\(\).*/, "", name)
+            if (name != "" && last_comment != "") print name "\t" last_comment
+            last_comment = ""; next
+        }
+        { last_comment = "" }
+    ' "$DOTFILES"/*alias*.zsh | sort | awk -F'\t' '{printf "%-20s %s\n", $1, $2}'
 }
