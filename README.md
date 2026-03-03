@@ -2,7 +2,16 @@
 
 Portable shell configuration for zsh and bash — aliases, git shortcuts, Raspberry Pi helpers, and a directory jump function.
 
-## Quick start
+## Install (one line)
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh)
+```
+
+Clones a shallow copy (no history) into `~/alias` and runs `deploy.sh`.
+To update later: `git -C ~/alias pull`
+
+## Quick start (manual)
 
 ```bash
 git clone https://github.com/refap3/alias ~/alias
