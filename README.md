@@ -27,6 +27,7 @@ git -C ~/alias pull && bash ~/alias/deploy.sh
 Wipe the repo and deployed dotfiles, then re-run the installer:
 
 ```bash
+cd ~
 rm -rf ~/alias ~/.zshrc ~/.bashrc
 bash <(curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh)
 ```
