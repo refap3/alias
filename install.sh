@@ -15,4 +15,4 @@ echo "Cloning alias repo into $DEST ..."
 git clone --depth 1 https://github.com/refap3/alias "$DEST"
 
 echo "Running deploy.sh ..."
-bash "$DEST/deploy.sh"
+bash "$DEST/deploy.sh" --shell "$(basename "$SHELL")"
