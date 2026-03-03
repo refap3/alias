@@ -39,3 +39,4 @@ sl() {
 }
 
 source ~/.jump.sh
+export MAC_USER=rainers
