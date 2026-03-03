@@ -338,6 +338,14 @@ alu() {
     bash "$dir/deploy.sh"
 }
 
+# Pull latest deb repo (shallow, strips old history)
+dbu() {
+    local dir="${DEB_DIR:-$HOME/deb}"
+    git -C "$dir" fetch --depth=1 origin master &&
+    git -C "$dir" reset --hard origin/master &&
+    git -C "$dir" gc --prune=all --quiet
+}
+
 # Show one-line help for every alias and function (from source-file comments)
 alh() {
     awk '
