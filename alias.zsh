@@ -329,6 +329,9 @@ psfed() {
     esac
 }
 
+# Pull latest alias repo and re-run deploy.sh
+alias alu='git -C "${DOTFILES:-$HOME/alias}" pull && bash "${DOTFILES:-$HOME/alias}/deploy.sh"'
+
 # Show one-line help for every alias and function (from source-file comments)
 alh() {
     awk '

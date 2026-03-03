@@ -9,7 +9,18 @@ bash <(curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.
 ```
 
 Clones a shallow copy (no history) into `~/alias` and runs `deploy.sh`.
-To update later: `git -C ~/alias pull`
+
+## Update
+
+```bash
+alu
+```
+
+Pulls the latest changes and re-runs `deploy.sh`. The `alu` alias is available once the repo is deployed. Or manually:
+
+```bash
+git -C ~/alias pull && bash ~/alias/deploy.sh
+```
 
 ## Quick start (manual)
 
