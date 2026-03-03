@@ -22,6 +22,15 @@ Pulls the latest changes and re-runs `deploy.sh`. The `alu` alias is available o
 git -C ~/alias pull && bash ~/alias/deploy.sh
 ```
 
+## Test a clean install
+
+Wipe the repo and deployed dotfiles, then re-run the installer:
+
+```bash
+rm -rf ~/alias ~/.zshrc ~/.bashrc
+bash <(curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh)
+```
+
 ## Quick start (manual)
 
 ```bash
