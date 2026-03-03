@@ -329,8 +329,14 @@ psfed() {
     esac
 }
 
-# Pull latest alias repo and re-run deploy.sh
-alias alu='git -C "${DOTFILES:-$HOME/alias}" pull && bash "${DOTFILES:-$HOME/alias}/deploy.sh"'
+# Pull latest alias repo (shallow, strips old history) and re-run deploy.sh
+alu() {
+    local dir="${DOTFILES:-$HOME/alias}"
+    git -C "$dir" fetch --depth=1 origin master &&
+    git -C "$dir" reset --hard origin/master &&
+    git -C "$dir" gc --prune=all --quiet &&
+    bash "$dir/deploy.sh"
+}
 
 # Show one-line help for every alias and function (from source-file comments)
 alh() {
