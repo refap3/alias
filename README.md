@@ -5,7 +5,7 @@ Portable shell configuration for zsh and bash — aliases, git shortcuts, Raspbe
 ## Install (one line)
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh)
+curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh | bash
 ```
 
 Clones a shallow copy (no history) into `~/alias` and runs `deploy.sh`.
@@ -29,7 +29,7 @@ Wipe the repo and deployed dotfiles, then re-run the installer:
 ```bash
 cd ~
 rm -rf ~/alias ~/.zshrc ~/.bashrc
-bash <(curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh)
+curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh | bash
 ```
 
 ## Quick start (manual)
