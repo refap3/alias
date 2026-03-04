@@ -47,8 +47,38 @@ rac() {
             ;;
     esac
 }
-racv() { _pikey; local _cmd; _cmd=$(_ra_cmd "${@:2}"); printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.ssb8.local" bash -i 2>/dev/null; }  # racv <host> <cmd...>
-raca() { _pikey; local _cmd; _cmd=$(_ra_cmd "${@:2}"); printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.pi.hole"    bash -i 2>/dev/null; }  # raca <host> <cmd...>
+racv() {  # racv <host[,host,...]> <cmd...>
+    _pikey
+    local _cmd; _cmd=$(_ra_cmd "${@:2}")
+    case "$1" in
+        *,*)
+            local h
+            for h in $(printf '%s' "$1" | tr ',' ' '); do
+                printf '\n-- %s --\n' "$h"
+                printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$h.ssb8.local" bash -i 2>/dev/null
+            done
+            ;;
+        *)
+            printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.ssb8.local" bash -i 2>/dev/null
+            ;;
+    esac
+}
+raca() {  # raca <host[,host,...]> <cmd...>
+    _pikey
+    local _cmd; _cmd=$(_ra_cmd "${@:2}")
+    case "$1" in
+        *,*)
+            local h
+            for h in $(printf '%s' "$1" | tr ',' ' '); do
+                printf '\n-- %s --\n' "$h"
+                printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$h.pi.hole" bash -i 2>/dev/null
+            done
+            ;;
+        *)
+            printf '%s\n' "$_cmd" | ssh "${_PIKEYOPT[@]}" "${_PIOPT[@]}" "pi@$1.pi.hole" bash -i 2>/dev/null
+            ;;
+    esac
+}
 
 # --- VS Code Remote SSH: open VS Code on Mac connected to a Pi ---
 vscr()  { code --remote "ssh-remote+pi@192.168.1.$1" "${2:-/home/pi}"; }  # vscr  <octet> [path]
