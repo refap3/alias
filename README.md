@@ -115,7 +115,9 @@ source ~/.zshrc     # or source ~/.bashrc
 | `sshfp` | Show fingerprints of all `~/.ssh` key pairs (private + public) to verify they match |
 | `tree [dir]` | Display full file/folder tree from current (or given) directory |
 | `tree -u [dir]` | Same, with human-readable sizes on each node |
+| `tree -h [dir]` | Include hidden (dot) files and folders |
 | `treed [dir]` | Display directory-only tree |
+| `treed -h [dir]` | Directory-only tree including hidden dirs |
 | `treed -j [dir]` | Directory tree and add all dirs to `~/.jumplocations` |
 | `cpu` | System dashboard: CPU, OS, mem, disk, net, Docker, uptime (brief by default) |
 | `cpu -v` | Same info in full section-by-section view |

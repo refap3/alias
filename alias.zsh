@@ -98,14 +98,25 @@ _tree_humansize() {
     else echo "${b}B"; fi
 }
 _tree_helper() {
-    local dir="$1" prefix="$2" show_usage="${3:-0}"
+    local dir="$1" prefix="$2" show_usage="${3:-0}" hidden="${4:-0}"
     local entries=() entry i=0 count
     if [ -n "$ZSH_VERSION" ]; then
-        eval 'for entry in "$dir"/*(N); do entries+=("$entry"); done'
+        if [ "$hidden" = "1" ]; then
+            eval 'for entry in "$dir"/*(ND); do entries+=("$entry"); done'
+        else
+            eval 'for entry in "$dir"/*(N); do entries+=("$entry"); done'
+        fi
     else
         local _ng; _ng=$(shopt -p nullglob 2>/dev/null)
         shopt -s nullglob 2>/dev/null
-        for entry in "$dir"/*; do entries+=("$entry"); done
+        if [ "$hidden" = "1" ]; then
+            local _dg; _dg=$(shopt -p dotglob 2>/dev/null)
+            shopt -s dotglob 2>/dev/null
+            for entry in "$dir"/*; do entries+=("$entry"); done
+            eval "$_dg" 2>/dev/null
+        else
+            for entry in "$dir"/*; do entries+=("$entry"); done
+        fi
         eval "$_ng" 2>/dev/null
     fi
     count=${#entries[@]}
@@ -123,19 +134,20 @@ _tree_helper() {
         fi
         if [ "$i" -eq "$count" ]; then
             echo "${prefix}└── ${size_tag}${name}"
-            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}    " "$show_usage"
+            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}    " "$show_usage" "$hidden"
         else
             echo "${prefix}├── ${size_tag}${name}"
-            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}│   " "$show_usage"
+            [ -d "$entry" ] && _tree_helper "$entry" "${prefix}│   " "$show_usage" "$hidden"
         fi
     done
 }
 # Display folder/file tree; -u adds human-readable sizes on each node
 tree() {
-    local dir="." show_usage=0
+    local dir="." show_usage=0 hidden=0
     for arg in "$@"; do
         case "$arg" in
             -u) show_usage=1 ;;
+            -h) hidden=1 ;;
             *)  dir="$arg" ;;
         esac
     done
@@ -145,7 +157,7 @@ tree() {
     else
         echo "$dir"
     fi
-    _tree_helper "$dir" "" "$show_usage"
+    _tree_helper "$dir" "" "$show_usage" "$hidden"
 }
 
 # Like tree but directories only; -j/--jumplocations adds all dirs to ~/.jumplocations
@@ -156,14 +168,25 @@ _treed_in_jump() {
     return 1
 }
 _treed_helper() {
-    local dir="$1" prefix="$2" jump="${3:-0}"
+    local dir="$1" prefix="$2" jump="${3:-0}" hidden="${4:-0}"
     local entries=() entry i=0 count
     if [ -n "$ZSH_VERSION" ]; then
-        eval 'for entry in "$dir"/*(N/); do entries+=("$entry"); done'
+        if [ "$hidden" = "1" ]; then
+            eval 'for entry in "$dir"/*(ND/); do entries+=("$entry"); done'
+        else
+            eval 'for entry in "$dir"/*(N/); do entries+=("$entry"); done'
+        fi
     else
         local _ng; _ng=$(shopt -p nullglob 2>/dev/null)
         shopt -s nullglob 2>/dev/null
-        for entry in "$dir"/*; do [ -d "$entry" ] && entries+=("$entry"); done
+        if [ "$hidden" = "1" ]; then
+            local _dg; _dg=$(shopt -p dotglob 2>/dev/null)
+            shopt -s dotglob 2>/dev/null
+            for entry in "$dir"/*; do [ -d "$entry" ] && entries+=("$entry"); done
+            eval "$_dg" 2>/dev/null
+        else
+            for entry in "$dir"/*; do [ -d "$entry" ] && entries+=("$entry"); done
+        fi
         eval "$_ng" 2>/dev/null
     fi
     count=${#entries[@]}
@@ -173,18 +196,19 @@ _treed_helper() {
         [ "$jump" = "1" ] && { _treed_in_jump "$entry" || echo "$entry" >> "$HOME/.jumplocations"; }
         if [ "$i" -eq "$count" ]; then
             echo "${prefix}└── $name"
-            _treed_helper "$entry" "${prefix}    " "$jump"
+            _treed_helper "$entry" "${prefix}    " "$jump" "$hidden"
         else
             echo "${prefix}├── $name"
-            _treed_helper "$entry" "${prefix}│   " "$jump"
+            _treed_helper "$entry" "${prefix}│   " "$jump" "$hidden"
         fi
     done
 }
 treed() {
-    local dir="." jump=0
+    local dir="." jump=0 hidden=0
     for arg in "$@"; do
         case "$arg" in
             -j|--jumplocations) jump=1 ;;
+            -h) hidden=1 ;;
             *) dir="$arg" ;;
         esac
     done
@@ -197,7 +221,7 @@ treed() {
     esac
     [ "$jump" = "1" ] && { _treed_in_jump "$abs_dir" || echo "$abs_dir" >> "$HOME/.jumplocations"; }
     echo "$abs_dir"
-    _treed_helper "$abs_dir" "" "$jump"
+    _treed_helper "$abs_dir" "" "$jump" "$hidden"
     [ "$jump" = "1" ] && echo "Directories added to ~/.jumplocations"
 }
 
