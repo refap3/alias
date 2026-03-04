@@ -146,8 +146,8 @@ tree() {
     local dir="." show_usage=0 hidden=0
     for arg in "$@"; do
         case "$arg" in
-            -u) show_usage=1 ;;
-            -h) hidden=1 ;;
+            -*) case "$arg" in *u*) show_usage=1 ;; esac
+                case "$arg" in *h*) hidden=1 ;; esac ;;
             *)  dir="$arg" ;;
         esac
     done
@@ -207,8 +207,9 @@ treed() {
     local dir="." jump=0 hidden=0
     for arg in "$@"; do
         case "$arg" in
-            -j|--jumplocations) jump=1 ;;
-            -h) hidden=1 ;;
+            --jumplocations) jump=1 ;;
+            -*) case "$arg" in *j*) jump=1 ;; esac
+                case "$arg" in *h*) hidden=1 ;; esac ;;
             *) dir="$arg" ;;
         esac
     done
