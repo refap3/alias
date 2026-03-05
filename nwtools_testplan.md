@@ -62,17 +62,35 @@
 
 ---
 
-## Suggested Additional Tools (not yet implemented)
+## Tool Tests — Extended (Mac + Pi)
 
-| # | Tool | Windows equiv | Notes |
-|---|------|---------------|-------|
-| S1 | Ping gateway | `ping <gateway>` | auto-detect gateway |
-| S2 | Ping 8.8.8.8 | `ping 8.8.8.8` | internet connectivity check |
-| S3 | Traceroute | `tracert` | Mac: `traceroute`, Pi: `traceroute`/`mtr` |
-| S4 | DNS lookup | `nslookup`/`dig` | prompt for hostname |
-| S5 | Routing table | `route print` | Mac: `netstat -rn`, Pi: `ip route` |
-| S6 | Active connections | `netstat -an` | Mac: `netstat -an`, Pi: `ss -tulpn` |
-| S7 | External IP | — | `curl -s ifconfig.me` |
-| S8 | Port test | `telnet <host> <port>` | `nc -zv <host> <port>` |
-| S9 | WiFi info | `netsh wlan show` | Mac: `airport -I`, Pi: `iwconfig` |
-| S10 | Wake-on-LAN | — | `wakeonlan <mac>` or `wol` |
+| # | Choice | Test | Expected |
+|---|--------|------|----------|
+| X1 | 8 | Ping gateway | Auto-detects gateway, pings 4 times, shows RTT |
+| X2 | 8 | Ping gateway — no default route | "ERROR: Could not detect default gateway." |
+| X3 | 9 | Ping 8.8.8.8 | 4 ping replies, shows RTT |
+| X4 | a | Traceroute — accept default (8.8.8.8) | Hops to 8.8.8.8 displayed |
+| X5 | a | Traceroute — custom host | Hops to entered host |
+| X6 | a | Traceroute — Pi, mtr present | mtr --report output |
+| X7 | a | Traceroute — Pi, no mtr/traceroute | ERROR with install hint |
+| X8 | b | DNS lookup — accept default (google.com) | A record returned |
+| X9 | b | DNS lookup — custom hostname | DNS response shown |
+| X10 | b | DNS lookup — no dig/nslookup | ERROR message |
+| X11 | c | Routing table — Mac | `netstat -rn` output with gateway column |
+| X12 | c | Routing table — Pi | `ip route` + `ip -6 route` output |
+| X13 | d | Connections — Mac | LISTEN/ESTABLISHED lines from netstat |
+| X14 | d | Connections — Pi (ss present) | `ss -tulpn` output |
+| X15 | d | Connections — Pi (no ss) | netstat fallback or ERROR |
+| X16 | e | External IP | Public IP printed, no trailing newline issues |
+| X17 | e | External IP — no curl/wget | ERROR message |
+| X18 | f | Port test — open port (e.g. 80 on google.com) | "Connection succeeded" / "open" |
+| X19 | f | Port test — closed port | nc reports connection refused |
+| X20 | f | Port test — empty host/port | "ERROR: Host and port required." |
+| X21 | f | Port test — no nc | ERROR with install hint |
+| X22 | g | WiFi info — Mac | SSID, BSSID, channel, signal strength |
+| X23 | g | WiFi info — Pi (iwconfig) | Interface wireless stats |
+| X24 | g | WiFi info — Pi (iw fallback) | `iw dev` output |
+| X25 | g | WiFi info — Pi wired only | ERROR or no wireless extensions message |
+| X26 | h | Wake-on-LAN — valid MAC | "Sending magic packet" message |
+| X27 | h | Wake-on-LAN — empty MAC | "ERROR: MAC address required." |
+| X28 | h | Wake-on-LAN — no wakeonlan/wol | ERROR with install hint |

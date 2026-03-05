@@ -143,6 +143,150 @@ tool_arp_d() {
     echo "Done."
 }
 
+tool_ping_gateway() {
+    local gw
+    if [ "$_OS" = "darwin" ]; then
+        gw=$(route get default 2>/dev/null | awk '/gateway:/{print $2}')
+    else
+        gw=$(ip route show default 2>/dev/null | awk '/default via/{print $3; exit}')
+    fi
+    if [ -z "$gw" ]; then
+        echo "ERROR: Could not detect default gateway."
+        return 1
+    fi
+    echo "Pinging gateway: $gw"
+    echo ""
+    ping -c 4 "$gw"
+}
+
+tool_ping_internet() {
+    echo "Pinging 8.8.8.8 ..."
+    echo ""
+    ping -c 4 8.8.8.8
+}
+
+tool_traceroute() {
+    read -rp "Target host [default: 8.8.8.8]: " target
+    target="${target:-8.8.8.8}"
+    echo ""
+    if [ "$_OS" = "darwin" ]; then
+        traceroute "$target"
+    else
+        if command -v mtr >/dev/null 2>&1; then
+            mtr --report --report-cycles 5 "$target"
+        elif command -v traceroute >/dev/null 2>&1; then
+            traceroute "$target"
+        else
+            echo "ERROR: Neither mtr nor traceroute found. Install: sudo apt install traceroute"
+            return 1
+        fi
+    fi
+}
+
+tool_dns_lookup() {
+    read -rp "Hostname to look up [default: google.com]: " host
+    host="${host:-google.com}"
+    echo ""
+    if command -v dig >/dev/null 2>&1; then
+        dig "$host"
+    elif command -v nslookup >/dev/null 2>&1; then
+        nslookup "$host"
+    else
+        echo "ERROR: Neither dig nor nslookup found."
+        return 1
+    fi
+}
+
+tool_route_table() {
+    if [ "$_OS" = "darwin" ]; then
+        netstat -rn
+    else
+        ip route
+        echo ""
+        echo "=== IPv6 ==="
+        ip -6 route 2>/dev/null || true
+    fi
+}
+
+tool_connections() {
+    if [ "$_OS" = "darwin" ]; then
+        netstat -an | grep -E 'LISTEN|ESTABLISHED'
+    else
+        if command -v ss >/dev/null 2>&1; then
+            ss -tulpn
+        else
+            netstat -tulpn 2>/dev/null || echo "ERROR: neither ss nor netstat found."
+        fi
+    fi
+}
+
+tool_external_ip() {
+    echo "Fetching external IP ..."
+    echo ""
+    if command -v curl >/dev/null 2>&1; then
+        curl -s --max-time 5 https://ifconfig.me && echo ""
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO- --timeout=5 https://ifconfig.me && echo ""
+    else
+        echo "ERROR: curl and wget not found."
+        return 1
+    fi
+}
+
+tool_port_test() {
+    read -rp "Host: " pt_host
+    read -rp "Port: " pt_port
+    if [ -z "$pt_host" ] || [ -z "$pt_port" ]; then
+        echo "ERROR: Host and port required."
+        return 1
+    fi
+    echo ""
+    echo "Testing $pt_host:$pt_port ..."
+    if command -v nc >/dev/null 2>&1; then
+        nc -zv -w 5 "$pt_host" "$pt_port"
+    else
+        echo "ERROR: nc (netcat) not found. Install: sudo apt install netcat"
+        return 1
+    fi
+}
+
+tool_wifi_info() {
+    if [ "$_OS" = "darwin" ]; then
+        local airport="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+        if [ -x "$airport" ]; then
+            "$airport" -I
+        else
+            networksetup -getairportnetwork en0 2>/dev/null || echo "airport utility not found."
+        fi
+    else
+        if command -v iwconfig >/dev/null 2>&1; then
+            iwconfig 2>/dev/null
+        elif command -v iw >/dev/null 2>&1; then
+            iw dev
+        else
+            echo "ERROR: Neither iwconfig nor iw found. Install: sudo apt install wireless-tools"
+            return 1
+        fi
+    fi
+}
+
+tool_wol() {
+    read -rp "MAC address (e.g. aa:bb:cc:dd:ee:ff): " wol_mac
+    if [ -z "$wol_mac" ]; then
+        echo "ERROR: MAC address required."
+        return 1
+    fi
+    echo ""
+    if command -v wakeonlan >/dev/null 2>&1; then
+        wakeonlan "$wol_mac"
+    elif command -v wol >/dev/null 2>&1; then
+        wol "$wol_mac"
+    else
+        echo "ERROR: wakeonlan / wol not found. Install: sudo apt install wakeonlan"
+        return 1
+    fi
+}
+
 # ---------------------------------------------------------------------------
 # Menu
 # ---------------------------------------------------------------------------
@@ -160,6 +304,17 @@ while true; do
     echo "6.  arp -a              show ARP table"
     echo "7.  arp -d              clear ARP table"
     echo "---------------------------------------"
+    echo "8.  ping gateway        ping default gateway"
+    echo "9.  ping 8.8.8.8        internet connectivity"
+    echo "a.  traceroute          trace route to host"
+    echo "b.  dns lookup          dig / nslookup"
+    echo "c.  routing table       show routes"
+    echo "d.  connections         active/listening ports"
+    echo "e.  external IP         whatismyip"
+    echo "f.  port test           nc -zv host port"
+    echo "g.  wifi info           wireless details"
+    echo "h.  wake-on-LAN         send WOL magic packet"
+    echo "---------------------------------------"
     echo "0.  Exit"
     echo ""
     read -rp "Choice: " choice
@@ -172,6 +327,16 @@ while true; do
         5) run_tool "ipconfig /flushdns"  tool_flushdns ;;
         6) run_tool "arp -a"              tool_arp_a ;;
         7) run_tool "arp -d"              tool_arp_d ;;
+        8) run_tool "ping gateway"        tool_ping_gateway ;;
+        9) run_tool "ping 8.8.8.8"        tool_ping_internet ;;
+        a) run_tool "traceroute"          tool_traceroute ;;
+        b) run_tool "dns lookup"          tool_dns_lookup ;;
+        c) run_tool "routing table"       tool_route_table ;;
+        d) run_tool "connections"         tool_connections ;;
+        e) run_tool "external IP"         tool_external_ip ;;
+        f) run_tool "port test"           tool_port_test ;;
+        g) run_tool "wifi info"           tool_wifi_info ;;
+        h) run_tool "wake-on-LAN"         tool_wol ;;
         0) echo "Exiting..."; exit 0 ;;
         *) echo "Invalid choice."; sleep 1 ;;
     esac
