@@ -44,3 +44,5 @@ function sl() {
 }
 
 source ~/.jump.sh
+
+export EDITOR="code --wait"
