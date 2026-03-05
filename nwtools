@@ -85,6 +85,7 @@ tool_ipconfig_release() {
             sudo dhcpcd --release "$iface"
         else
             echo "ERROR: Neither dhclient nor dhcpcd found."
+            echo "Install: sudo apt install isc-dhcp-client   or   sudo apt install dhcpcd5"
             return 1
         fi
     fi
@@ -108,6 +109,7 @@ tool_ipconfig_renew() {
             sudo dhcpcd "$iface"
         else
             echo "ERROR: Neither dhclient nor dhcpcd found."
+            echo "Install: sudo apt install isc-dhcp-client   or   sudo apt install dhcpcd5"
             return 1
         fi
     fi
@@ -120,17 +122,29 @@ tool_flushdns() {
         sudo killall -HUP mDNSResponder
         echo "DNS cache flushed."
     else
-        if sudo systemd-resolve --flush-caches 2>/dev/null || sudo resolvectl flush-caches 2>/dev/null; then
-            echo "DNS cache flushed."
+        if command -v resolvectl >/dev/null 2>&1; then
+            sudo resolvectl flush-caches && echo "DNS cache flushed (resolvectl)."
+        elif command -v systemd-resolve >/dev/null 2>&1; then
+            sudo systemd-resolve --flush-caches && echo "DNS cache flushed (systemd-resolve)."
+        elif [ -x /etc/init.d/dns-clean ]; then
+            sudo /etc/init.d/dns-clean restart && echo "DNS cache flushed (dns-clean)."
         else
-            echo "ERROR: systemd-resolve / resolvectl not found. Try: sudo /etc/init.d/dns-clean restart"
-            return 1
+            echo "No DNS flush tool found (resolvectl / systemd-resolve / dns-clean)."
+            echo "Current /etc/resolv.conf:"
+            cat /etc/resolv.conf
         fi
     fi
 }
 
 tool_arp_a() {
-    arp -a
+    if command -v arp >/dev/null 2>&1; then
+        arp -a
+    elif [ "$_OS" = "linux" ]; then
+        ip neigh show
+    else
+        echo "ERROR: arp not found."
+        return 1
+    fi
 }
 
 tool_arp_d() {
@@ -176,8 +190,11 @@ tool_traceroute() {
             mtr --report --report-cycles 5 "$target"
         elif command -v traceroute >/dev/null 2>&1; then
             traceroute "$target"
+        elif command -v tracepath >/dev/null 2>&1; then
+            tracepath "$target"
         else
-            echo "ERROR: Neither mtr nor traceroute found. Install: sudo apt install traceroute"
+            echo "ERROR: No traceroute tool found."
+            echo "Install: sudo apt install traceroute   or   sudo apt install mtr-tiny"
             return 1
         fi
     fi
@@ -191,9 +208,15 @@ tool_dns_lookup() {
         dig "$host"
     elif command -v nslookup >/dev/null 2>&1; then
         nslookup "$host"
+    elif command -v host >/dev/null 2>&1; then
+        host "$host"
     else
-        echo "ERROR: Neither dig nor nslookup found."
-        return 1
+        echo "Trying getent ..."
+        getent hosts "$host" 2>/dev/null || {
+            echo "ERROR: No DNS lookup tool found (dig / nslookup / host)."
+            echo "Install: sudo apt install dnsutils"
+            return 1
+        }
     fi
 }
 
@@ -260,11 +283,19 @@ tool_wifi_info() {
         fi
     else
         if command -v iwconfig >/dev/null 2>&1; then
-            iwconfig 2>/dev/null
+            local out
+            out=$(iwconfig 2>/dev/null)
+            if echo "$out" | grep -q 'ESSID\|IEEE'; then
+                echo "$out"
+            else
+                echo "(No wireless interfaces detected via iwconfig)"
+                echo "$out"
+            fi
         elif command -v iw >/dev/null 2>&1; then
             iw dev
         else
-            echo "ERROR: Neither iwconfig nor iw found. Install: sudo apt install wireless-tools"
+            echo "ERROR: Neither iwconfig nor iw found."
+            echo "Install: sudo apt install wireless-tools   or   sudo apt install iw"
             return 1
         fi
     fi
