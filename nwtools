@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+# nwtools — Network troubleshooting menu (Mac / Raspberry Pi)
+# Windows ipconfig/arp equivalents
+
+[ "$(uname)" = "Darwin" ] && _OS=darwin || _OS=linux
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+_active_iface() {
+    if [ "$_OS" = "darwin" ]; then
+        route get default 2>/dev/null | awk '/interface:/{print $2}'
+    else
+        ip route show default 2>/dev/null | awk '/dev/{for(i=1;i<=NF;i++) if($i=="dev") print $(i+1); exit}'
+    fi
+}
+
+_sep() { echo "----------------------------------------"; }
+
+run_tool() {
+    local label="$1"; shift
+    clear
+    echo "Begin $label"
+    _sep
+    "$@"
+    echo ""
+    _sep
+    echo "End $label"
+    echo ""
+    read -rp "Press Enter to continue..."
+}
+
+# ---------------------------------------------------------------------------
+# Tools
+# ---------------------------------------------------------------------------
+
+tool_ipconfig() {
+    if [ "$_OS" = "darwin" ]; then
+        ifconfig | grep -A4 -E '^(en|utun|lo)[0-9]+:'
+    else
+        ip addr show
+    fi
+}
+
+tool_ipconfig_all() {
+    if [ "$_OS" = "darwin" ]; then
+        echo "=== Interfaces ==="
+        ifconfig -a
+        echo ""
+        echo "=== Hardware Ports ==="
+        networksetup -listallhardwareports 2>/dev/null
+        echo ""
+        echo "=== DNS ==="
+        scutil --dns 2>/dev/null | head -40
+    else
+        echo "=== Interfaces ==="
+        ip addr
+        echo ""
+        echo "=== Link ==="
+        ip link
+        echo ""
+        echo "=== Routes ==="
+        ip route
+        echo ""
+        echo "=== DNS ==="
+        cat /etc/resolv.conf
+    fi
+}
+
+tool_ipconfig_release() {
+    local iface
+    iface="$(_active_iface)"
+    if [ -z "$iface" ]; then
+        echo "ERROR: Could not detect active interface."
+        return 1
+    fi
+    echo "Releasing DHCP lease on: $iface"
+    if [ "$_OS" = "darwin" ]; then
+        sudo ipconfig set "$iface" NONE
+    else
+        if command -v dhclient >/dev/null 2>&1; then
+            sudo dhclient -r "$iface"
+        elif command -v dhcpcd >/dev/null 2>&1; then
+            sudo dhcpcd --release "$iface"
+        else
+            echo "ERROR: Neither dhclient nor dhcpcd found."
+            return 1
+        fi
+    fi
+    echo "Done."
+}
+
+tool_ipconfig_renew() {
+    local iface
+    iface="$(_active_iface)"
+    if [ -z "$iface" ]; then
+        echo "ERROR: Could not detect active interface."
+        return 1
+    fi
+    echo "Renewing DHCP lease on: $iface"
+    if [ "$_OS" = "darwin" ]; then
+        sudo ipconfig set "$iface" DHCP
+    else
+        if command -v dhclient >/dev/null 2>&1; then
+            sudo dhclient "$iface"
+        elif command -v dhcpcd >/dev/null 2>&1; then
+            sudo dhcpcd "$iface"
+        else
+            echo "ERROR: Neither dhclient nor dhcpcd found."
+            return 1
+        fi
+    fi
+    echo "Done."
+}
+
+tool_flushdns() {
+    if [ "$_OS" = "darwin" ]; then
+        sudo dscacheutil -flushcache
+        sudo killall -HUP mDNSResponder
+        echo "DNS cache flushed."
+    else
+        if sudo systemd-resolve --flush-caches 2>/dev/null || sudo resolvectl flush-caches 2>/dev/null; then
+            echo "DNS cache flushed."
+        else
+            echo "ERROR: systemd-resolve / resolvectl not found. Try: sudo /etc/init.d/dns-clean restart"
+            return 1
+        fi
+    fi
+}
+
+tool_arp_a() {
+    arp -a
+}
+
+tool_arp_d() {
+    echo "Clearing ARP cache ..."
+    if [ "$_OS" = "darwin" ]; then
+        sudo arp -d -a
+    else
+        sudo ip neigh flush all
+    fi
+    echo "Done."
+}
+
+# ---------------------------------------------------------------------------
+# Menu
+# ---------------------------------------------------------------------------
+
+while true; do
+    clear
+    echo "======================================="
+    echo "  Network Tools"
+    echo "======================================="
+    echo "1.  ipconfig            show IP config"
+    echo "2.  ipconfig /all       full details"
+    echo "3.  ipconfig /release   release DHCP lease"
+    echo "4.  ipconfig /renew     renew DHCP lease"
+    echo "5.  ipconfig /flushdns  flush DNS cache"
+    echo "6.  arp -a              show ARP table"
+    echo "7.  arp -d              clear ARP table"
+    echo "---------------------------------------"
+    echo "0.  Exit"
+    echo ""
+    read -rp "Choice: " choice
+
+    case "$choice" in
+        1) run_tool "ipconfig"            tool_ipconfig ;;
+        2) run_tool "ipconfig /all"       tool_ipconfig_all ;;
+        3) run_tool "ipconfig /release"   tool_ipconfig_release ;;
+        4) run_tool "ipconfig /renew"     tool_ipconfig_renew ;;
+        5) run_tool "ipconfig /flushdns"  tool_flushdns ;;
+        6) run_tool "arp -a"              tool_arp_a ;;
+        7) run_tool "arp -d"              tool_arp_d ;;
+        0) echo "Exiting..."; exit 0 ;;
+        *) echo "Invalid choice."; sleep 1 ;;
+    esac
+done
