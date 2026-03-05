@@ -89,6 +89,8 @@ source ~/.zshrc     # or source ~/.bashrc
 | `raspberryalias.zsh` | SSH/SFTP aliases for Raspberry Pi hosts |
 | `jump.sh` | Directory jump function (`j`) |
 | `deploy.sh` | Install script — 4 variants: zsh/bash × home/custom |
+| `nwtools` | Interactive network troubleshooting menu (Mac + Pi) |
+| `nwtools_testplan.md` | Test plan for `nwtools` |
 
 ## Aliases
 
@@ -205,3 +207,36 @@ vsc ~/myproject  # opens a specific folder
 | `sl` | Unload git aliases and reload shell profile |
 | `gital` | Reload git aliases |
 | `gh` | List all git aliases |
+
+---
+
+## Network Tools (`nwtools`)
+
+Interactive menu for network troubleshooting — Windows `ipconfig`/`arp` equivalents. Works on Mac (zsh) and Raspberry Pi (bash). Docker interfaces are automatically hidden on Pi.
+
+```bash
+~/alias/nwtools
+```
+
+| Choice | Tool | Description |
+|--------|------|-------------|
+| `1` | ipconfig | Show IP config (real interfaces only) |
+| `2` | ipconfig /all | Full details: interfaces, routes, DNS |
+| `3` | ipconfig /release | Release DHCP lease on active interface |
+| `4` | ipconfig /renew | Renew DHCP lease on active interface |
+| `5` | ipconfig /flushdns | Flush DNS cache |
+| `6` | arp -a | Show ARP/neighbour table |
+| `7` | arp -d | Clear ARP/neighbour table |
+| `8` | ping gateway | Ping auto-detected default gateway |
+| `9` | ping 8.8.8.8 | Internet connectivity check |
+| `a` | traceroute | Trace route to host (mtr → traceroute → tracepath) |
+| `b` | dns lookup | dig / nslookup / host / getent fallback chain |
+| `c` | routing table | Show routes |
+| `d` | connections | Active/listening ports (`ss -tulpn` / `netstat`) |
+| `e` | external IP | Fetch public IP via ifconfig.me |
+| `f` | port test | `nc -zv <host> <port>` |
+| `g` | wifi info | Wireless interface details |
+| `h` | wake-on-LAN | Send WOL magic packet |
+| `0` | exit | |
+
+Missing tools (nc, traceroute, etc.) show a clear error with `apt install` hint rather than silently failing.
