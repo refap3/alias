@@ -363,6 +363,9 @@ alu() {
     bash "$dir/deploy.sh"
 }
 
+# Disk speed test (read/write benchmark on current directory)
+alias dst='~/deb/disk_speed_test'
+
 # Pull latest deb repo (shallow, strips old history)
 dbu() {
     local dir="${DEB_DIR:-$HOME/deb}"
