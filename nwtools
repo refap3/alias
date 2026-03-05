@@ -35,11 +35,15 @@ run_tool() {
 # Tools
 # ---------------------------------------------------------------------------
 
+_ip_no_docker() {
+    ip addr show | awk '/^[0-9]+: (docker|br-|veth)/ { skip=1; next } /^[0-9]+:/ { skip=0 } !skip { print }'
+}
+
 tool_ipconfig() {
     if [ "$_OS" = "darwin" ]; then
         ifconfig | grep -A4 -E '^(en|utun|lo)[0-9]+:'
     else
-        ip addr show
+        _ip_no_docker
     fi
 }
 
@@ -55,13 +59,10 @@ tool_ipconfig_all() {
         scutil --dns 2>/dev/null | head -40
     else
         echo "=== Interfaces ==="
-        ip addr
-        echo ""
-        echo "=== Link ==="
-        ip link
+        _ip_no_docker
         echo ""
         echo "=== Routes ==="
-        ip route
+        ip route | grep -v -E '^(172\.|10\.42\.)'
         echo ""
         echo "=== DNS ==="
         cat /etc/resolv.conf
