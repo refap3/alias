@@ -366,10 +366,14 @@ alu() {
 # Show Mac-to-Mac alias reference
 mch() {
     echo "Mac aliases  (user: rainers, key: ~/.ssh/id_rsa, host: <name>.local)"
-    echo "  mcp <name>              — SSH  (e.g. mcp mm)"
-    echo "  mcw <name>              — SFTP (e.g. mcw mb)"
-    echo "  mcc <name[,name]> <cmd> — run command (e.g. mcc mm,mb uptime)"
+    echo "  mcp <name>               — SSH              (e.g. mcp mm)"
+    echo "  mcw <name>               — SFTP             (e.g. mcw mb)"
+    echo "  mcc <name[,name]> <cmd>  — run command      (e.g. mcc mm,mb uptime)"
+    echo "  mcv <name>               — Screen Sharing   (e.g. mcv mm)"
 }
+
+# Open Screen Sharing (VNC) to <name>.local (e.g. mcv mm)
+mcv() { open "vnc://${1}.local"; }
 
 # Connect via SSH to rainers@<name>.local using private key (e.g. mcp mm)
 mcp() { ssh -i ~/.ssh/id_rsa "rainers@${1}.local"; }
