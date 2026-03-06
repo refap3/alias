@@ -386,7 +386,12 @@ tool_iface_summary() {
         '
     else
         ip -brief addr show 2>/dev/null | \
-            awk '!/docker|veth|br-/{printf "%-14s %-8s %-20s %s\n", $1, $2, $3, $4}'
+            awk '!/docker|veth|br-/{
+                # strip fe80 link-local from IPv6 column ($4+)
+                ipv6=""
+                for (i=4; i<=NF; i++) { if ($i !~ /^fe80/) { ipv6=$i; break } }
+                printf "%-14s %-8s %-20s %s\n", $1, $2, $3, ipv6
+            }'
     fi
 }
 
