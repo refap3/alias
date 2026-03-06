@@ -369,6 +369,23 @@ mcpl() { ssh -i ~/.ssh/id_rsa "rainers@${1}.local"; }
 # Connect via SFTP to rainers@<name>.local using private key (e.g. mcwl mm)
 mcwl() { sftp -i ~/.ssh/id_rsa "rainers@${1}.local"; }
 
+# Run a command on one or more Macs by .local name (comma-separated) (e.g. mccl mm ls -la)
+mccl() {
+    local _cmd; _cmd=$(printf 'shopt -s expand_aliases; %s' "${@:2}")
+    case "$1" in
+        *,*)
+            local h
+            for h in $(printf '%s' "$1" | tr ',' ' '); do
+                printf '\n-- %s --\n' "$h"
+                printf '%s\n' "$_cmd" | ssh -i ~/.ssh/id_rsa "rainers@${h}.local" bash -i 2>/dev/null
+            done
+            ;;
+        *)
+            printf '%s\n' "$_cmd" | ssh -i ~/.ssh/id_rsa "rainers@${1}.local" bash -i 2>/dev/null
+            ;;
+    esac
+}
+
 # Disk speed test (read/write benchmark on current directory)
 alias dst='~/deb/disk_speed_test'
 
