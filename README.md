@@ -130,6 +130,16 @@ source ~/.zshrc     # or source ~/.bashrc
 | `cpu -v` | Same info in full section-by-section view |
 | `vsc [path]` | **Mac:** open VS Code. **Pi:** open VS Code on Mac with Remote SSH to this Pi |
 
+**Mac Screen Sharing setup** (one-time, run on the remote Mac if Remote Management blocks VNC):
+
+```bash
+sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart \
+  -activate -configure -access -on -privs -all -users rainers \
+  -clientopts -setvnclegacy -vnclegacy yes -setvncpw -vncpw <password>
+```
+
+Then connect with `mcv <name>` using the VNC password set above (not the Mac login password).
+
 **Raspberry Pi** (auto-loaded, key read from `~/.ssh/id_rsa`):
 
 | Command | Description |
