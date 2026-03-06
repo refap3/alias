@@ -2,7 +2,7 @@
 
 ## Platforms
 - [ ] Mac (zsh / bash)
-- [ ] Raspberry Pi (bash)
+- [ ] Raspberry Pi / Debian (bash) — host 93
 
 ---
 
@@ -22,32 +22,77 @@
 
 | # | Choice | Test | Expected |
 |---|--------|------|----------|
-| T1 | 1 | Run ipconfig | ifconfig output with inet/ether lines |
-| T2 | 2 | Run ipconfig /all | Three sections: Interfaces, Hardware Ports, DNS |
-| T3 | 3 | Run ipconfig /release | sudo prompt, "Releasing DHCP lease on: en0" (or active iface), "Done." |
-| T4 | 1 | Run ipconfig after release | IP address gone from active iface |
-| T5 | 4 | Run ipconfig /renew | sudo prompt, "Renewing DHCP lease on: en0", "Done." |
-| T6 | 1 | Run ipconfig after renew | IP address restored |
-| T7 | 5 | Run ipconfig /flushdns | sudo prompts, "DNS cache flushed." |
-| T8 | 6 | Run arp -a | ARP table with IP → MAC entries |
-| T9 | 7 | Run arp -d | "Clearing ARP cache...", sudo, "Done." |
-| T10 | 6 | Run arp -a after arp -d | Table empty or repopulating |
+| T1 | 1 | ipconfig | Only `inet` (v4) lines + ether; no `inet6` |
+| T2 | i | ipconfig v6 | Only `inet6` lines; no bare `inet` |
+| T3 | 2 | ipconfig /all | Interfaces (v4), Hardware Ports, DNS sections |
+| T4 | j | ipconfig /all v6 | Interfaces (v6), Hardware Ports, DNS sections |
+| T5 | 3 | ipconfig /release | sudo prompt, "Releasing DHCP lease on: en0", "Done." |
+| T6 | 1 | ipconfig after release | IP gone from active iface |
+| T7 | 4 | ipconfig /renew | sudo, "Renewing DHCP lease on: en0", "Done." |
+| T8 | 1 | ipconfig after renew | IP restored |
+| T9 | 5 | flushdns | sudo prompts, "DNS cache flushed." |
+| T10 | 6 | arp -a | ARP table IP → MAC |
+| T11 | 7 | arp -d | "Clearing ARP cache...", sudo, "Done." |
 
 ---
 
-## Tool Tests — Raspberry Pi (Linux)
+## Tool Tests — Raspberry Pi / Debian (host 93)
 
 | # | Choice | Test | Expected |
 |---|--------|------|----------|
-| L1 | 1 | Run ipconfig | `ip addr show` output |
-| L2 | 2 | Run ipconfig /all | Four sections: Interfaces, Link, Routes, DNS |
-| L3 | 3 | Run ipconfig /release (dhclient present) | "Releasing DHCP lease on: eth0", "Done." |
-| L4 | 3 | Run ipconfig /release (no dhclient/dhcpcd) | "ERROR: Neither dhclient nor dhcpcd found." |
-| L5 | 4 | Run ipconfig /renew | "Renewing DHCP lease on: eth0", "Done.", IP re-assigned |
-| L6 | 5 | Run flushdns (systemd-resolve present) | "DNS cache flushed." |
-| L7 | 5 | Run flushdns (no systemd-resolve) | ERROR message with manual fallback hint |
-| L8 | 6 | Run arp -a | ARP table |
-| L9 | 7 | Run arp -d | `ip neigh flush all`, "Done." |
+| L1 | 1 | ipconfig | `ip -4 addr` output, no docker/veth/br- ifaces, no inet6 lines |
+| L2 | i | ipconfig v6 | `ip -6 addr` output, no docker/veth/br- ifaces |
+| L3 | 2 | ipconfig /all | Interfaces (v4), Routes (v4), DNS sections |
+| L4 | j | ipconfig /all v6 | Interfaces (v6), IPv6 Routes section, DNS |
+| L5 | 3 | ipconfig /release (dhclient present) | "Releasing DHCP lease on: eth0", "Done." |
+| L6 | 3 | ipconfig /release (no dhclient/dhcpcd) | "ERROR: Neither dhclient nor dhcpcd found." |
+| L7 | 4 | ipconfig /renew | "Renewing DHCP lease on: eth0", "Done.", IP re-assigned |
+| L8 | 5 | flushdns (resolvectl present) | "DNS cache flushed (resolvectl)." |
+| L9 | 5 | flushdns (no systemd) | ERROR message + /etc/resolv.conf printed |
+| L10 | 6 | arp -a | ARP table |
+| L11 | 7 | arp -d | `ip neigh flush all`, "Done." |
+
+---
+
+## New Tools — Mac + Pi
+
+| # | Choice | Test | Expected |
+|---|--------|------|----------|
+| N1 | k | iface summary | Table with INTERFACE / STATE / IPv4 / IPv6 columns, one row per active iface |
+| N2 | k | iface summary — docker present (Pi) | docker0/veth/br- rows excluded |
+| N3 | k | iface summary — v6 only iface | IPv4 column blank, IPv6 populated |
+| N4 | k | iface summary — link-local only | fe80 addresses NOT shown in IPv6 column |
+| N5 | l | bandwidth test | Latency section: gateway RTT + 8.8.8.8 RTT; Download section: MB/s result |
+| N6 | l | bandwidth test — no gateway | Gateway section skipped, internet ping still runs |
+| N7 | l | bandwidth test — no curl/wget | "curl/wget not found — cannot test download speed." |
+| N8 | l | bandwidth test — curl timeout | "(test failed or timed out)" |
+
+---
+
+## DNS Lookup — enhanced
+
+| # | Choice | Test | Expected |
+|---|--------|------|----------|
+| D1 | b | default host + default type (A) | A record for google.com |
+| D2 | b | custom host, type AAAA | IPv6 address returned |
+| D3 | b | custom host, type MX | MX records returned |
+| D4 | b | custom host, type TXT | TXT records returned |
+| D5 | b | type NS | NS records returned |
+| D6 | b | no dig, nslookup present | nslookup -type= used |
+| D7 | b | no dig/nslookup, host present | host -t used |
+| D8 | b | no DNS tools | ERROR + install hint |
+
+---
+
+## IPv4/IPv6 isolation — no cross-contamination
+
+| # | Test | Expected |
+|---|------|----------|
+| V1 | Run `1` on host with both v4 and v6 | Zero `inet6` lines in output |
+| V2 | Run `i` on host with both v4 and v6 | Zero bare `inet ` lines (only `inet6`) |
+| V3 | Run `2` and `j`, diff Interfaces section | v4 shows only `inet`, v6 shows only `inet6` |
+| V4 | Run `2` (Linux) | Routes section uses `ip route` (v4), no ip -6 route |
+| V5 | Run `j` (Linux) | Routes section uses `ip -6 route`, filtered |
 
 ---
 
@@ -57,40 +102,25 @@
 |---|------|----------|
 | E1 | Run release/renew with no default route | "ERROR: Could not detect active interface." |
 | E2 | Run as non-sudo user | sudo password prompt appears (no silent failure) |
-| E3 | Run on Linux with `ip` but no `arp` installed | arp tools fail with clear error |
+| E3 | Run on Linux with `ip` but no `arp` installed | `ip neigh show` fallback used |
 | E4 | Disconnect network, run tool 1 | Graceful output (empty or loopback only), no crash |
+| E5 | Run `i` on host with no IPv6 | Empty output, no crash |
+| E6 | Run `l` bandwidth, slow connection (<1 MB/s) | Result shown correctly (not 0 or blank) |
 
 ---
 
-## Tool Tests — Extended (Mac + Pi)
+## Extended (pre-existing tools — regression)
 
 | # | Choice | Test | Expected |
 |---|--------|------|----------|
-| X1 | 8 | Ping gateway | Auto-detects gateway, pings 4 times, shows RTT |
-| X2 | 8 | Ping gateway — no default route | "ERROR: Could not detect default gateway." |
-| X3 | 9 | Ping 8.8.8.8 | 4 ping replies, shows RTT |
-| X4 | a | Traceroute — accept default (8.8.8.8) | Hops to 8.8.8.8 displayed |
-| X5 | a | Traceroute — custom host | Hops to entered host |
-| X6 | a | Traceroute — Pi, mtr present | mtr --report output |
-| X7 | a | Traceroute — Pi, no mtr/traceroute | ERROR with install hint |
-| X8 | b | DNS lookup — accept default (google.com) | A record returned |
-| X9 | b | DNS lookup — custom hostname | DNS response shown |
-| X10 | b | DNS lookup — no dig/nslookup | ERROR message |
-| X11 | c | Routing table — Mac | `netstat -rn` output with gateway column |
-| X12 | c | Routing table — Pi | `ip route` + `ip -6 route` output |
-| X13 | d | Connections — Mac | LISTEN/ESTABLISHED lines from netstat |
-| X14 | d | Connections — Pi (ss present) | `ss -tulpn` output |
-| X15 | d | Connections — Pi (no ss) | netstat fallback or ERROR |
-| X16 | e | External IP | Public IP printed, no trailing newline issues |
-| X17 | e | External IP — no curl/wget | ERROR message |
-| X18 | f | Port test — open port (e.g. 80 on google.com) | "Connection succeeded" / "open" |
-| X19 | f | Port test — closed port | nc reports connection refused |
-| X20 | f | Port test — empty host/port | "ERROR: Host and port required." |
-| X21 | f | Port test — no nc | ERROR with install hint |
-| X22 | g | WiFi info — Mac | SSID, BSSID, channel, signal strength |
-| X23 | g | WiFi info — Pi (iwconfig) | Interface wireless stats |
-| X24 | g | WiFi info — Pi (iw fallback) | `iw dev` output |
-| X25 | g | WiFi info — Pi wired only | ERROR or no wireless extensions message |
-| X26 | h | Wake-on-LAN — valid MAC | "Sending magic packet" message |
-| X27 | h | Wake-on-LAN — empty MAC | "ERROR: MAC address required." |
-| X28 | h | Wake-on-LAN — no wakeonlan/wol | ERROR with install hint |
+| X1 | 8 | ping gateway | Auto-detects gateway, 4 pings, RTT shown |
+| X2 | 9 | ping 8.8.8.8 | 4 replies |
+| X3 | a | traceroute (default 8.8.8.8) | Hops displayed |
+| X4 | c | routing table | Routes shown; Pi also shows IPv6 section |
+| X5 | d | connections (Pi, ss) | ss -tulpn output |
+| X6 | e | external IP | Public IP printed |
+| X7 | f | port test — open port | success message |
+| X8 | f | port test — closed port | connection refused |
+| X9 | f | port test — empty input | "ERROR: Host and port required." |
+| X10 | g | wifi info — wired Pi | no wireless / ERROR message, no crash |
+| X11 | h | WOL — empty MAC | "ERROR: MAC address required." |

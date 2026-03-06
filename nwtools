@@ -32,25 +32,61 @@ run_tool() {
 }
 
 # ---------------------------------------------------------------------------
-# Tools
+# Core IP display helpers (shared by v4/v6/summary tools)
 # ---------------------------------------------------------------------------
 
-_ip_no_docker() {
-    ip addr show | awk '/^[0-9]+: (docker|br-|veth)/ { skip=1; next } /^[0-9]+:/ { skip=0 } !skip { print }'
+# ip addr output for a given AF (4/6/empty=both), docker interfaces excluded
+_ip_af() {
+    local af="${1:-}"
+    case "$af" in
+        4) ip -4 addr show ;;
+        6) ip -6 addr show ;;
+        *) ip addr show ;;
+    esac | awk '/^[0-9]+: (docker|br-|veth)/{skip=1;next}/^[0-9]+:/{skip=0}!skip'
 }
 
-tool_ipconfig() {
+# Show interface addresses filtered by AF (4/6/empty=both)
+_show_ifaces() {
+    local af="${1:-}"
     if [ "$_OS" = "darwin" ]; then
-        ifconfig | grep -A4 -E '^(en|utun|lo)[0-9]+:'
+        ifconfig | awk -v af="$af" '
+            /^[^ \t]/ {
+                if (hdr != "" && cnt > 0 && hdr ~ /^(en|utun|lo)[0-9]/) {
+                    print hdr
+                    for (i = 1; i <= cnt; i++) print buf[i]
+                    print ""
+                }
+                hdr = $0; cnt = 0; split("", buf); next
+            }
+            /^[ \t]+inet[^6]/ { if (af != "6") buf[++cnt] = $0 }
+            /^[ \t]+inet6/    { if (af != "4") buf[++cnt] = $0 }
+            /^[ \t]+ether/    { buf[++cnt] = $0 }
+            END {
+                if (hdr != "" && cnt > 0 && hdr ~ /^(en|utun|lo)[0-9]/) {
+                    print hdr
+                    for (i = 1; i <= cnt; i++) print buf[i]
+                }
+            }
+        '
     else
-        _ip_no_docker
+        _ip_af "$af"
     fi
 }
 
+_ip_no_docker() { _ip_af ""; }
+
+# ---------------------------------------------------------------------------
+# Tools
+# ---------------------------------------------------------------------------
+
+tool_ipconfig()        { _show_ifaces 4; }
+tool_ipconfig_v6()     { _show_ifaces 6; }
+
 tool_ipconfig_all() {
+    local af="${1:-4}"
     if [ "$_OS" = "darwin" ]; then
         echo "=== Interfaces ==="
-        ifconfig -a
+        _show_ifaces "$af"
         echo ""
         echo "=== Hardware Ports ==="
         networksetup -listallhardwareports 2>/dev/null
@@ -59,15 +95,22 @@ tool_ipconfig_all() {
         scutil --dns 2>/dev/null | head -40
     else
         echo "=== Interfaces ==="
-        _ip_no_docker
+        _show_ifaces "$af"
         echo ""
-        echo "=== Routes ==="
-        ip route | grep -v -E '^(172\.|10\.42\.)'
+        if [ "$af" = "6" ]; then
+            echo "=== IPv6 Routes ==="
+            ip -6 route 2>/dev/null | grep -v -E '^(fe80|ff00)' || true
+        else
+            echo "=== Routes ==="
+            ip route | grep -v -E '^(172\.|10\.42\.)'
+        fi
         echo ""
         echo "=== DNS ==="
         cat /etc/resolv.conf
     fi
 }
+
+tool_ipconfig_all_v6() { tool_ipconfig_all 6; }
 
 tool_ipconfig_release() {
     local iface
@@ -202,15 +245,17 @@ tool_traceroute() {
 }
 
 tool_dns_lookup() {
-    read -rp "Hostname to look up [default: google.com]: " host
+    read -rp "Hostname [default: google.com]: " host
     host="${host:-google.com}"
+    read -rp "Record type [A/AAAA/MX/NS/TXT, default: A]: " rtype
+    rtype="${rtype:-A}"
     echo ""
     if command -v dig >/dev/null 2>&1; then
-        dig "$host"
+        dig "$host" "$rtype"
     elif command -v nslookup >/dev/null 2>&1; then
-        nslookup "$host"
+        nslookup -type="$rtype" "$host"
     elif command -v host >/dev/null 2>&1; then
-        host "$host"
+        host -t "$rtype" "$host"
     else
         echo "Trying getent ..."
         getent hosts "$host" 2>/dev/null || {
@@ -319,6 +364,68 @@ tool_wol() {
     fi
 }
 
+# Interface summary: one line per interface showing state, IPv4, IPv6
+tool_iface_summary() {
+    printf "%-14s %-8s %-20s %s\n" "INTERFACE" "STATE" "IPv4" "IPv6"
+    printf "%-14s %-8s %-20s %s\n" "---------" "-----" "----" "----"
+    if [ "$_OS" = "darwin" ]; then
+        ifconfig | awk '
+            /^[^ \t]/ {
+                if (iface != "" && (ipv4 != "" || ipv6 != ""))
+                    printf "%-14s %-8s %-20s %s\n", iface, state, ipv4, ipv6
+                iface = substr($1, 1, length($1) - 1)
+                state = /UP/ ? "UP" : "DOWN"
+                ipv4 = ""; ipv6 = ""
+            }
+            /^[ \t]+inet[^6]/  { if (ipv4 == "") ipv4 = $2 }
+            /^[ \t]+inet6 /    { if (ipv6 == "" && $2 !~ /^fe80/) ipv6 = $2 }
+            END {
+                if (iface != "" && (ipv4 != "" || ipv6 != ""))
+                    printf "%-14s %-8s %-20s %s\n", iface, state, ipv4, ipv6
+            }
+        '
+    else
+        ip -brief addr show 2>/dev/null | \
+            awk '!/docker|veth|br-/{printf "%-14s %-8s %-20s %s\n", $1, $2, $3, $4}'
+    fi
+}
+
+# Bandwidth / latency test: gateway ping, internet ping, Cloudflare download
+tool_bw_test() {
+    local gw
+    echo "=== Latency ==="
+    if [ "$_OS" = "darwin" ]; then
+        gw=$(route get default 2>/dev/null | awk '/gateway:/{print $2}')
+    else
+        gw=$(ip route show default 2>/dev/null | awk '/default via/{print $3; exit}')
+    fi
+    if [ -n "$gw" ]; then
+        echo "Gateway ($gw):"
+        ping -c 5 "$gw" | tail -2
+        echo ""
+    fi
+    echo "Internet (8.8.8.8):"
+    ping -c 5 8.8.8.8 | tail -2
+    echo ""
+    echo "=== Download Speed (25 MB from Cloudflare) ==="
+    if command -v curl >/dev/null 2>&1; then
+        echo -n "Testing..."
+        local speed
+        speed=$(curl -s -o /dev/null -w "%{speed_download}" \
+            --max-time 30 "https://speed.cloudflare.com/__down?bytes=26214400" 2>/dev/null)
+        if [ -n "$speed" ] && [ "$speed" != "0" ]; then
+            awk -v b="$speed" 'BEGIN{printf " %.1f MB/s\n", b/1048576}'
+        else
+            echo " (test failed or timed out)"
+        fi
+    elif command -v wget >/dev/null 2>&1; then
+        wget -O /dev/null --timeout=30 \
+            "https://speed.cloudflare.com/__down?bytes=26214400" 2>&1 | tail -3
+    else
+        echo "curl/wget not found — cannot test download speed."
+    fi
+}
+
 # ---------------------------------------------------------------------------
 # Menu
 # ---------------------------------------------------------------------------
@@ -328,8 +435,10 @@ while true; do
     echo "======================================="
     echo "  Network Tools"
     echo "======================================="
-    echo "1.  ipconfig            show IP config"
-    echo "2.  ipconfig /all       full details"
+    echo "1.  ipconfig            IPv4 addresses"
+    echo "i.  ipconfig v6         IPv6 addresses"
+    echo "2.  ipconfig /all       IPv4 full details"
+    echo "j.  ipconfig /all v6    IPv6 full details"
     echo "3.  ipconfig /release   release DHCP lease"
     echo "4.  ipconfig /renew     renew DHCP lease"
     echo "5.  ipconfig /flushdns  flush DNS cache"
@@ -339,7 +448,7 @@ while true; do
     echo "8.  ping gateway        ping default gateway"
     echo "9.  ping 8.8.8.8        internet connectivity"
     echo "a.  traceroute          trace route to host"
-    echo "b.  dns lookup          dig / nslookup"
+    echo "b.  dns lookup          dig A/AAAA/MX/NS/TXT"
     echo "c.  routing table       show routes"
     echo "d.  connections         active/listening ports"
     echo "e.  external IP         whatismyip"
@@ -347,13 +456,18 @@ while true; do
     echo "g.  wifi info           wireless details"
     echo "h.  wake-on-LAN         send WOL magic packet"
     echo "---------------------------------------"
+    echo "k.  iface summary       interface overview table"
+    echo "l.  bandwidth test      latency + download speed"
+    echo "---------------------------------------"
     echo "0.  Exit"
     echo ""
     read -rp "Choice: " choice
 
     case "$choice" in
         1) run_tool "ipconfig"            tool_ipconfig ;;
+        i) run_tool "ipconfig v6"         tool_ipconfig_v6 ;;
         2) run_tool "ipconfig /all"       tool_ipconfig_all ;;
+        j) run_tool "ipconfig /all v6"    tool_ipconfig_all_v6 ;;
         3) run_tool "ipconfig /release"   tool_ipconfig_release ;;
         4) run_tool "ipconfig /renew"     tool_ipconfig_renew ;;
         5) run_tool "ipconfig /flushdns"  tool_flushdns ;;
@@ -369,6 +483,8 @@ while true; do
         f) run_tool "port test"           tool_port_test ;;
         g) run_tool "wifi info"           tool_wifi_info ;;
         h) run_tool "wake-on-LAN"         tool_wol ;;
+        k) run_tool "iface summary"       tool_iface_summary ;;
+        l) run_tool "bandwidth test"      tool_bw_test ;;
         0) echo "Exiting..."; exit 0 ;;
         *) echo "Invalid choice."; sleep 1 ;;
     esac
