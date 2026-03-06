@@ -366,6 +366,9 @@ alu() {
 # Disk speed test (read/write benchmark on current directory)
 alias dst='~/deb/disk_speed_test'
 
+# Interactive network troubleshooting menu (ipconfig/arp/dns/ping/bw)
+alias nw='~/alias/nwtools'
+
 # Pull latest deb repo (shallow, strips old history)
 dbu() {
     local dir="${DEB_DIR:-$HOME/deb}"
