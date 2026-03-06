@@ -490,7 +490,7 @@ while true; do
         h) run_tool "wake-on-LAN"         tool_wol ;;
         k) run_tool "iface summary"       tool_iface_summary ;;
         l) run_tool "bandwidth test"      tool_bw_test ;;
-        0) echo "Exiting..."; exit 0 ;;
+        0|'') echo "Exiting..."; exit 0 ;;
         *) echo "Invalid choice."; sleep 1 ;;
     esac
 done
