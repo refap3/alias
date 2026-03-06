@@ -220,8 +220,10 @@ Interactive menu for network troubleshooting — Windows `ipconfig`/`arp` equiva
 
 | Choice | Tool | Description |
 |--------|------|-------------|
-| `1` | ipconfig | Show IP config (real interfaces only) |
-| `2` | ipconfig /all | Full details: interfaces, routes, DNS |
+| `1` | ipconfig | IPv4 addresses (real interfaces, docker hidden) |
+| `i` | ipconfig v6 | IPv6 addresses |
+| `2` | ipconfig /all | IPv4 full details: interfaces, routes, DNS |
+| `j` | ipconfig /all v6 | IPv6 full details: interfaces, IPv6 routes, DNS |
 | `3` | ipconfig /release | Release DHCP lease on active interface |
 | `4` | ipconfig /renew | Renew DHCP lease on active interface |
 | `5` | ipconfig /flushdns | Flush DNS cache |
@@ -230,13 +232,15 @@ Interactive menu for network troubleshooting — Windows `ipconfig`/`arp` equiva
 | `8` | ping gateway | Ping auto-detected default gateway |
 | `9` | ping 8.8.8.8 | Internet connectivity check |
 | `a` | traceroute | Trace route to host (mtr → traceroute → tracepath) |
-| `b` | dns lookup | dig / nslookup / host / getent fallback chain |
-| `c` | routing table | Show routes |
+| `b` | dns lookup | Query A/AAAA/MX/NS/TXT via dig / nslookup / host |
+| `c` | routing table | Show routes (v4 + v6 on Linux) |
 | `d` | connections | Active/listening ports (`ss -tulpn` / `netstat`) |
 | `e` | external IP | Fetch public IP via ifconfig.me |
 | `f` | port test | `nc -zv <host> <port>` |
 | `g` | wifi info | Wireless interface details |
 | `h` | wake-on-LAN | Send WOL magic packet |
+| `k` | iface summary | One-line table: interface / state / IPv4 / IPv6 |
+| `l` | bandwidth test | Gateway + internet latency, Cloudflare download speed |
 | `0` | exit | |
 
 Missing tools (nc, traceroute, etc.) show a clear error with `apt install` hint rather than silently failing.
