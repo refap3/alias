@@ -363,6 +363,9 @@ alu() {
     bash "$dir/deploy.sh"
 }
 
+# Connect via SSH to rainers@<name>.local using private key (e.g. mcpl mm)
+mcpl() { ssh -i ~/.ssh/id_rsa "rainers@${1}.local"; }
+
 # Disk speed test (read/write benchmark on current directory)
 alias dst='~/deb/disk_speed_test'
 

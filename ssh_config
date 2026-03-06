@@ -1,4 +1,4 @@
-Host 192.168.1.* *.ssb8.local *.pi.hole
+Host 192.168.1.* *.ssb8.local *.pi.hole mb.local mm.local mb mm
     ForwardAgent yes
     SendEnv -LANG -LC_*
     StrictHostKeyChecking no
