@@ -116,6 +116,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `psfed -dr [dir]` | Delete empty directories recursively until none remain |
 | `sshfp` | Show fingerprints of all `~/.ssh` key pairs (private + public) to verify they match |
 | `mcpl <name>` | SSH → `rainers@<name>.local` using private key (e.g. `mcpl mm`, `mcpl mb`) |
+| `mcwl <name>` | SFTP → `rainers@<name>.local` using private key (e.g. `mcwl mm`, `mcwl mb`) |
 | `tree [dir]` | Display full file/folder tree from current (or given) directory |
 | `tree -u [dir]` | Same, with human-readable sizes on each node |
 | `tree -h [dir]` | Include hidden (dot) files and folders |
