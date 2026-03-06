@@ -116,9 +116,9 @@ source ~/.zshrc     # or source ~/.bashrc
 | `psfed -dr [dir]` | Delete empty directories recursively until none remain |
 | `sshfp` | Show fingerprints of all `~/.ssh` key pairs (private + public) to verify they match |
 | `mch` | Show Mac-to-Mac alias reference |
-| `mcpl <name>` | SSH → `rainers@<name>.local` using private key (e.g. `mcpl mm`, `mcpl mb`) |
-| `mcwl <name>` | SFTP → `rainers@<name>.local` using private key (e.g. `mcwl mm`, `mcwl mb`) |
-| `mccl <name[,name]> <cmd>` | Run command on one or more Macs by `.local` name (e.g. `mccl mm,mb uptime`) |
+| `mcp <name>` | SSH → `rainers@<name>.local` using private key (e.g. `mcp mm`, `mcp mb`) |
+| `mcw <name>` | SFTP → `rainers@<name>.local` using private key (e.g. `mcw mm`, `mcw mb`) |
+| `mcc <name[,name]> <cmd>` | Run command on one or more Macs by `.local` name (e.g. `mcc mm,mb uptime`) |
 | `tree [dir]` | Display full file/folder tree from current (or given) directory |
 | `tree -u [dir]` | Same, with human-readable sizes on each node |
 | `tree -h [dir]` | Include hidden (dot) files and folders |

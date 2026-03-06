@@ -366,19 +366,19 @@ alu() {
 # Show Mac-to-Mac alias reference
 mch() {
     echo "Mac aliases  (user: rainers, key: ~/.ssh/id_rsa, host: <name>.local)"
-    echo "  mcpl <name>              — SSH  (e.g. mcpl mm)"
-    echo "  mcwl <name>              — SFTP (e.g. mcwl mb)"
-    echo "  mccl <name[,name]> <cmd> — run command (e.g. mccl mm,mb uptime)"
+    echo "  mcp <name>              — SSH  (e.g. mcp mm)"
+    echo "  mcw <name>              — SFTP (e.g. mcw mb)"
+    echo "  mcc <name[,name]> <cmd> — run command (e.g. mcc mm,mb uptime)"
 }
 
-# Connect via SSH to rainers@<name>.local using private key (e.g. mcpl mm)
-mcpl() { ssh -i ~/.ssh/id_rsa "rainers@${1}.local"; }
+# Connect via SSH to rainers@<name>.local using private key (e.g. mcp mm)
+mcp() { ssh -i ~/.ssh/id_rsa "rainers@${1}.local"; }
 
-# Connect via SFTP to rainers@<name>.local using private key (e.g. mcwl mm)
-mcwl() { sftp -i ~/.ssh/id_rsa "rainers@${1}.local"; }
+# Connect via SFTP to rainers@<name>.local using private key (e.g. mcw mm)
+mcw() { sftp -i ~/.ssh/id_rsa "rainers@${1}.local"; }
 
-# Run a command on one or more Macs by .local name (comma-separated) (e.g. mccl mm ls -la)
-mccl() {
+# Run a command on one or more Macs by .local name (comma-separated) (e.g. mcc mm ls -la)
+mcc() {
     local _cmd; _cmd=$(printf 'shopt -s expand_aliases; %s' "${@:2}")
     case "$1" in
         *,*)
