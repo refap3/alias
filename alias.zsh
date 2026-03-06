@@ -363,6 +363,14 @@ alu() {
     bash "$dir/deploy.sh"
 }
 
+# Show Mac-to-Mac alias reference
+mch() {
+    echo "Mac aliases  (user: rainers, key: ~/.ssh/id_rsa, host: <name>.local)"
+    echo "  mcpl <name>              — SSH  (e.g. mcpl mm)"
+    echo "  mcwl <name>              — SFTP (e.g. mcwl mb)"
+    echo "  mccl <name[,name]> <cmd> — run command (e.g. mccl mm,mb uptime)"
+}
+
 # Connect via SSH to rainers@<name>.local using private key (e.g. mcpl mm)
 mcpl() { ssh -i ~/.ssh/id_rsa "rainers@${1}.local"; }
 

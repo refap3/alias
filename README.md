@@ -115,6 +115,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `psfed -d [dir]` | Delete empty leaf directories |
 | `psfed -dr [dir]` | Delete empty directories recursively until none remain |
 | `sshfp` | Show fingerprints of all `~/.ssh` key pairs (private + public) to verify they match |
+| `mch` | Show Mac-to-Mac alias reference |
 | `mcpl <name>` | SSH → `rainers@<name>.local` using private key (e.g. `mcpl mm`, `mcpl mb`) |
 | `mcwl <name>` | SFTP → `rainers@<name>.local` using private key (e.g. `mcwl mm`, `mcwl mb`) |
 | `mccl <name[,name]> <cmd>` | Run command on one or more Macs by `.local` name (e.g. `mccl mm,mb uptime`) |
