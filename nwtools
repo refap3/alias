@@ -435,6 +435,35 @@ tool_bw_test() {
 # Menu
 # ---------------------------------------------------------------------------
 
+# Direct invocation: nw <choice> — run tool and exit, no interactive wrapper
+if [ -n "${1:-}" ]; then
+    case "$1" in
+        1) tool_ipconfig ;;
+        i) tool_ipconfig_v6 ;;
+        2) tool_ipconfig_all ;;
+        j) tool_ipconfig_all_v6 ;;
+        3) tool_ipconfig_release ;;
+        4) tool_ipconfig_renew ;;
+        5) tool_flushdns ;;
+        6) tool_arp_a ;;
+        7) tool_arp_d ;;
+        8) tool_ping_gateway ;;
+        9) tool_ping_internet ;;
+        a) tool_traceroute ;;
+        b) tool_dns_lookup ;;
+        c) tool_route_table ;;
+        d) tool_connections ;;
+        e) tool_external_ip ;;
+        f) tool_port_test ;;
+        g) tool_wifi_info ;;
+        h) tool_wol ;;
+        k) tool_iface_summary ;;
+        l) tool_bw_test ;;
+        *) echo "Unknown choice: $1" >&2; exit 1 ;;
+    esac
+    exit 0
+fi
+
 while true; do
     clear
     echo "======================================="
