@@ -126,7 +126,7 @@ _tree_helper() {
         local size_tag=""
         if [ "$show_usage" = "1" ]; then
             if [ -d "$entry" ]; then
-                local sz; sz=$(du -sk "$entry" 2>/dev/null | awk '{print $1*1024}')
+                local sz; sz=$(du -sk "$entry" 2>/dev/null | awk '{printf "%.0f\n", $1*1024}')
                 size_tag="[$(_tree_humansize "${sz:-0}")] "
             else
                 size_tag="[$(_tree_humansize "$(_tree_filesize "$entry")")] "
@@ -152,7 +152,7 @@ tree() {
         esac
     done
     if [ "$show_usage" = "1" ]; then
-        local total; total=$(du -sk "$dir" 2>/dev/null | awk '{print $1*1024}')
+        local total; total=$(du -sk "$dir" 2>/dev/null | awk '{printf "%.0f\n", $1*1024}')
         echo "$dir  [$(_tree_humansize "${total:-0}")]"
     else
         echo "$dir"
