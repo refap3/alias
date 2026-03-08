@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-line install:
-#   bash <(curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh)
+#   curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh | bash
 set -euo pipefail
 
 DEST="${ALIAS_DIR:-$HOME/alias}"
