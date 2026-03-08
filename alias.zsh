@@ -431,3 +431,47 @@ alh() {
         { last_comment = "" }
     ' "$DOTFILES"/*alias*.zsh | sort | awk -F'\t' '{printf "%-20s %s\n", $1, $2}'
 }
+
+# Repeatedly run a command (or commands), clearing the screen between runs (ESC or Ctrl-C to stop)
+# Optional first arg: wait time as <n>s (e.g. 5s); default 2s.
+# Use + to separate multiple commands. Example: loop ls   loop 5s ls + pwd
+loop() {
+    local _wait=2
+    case "${1:-}" in
+        [0-9]*s) _wait="${1%s}"; shift ;;
+    esac
+
+    # Build command string; '+' acts as ';' separator so no shell quoting needed
+    local _cmd="" _arg
+    for _arg in "$@"; do
+        case "$_arg" in
+            "+") _cmd="${_cmd% }; " ;;
+            *)   _cmd="${_cmd}${_arg} " ;;
+        esac
+    done
+    _cmd="${_cmd% }"
+
+    local _old_tty _key
+    _old_tty=$(stty -g 2>/dev/null)
+    stty cbreak -echo 2>/dev/null
+    trap 'stty "$_old_tty" 2>/dev/null; trap - INT TERM; return' INT TERM
+
+    while true; do
+        clear
+        eval "$_cmd"
+        local _i=0
+        while [ "$_i" -lt "$((_wait * 10))" ]; do
+            _key=""
+            if [ -n "$ZSH_VERSION" ]; then
+                read -t 0.1 -k 1 _key 2>/dev/null || true
+            else
+                read -t 0.1 -n 1 _key 2>/dev/null || true
+            fi
+            [ "$_key" = $'\e' ] && { stty "$_old_tty" 2>/dev/null; trap - INT TERM; return; }
+            _i=$((_i + 1))
+        done
+    done
+
+    stty "$_old_tty" 2>/dev/null
+    trap - INT TERM
+}

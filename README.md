@@ -126,6 +126,10 @@ source ~/.zshrc     # or source ~/.bashrc
 | `treed [dir]` | Display directory-only tree |
 | `treed -h [dir]` | Directory-only tree including hidden dirs |
 | `treed -j [dir]` | Directory tree and add all dirs to `~/.jumplocations` |
+| `loop <cmd>` | Repeat a command every 2s, clearing screen each time (ESC or Ctrl-C to stop) |
+| `loop <n>s <cmd>` | Same with custom wait (e.g. `loop 5s ls`) |
+| `loop <cmd> + <cmd>` | Run multiple commands per cycle (e.g. `loop ls + pwd`) |
+| `loop "<cmd>;<cmd>"` | Same using quoted semicolons (e.g. `loop "ls;pwd"`) |
 | `cpu` | System dashboard: CPU, OS, mem, disk, net, Docker, uptime (brief by default) |
 | `cpu -v` | Same info in full section-by-section view |
 | `vsc [path]` | **Mac:** open VS Code. **Pi:** open VS Code on Mac with Remote SSH to this Pi |
