@@ -31,6 +31,29 @@ alias md='mkdir'
 # claude
 alias cdsp='claude --dangerously-skip-permissions'
 
+# Docker Compose — use plugin (docker compose) when available, fall back to standalone (docker-compose)
+_dc() {
+    if docker compose version >/dev/null 2>&1; then
+        docker compose "$@"
+    else
+        docker-compose "$@"
+    fi
+}
+# Resolve the compose file inside a directory (prefers docker-compose.yml, falls back to compose.yml)
+_dc_file() {
+    local d="${1:-.}"
+    if [ -f "$d/docker-compose.yml" ]; then echo "$d/docker-compose.yml"
+    elif [ -f "$d/compose.yml" ]; then echo "$d/compose.yml"
+    else echo "$d/docker-compose.yml"
+    fi
+}
+# dcu [folder]  — docker compose up
+dcu()  { _dc -f "$(_dc_file "${1:-.}")" up; }
+# dcud [folder]  — docker compose up -d (detached)
+dcud() { _dc -f "$(_dc_file "${1:-.}")" up -d; }
+# dcd [folder]  — docker compose down
+dcd()  { _dc -f "$(_dc_file "${1:-.}")" down; }
+
 # Open Visual Studio Code.
 # Mac: simple wrapper for the 'code' CLI.
 # Pi/Linux: SSH back to the connecting Mac and open VS Code with Remote SSH
