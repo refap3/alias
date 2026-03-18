@@ -49,5 +49,36 @@ alias gst='git stash'
 alias gstp='git stash pop'
 alias grl='git reflog'
 
+# History management — strip local history, update without history, restore full history
+
+# gstrip — replace full history with a single commit (current files only)
+gstrip() {
+    local b=$(_git_default_branch)
+    git checkout --orphan _stripped
+    git add -A
+    git commit -m "stripped"
+    git branch -D "$b"
+    git branch -m "$b"
+}
+
+# gplstrip — update files from remote without restoring history (use after gstrip)
+gplstrip() {
+    git fetch origin
+    local b=$(_git_default_branch)
+    git reset --hard "origin/$b"
+}
+
+# grestore — wipe local repo and re-clone fresh with full history from remote
+grestore() {
+    local remote=$(git remote get-url origin 2>/dev/null)
+    if [[ -z "$remote" ]]; then echo "No remote origin found"; return 1; fi
+    local dir=$(pwd)
+    cd ..
+    local name=$(basename "$dir")
+    rm -rf "$dir"
+    git clone "$remote" "$name"
+    cd "$dir"
+}
+
 # Notes:
 # 'gconf' was skipped because it pointed to a Windows path (K:\scripts\...)

@@ -214,6 +214,46 @@ vsc ~/myproject  # opens a specific folder
 | `gpl` | `git pull` |
 | `gdi` | `git diff` |
 | `gst` / `gstp` | Stash / stash pop |
+| `gstrip` | Replace full local history with a single commit (files unchanged) |
+| `gplstrip` | Pull latest files from remote without restoring history |
+| `grestore` | Wipe local repo and re-clone fresh with full history from remote |
+
+### Git history management
+
+These three commands let you work with minimal local storage by stripping git history, while keeping the ability to get it back.
+
+**Typical workflows:**
+
+**Clone and immediately strip history** (read-only use, save disk space):
+```bash
+gcl https://github.com/user/repo
+cd repo
+gstrip        # squashes all history into one commit locally
+```
+
+**Update files after stripping** (no history pulled):
+```bash
+gplstrip      # fetches + resets to remote HEAD — history stays stripped
+```
+
+**Make changes and push** (need full history for this):
+```bash
+grestore      # wipes local folder, re-clones with full history
+# edit files
+gac "my change"
+gps
+gstrip        # strip again when done
+```
+
+**Commands explained:**
+
+| Command | What it does | When to use |
+|---------|-------------|-------------|
+| `gstrip` | Creates an orphan branch with all current files as a single commit, deletes old branch — remote is untouched | After cloning, or after pushing, when you want minimal local storage |
+| `gplstrip` | `git fetch` + `git reset --hard origin/<branch>` — updates files without pulling history | Routine updates on a stripped repo (like `dbu` equivalent) |
+| `grestore` | Saves the remote URL, deletes the local folder, re-clones from remote | Before making changes that need to be pushed |
+
+> **Note:** `gstrip` only affects your local repo. The remote always keeps full history. `grestore` is destructive — any uncommitted local changes will be lost.
 
 **Shell management:**
 
