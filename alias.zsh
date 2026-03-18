@@ -435,9 +435,10 @@ dbu() {
     git -C "$dir" gc --prune=all --quiet
 }
 
-# Show one-line help for every alias and function (from source-file comments)
+# Show one-line help for every alias and function (from source-file comments); optional filter string
 alh() {
-    awk '
+    local out
+    out=$(awk '
         /^[[:space:]]*#/ {
             sub(/^[[:space:]]*#[[:space:]]?/, ""); last_comment = $0; next
         }
@@ -452,7 +453,12 @@ alh() {
             last_comment = ""; next
         }
         { last_comment = "" }
-    ' "$DOTFILES"/*alias*.zsh | sort | awk -F'\t' '{printf "%-20s %s\n", $1, $2}'
+    ' "$DOTFILES"/*alias*.zsh | sort | awk -F'\t' '{printf "%-20s %s\n", $1, $2}')
+    if [ -n "${1:-}" ]; then
+        echo "$out" | grep -i "$1"
+    else
+        echo "$out"
+    fi
 }
 
 # Repeatedly run a command (or commands), clearing the screen between runs (ESC or Ctrl-C to stop)
