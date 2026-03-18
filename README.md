@@ -133,6 +133,9 @@ source ~/.zshrc     # or source ~/.bashrc
 | `cpu` | System dashboard: CPU, OS, mem, disk, net, Docker, uptime (brief by default) |
 | `cpu -v` | Same info in full section-by-section view |
 | `vsc [path]` | **Mac:** open VS Code. **Pi:** open VS Code on Mac with Remote SSH to this Pi |
+| `dcu [folder]` | `docker compose up` (auto-detects plugin vs standalone; optional folder) |
+| `dcud [folder]` | `docker compose up -d` (detached; optional folder) |
+| `dcd [folder]` | `docker compose down` (optional folder) |
 
 **Mac Screen Sharing setup** (one-time, run on the remote Mac if Remote Management blocks VNC):
 
