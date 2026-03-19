@@ -51,6 +51,9 @@ reload with
 .I raspberryalias.zsh
 SSH/SFTP aliases for Raspberry Pi hosts (by IP octet or hostname).
 .TP
+.I synologyalias.zsh
+SSH/SFTP aliases for the Synology NAS (fixed host 192.168.1.116, user pipi).
+.TP
 .I jump.sh
 .BR cd (1)
 wrapper that records visited directories, plus the
@@ -425,6 +428,68 @@ Copy
 it.
 Needed so the Pi can reverse-SSH back to the Mac for
 .BR vsc .
+.SH SYNOLOGY ALIASES
+All
+.I sy*
+commands target the Synology NAS at
+.I 192.168.1.116
+as user
+.IR pipi .
+They use
+.I ~/.ssh/id_rsa
+and skip host key checking
+.RI ( StrictHostKeyChecking=no ).
+Commands are piped to
+.BR bash\ -i
+via stdin to avoid SSH quoting issues.
+.SS SSH
+.TP
+.B syp
+Interactive SSH session (with key).
+.TP
+.B sypp
+Interactive SSH session (password, no key).
+.TP
+.B syc " <cmd...>"
+Run a command on the NAS via stdin pipe to bash.
+.SS VS Code Remote SSH
+.TP
+.B syvsc " [path]"
+Open VS Code with Remote SSH to
+.IR pipi@192.168.1.116
+(default path:
+.IR /volume1/homes/pipi ).
+.SS SFTP / SCP
+.TP
+.B syw
+Interactive SFTP session.
+.TP
+.B sywl " [dir]"
+List remote directory (default: ~).
+.TP
+.B sywg " <remote> [local]"
+Download file or directory from NAS (scp -r; default local: .).
+.TP
+.B sywu " <local> [remote]"
+Upload file or directory to NAS (scp -r; default remote: ~).
+.TP
+.B sywmk " <dir>"
+Create directory on NAS.
+.TP
+.B sywrm " <path>"
+Remove file on NAS (prompts for confirmation first).
+.SS Key Setup
+.TP
+.B syauth
+Add Mac's
+.I id_rsa.pub
+to NAS
+.IR authorized_keys .
+One password prompt, one SSH call.
+Run this first before key-based access.
+.TP
+.B syh
+Show Synology alias help.
 .SH JUMP FUNCTION
 The
 .B cd
