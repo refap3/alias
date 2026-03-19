@@ -87,6 +87,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `alias.zsh` | General aliases (`up`, `home`, `cls`, `dt`, `aalias`, `ddd`, etc.) |
 | `gitalias.zsh` | Git shortcuts (auto-loaded at login, unload with `sl`) |
 | `raspberryalias.zsh` | SSH/SFTP aliases for Raspberry Pi hosts |
+| `synologyalias.zsh` | SSH/SFTP aliases for Synology NAS (fixed host, user pipi) |
 | `jump.sh` | Directory jump function (`j`) |
 | `deploy.sh` | Install script — 4 variants: zsh/bash × home/custom |
 | `nwtools` | Interactive network troubleshooting menu (Mac + Pi) |
@@ -202,6 +203,33 @@ racpri 52    # copy private key to Pi
 vsc          # opens VS Code on Mac → Remote SSH → Pi 52:/home/pi
 vsc ~/myproject  # opens a specific folder
 ```
+
+**Synology NAS** (auto-loaded, host `192.168.1.116`, user `pipi`, key `~/.ssh/id_rsa`):
+
+| Command | Description |
+|---------|-------------|
+| `syp` | SSH into Synology (with key) |
+| `sypp` | SSH into Synology (password, no key) |
+| `syc <cmd>` | Run command on NAS via stdin pipe to bash |
+| `syw` | Interactive SFTP session |
+| `sywl [dir]` | List remote directory (default: `~`) |
+| `sywg <remote> [local]` | Download file/dir (scp -r; default local: `.`) |
+| `sywu <local> [remote]` | Upload file/dir (scp -r; default remote: `~`) |
+| `sywmk <dir>` | Create directory on NAS |
+| `sywrm <path>` | Remove file on NAS (confirms first) |
+| `syvsc [path]` | Open VS Code with Remote SSH (default: `/volume1/homes/pipi`) |
+| `syauth` | Add Mac's `id_rsa.pub` to NAS + configure passwordless sudo (two password prompts) |
+| `syh` | Show Synology alias help |
+
+**First-time setup on a new Synology** (run from Mac, password auth):
+
+```bash
+syauth    # step 1: adds Mac key to authorized_keys; step 2: sets up passwordless sudo
+```
+
+After `syauth`, `syp` and `syc` work without a password.
+
+> **Note:** Synology's default login shell is `/bin/sh` (ash). The `.bashrc` in this repo is written to be sourced from ash without errors. Do not edit `/etc/passwd` directly — DSM manages it and manual edits break SSH auth. To change the shell, use DSM Control Panel or the `admin` account with `chsh`.
 
 **Git** (auto-loaded at login — `sl` to unload, `gital` to reload, `gh` to list):
 
