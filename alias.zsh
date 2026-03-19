@@ -59,7 +59,12 @@ dcud() { _dc -f "$(_dc_file "${1:-.}")" up -d; }
 # dcd [folder]  — docker compose down
 dcd()  { _dc -f "$(_dc_file "${1:-.}")" down; }
 # dcde [folder]  — docker compose down and erase: all images, volumes, networks, orphans
-dcde() { _dc -f "$(_dc_file "${1:-.}")" down --rmi all --volumes --remove-orphans; }
+dcde() {
+    printf 'This will remove all containers, images, volumes and networks. Are you sure? [yes/N] '
+    read _ans
+    [ "$_ans" = "yes" ] || { echo "Aborted."; return 1; }
+    _dc -f "$(_dc_file "${1:-.}")" down --rmi all --volumes --remove-orphans
+}
 
 # Open Visual Studio Code.
 # Mac: simple wrapper for the 'code' CLI.
