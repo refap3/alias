@@ -1,6 +1,9 @@
 # macOS/zsh equivalents of ALIAS.DAT
 # Sourced automatically by .zshrc / .bashrc via DOTFILES glob
 
+# Man pages for local repos: man alias / man mdedit / man deb / man macscp
+export MANPATH="$HOME/alias/man:$HOME/mdedit/man:$HOME/deb/man:$HOME/macscp/man${MANPATH:+:$MANPATH}"
+
 # Detect OS once at source time for use in tree functions
 [ "$(/usr/bin/uname 2>/dev/null)" = "Darwin" ] && _ALIAS_OS=darwin || _ALIAS_OS=linux
 
@@ -53,6 +56,8 @@ dcu()  { _dc -f "$(_dc_file "${1:-.}")" up; }
 dcud() { _dc -f "$(_dc_file "${1:-.}")" up -d; }
 # dcd [folder]  — docker compose down
 dcd()  { _dc -f "$(_dc_file "${1:-.}")" down; }
+# dcde [folder]  — docker compose down and erase: all images, volumes, networks, orphans
+dcde() { _dc -f "$(_dc_file "${1:-.}")" down --rmi all --volumes --remove-orphans; }
 
 # Open Visual Studio Code.
 # Mac: simple wrapper for the 'code' CLI.
@@ -487,6 +492,47 @@ loop() {
 
     while true; do
         clear
+        eval "$_cmd"
+        local _i=0
+        while [ "$_i" -lt "$((_wait * 10))" ]; do
+            _key=""
+            if [ -n "$ZSH_VERSION" ]; then
+                read -t 0.1 -k 1 _key 2>/dev/null || true
+            else
+                read -t 0.1 -n 1 _key 2>/dev/null || true
+            fi
+            [ "$_key" = $'\e' ] && { stty "$_old_tty" 2>/dev/null; trap - INT TERM; return; }
+            _i=$((_i + 1))
+        done
+    done
+
+    stty "$_old_tty" 2>/dev/null
+    trap - INT TERM
+}
+
+# Like loop but keeps output — no clear screen between runs (ESC or Ctrl-C to stop)
+# Same syntax as loop: loopk [<n>s] <cmd> [+ <cmd> ...]
+loopk() {
+    local _wait=2
+    case "${1:-}" in
+        [0-9]*s) _wait="${1%s}"; shift ;;
+    esac
+
+    local _cmd="" _arg
+    for _arg in "$@"; do
+        case "$_arg" in
+            "+") _cmd="${_cmd% }; " ;;
+            *)   _cmd="${_cmd}${_arg} " ;;
+        esac
+    done
+    _cmd="${_cmd% }"
+
+    local _old_tty _key
+    _old_tty=$(stty -g 2>/dev/null)
+    stty cbreak -echo 2>/dev/null
+    trap 'stty "$_old_tty" 2>/dev/null; trap - INT TERM; return' INT TERM
+
+    while true; do
         eval "$_cmd"
         local _i=0
         while [ "$_i" -lt "$((_wait * 10))" ]; do

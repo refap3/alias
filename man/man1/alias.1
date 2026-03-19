@@ -1,0 +1,525 @@
+.TH ALIAS 1 "2026-03-19" "alias repo" "User Commands"
+.SH NAME
+alias \- portable shell configuration: aliases, git shortcuts, Pi helpers, jump navigation
+.SH SYNOPSIS
+.B source ~/.zshrc
+.br
+.B source ~/.bashrc
+.SH DESCRIPTION
+The
+.B alias
+repo is a set of shell configuration files for zsh and bash, designed to run identically on
+macOS and Raspberry Pi (Debian/Ubuntu).
+It provides general-purpose aliases, git shortcuts, Raspberry Pi SSH/SFTP helpers, a
+directory-jump function, and interactive network tools.
+.PP
+Files are deployed by
+.B deploy.sh
+which symlinks dotfiles under
+.I ~/
+and auto-detects your shell.
+Once sourced, all commands below are available in every new shell.
+.SH INSTALL
+.B One-line install:
+.PP
+.RS
+curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh | bash
+.RE
+.PP
+.B Update (once installed):
+.PP
+.RS
+alu
+.RE
+.PP
+.B Deploy options:
+.PP
+.RS
+./deploy.sh [\-\-shell zsh|bash] [\-\-home | \-\-path <dir>]
+.RE
+.SH FILES
+.TP
+.I alias.zsh
+General aliases and functions loaded at every shell start.
+.TP
+.I gitalias.zsh
+Git shortcuts. Loaded at login; unload with
+.BR sl ,
+reload with
+.BR gital .
+.TP
+.I raspberryalias.zsh
+SSH/SFTP aliases for Raspberry Pi hosts (by IP octet or hostname).
+.TP
+.I jump.sh
+.BR cd (1)
+wrapper that records visited directories, plus the
+.B j
+jump function for fast navigation.
+.TP
+.I nwtools
+Interactive network troubleshooting menu (Mac + Pi). Run as
+.BR nw .
+.TP
+.I deploy.sh
+Installer: symlinks dotfiles, detects shell, backs up existing rc files.
+.SH GENERAL ALIASES
+.SS Navigation
+.TP
+.B up
+.BR "cd .."
+.TP
+.B home , hom
+.BR "cd ~"
+.TP
+.B cls
+Clear screen.
+.TP
+.B x
+Open current directory in Finder (macOS).
+.TP
+.B np " <file>"
+Open file in TextEdit (macOS).
+.TP
+.B dd
+List only directories in current directory.
+.SS File Tools
+.TP
+.B dt " [dir]"
+List files created or modified today (default: current dir).
+.TP
+.B ff " <name> [dir]"
+Find file by name, skipping hidden directories.
+.TP
+.B fff " <name> [dir]"
+Find file by name, including hidden directories.
+.TP
+.B psfe " [dir]"
+Count files grouped by extension, sorted by count descending.
+.TP
+.B psfed " [dir]"
+List empty directories.
+.TP
+.B psfed -d " [dir]"
+Delete empty leaf directories.
+.TP
+.B psfed -dr " [dir]"
+Delete empty directories recursively until none remain.
+.TP
+.B tree " [dir]"
+Display full file/folder tree from the given (or current) directory.
+Flags:
+.B \-u
+adds human-readable sizes,
+.B \-h
+includes hidden files.
+.TP
+.B treed " [dir]"
+Directory-only tree.
+Flags:
+.B \-h
+includes hidden dirs,
+.B \-j
+adds all dirs to
+.IR ~/.jumplocations .
+.SS Shell Helpers
+.TP
+.B aalias " [name]"
+Show definition of any alias or function. No argument = show all.
+.TP
+.B alh " [filter]"
+One-line help for every alias and function, parsed from source comments.
+Optional filter string for case-insensitive grep.
+.TP
+.B ia
+Network info (ifconfig).
+.TP
+.B sshfp
+Show fingerprints of all
+.I ~/.ssh
+key pairs (private + public) to verify they match.
+.TP
+.B dst
+Disk speed test (128 MB read/write benchmark). Alias for
+.IR ~/deb/disk_speed_test .
+.TP
+.B nw
+Launch the interactive network tools menu
+.RI ( ~/alias/nwtools ).
+.TP
+.B lo
+Exit the shell (alias for
+.BR exit ).
+.SS Loop / Watch
+.TP
+.B loop " [<n>s] <cmd> [+ <cmd> ...]"
+Repeatedly run a command every 2 s (or
+.I n
+seconds), clearing the screen between runs.
+Use
+.B +
+to chain multiple commands.
+Stop with ESC or Ctrl-C.
+.TP
+.B loopk " [<n>s] <cmd> [+ <cmd> ...]"
+Like
+.B loop
+but
+.I keeps
+output — no clear between runs.
+Useful when you want to see the accumulating output over time.
+.SS System Dashboard
+.TP
+.B cpu
+Brief one-screen summary: CPU model, OS, memory, disk, network, Docker version, uptime.
+Run on a Raspberry Pi after SSH'ing in.
+.TP
+.B cpu -v
+Full section-by-section view of the same data.
+.TP
+.B htop
+Run htop; auto-installs via apt-get on Linux if missing.
+.SS Docker Compose
+All
+.I dc*
+commands auto-detect the compose plugin
+.RI ( "docker compose" )
+or fall back to
+.IR docker-compose .
+They also auto-detect
+.I docker-compose.yml
+vs
+.I compose.yml
+in the given folder.
+.TP
+.B dcu " [folder]"
+docker compose up
+.TP
+.B dcud " [folder]"
+docker compose up -d (detached)
+.TP
+.B dcd " [folder]"
+docker compose down
+.TP
+.B dcde " [folder]"
+docker compose down and erase everything: all images
+.RB ( --rmi " all),"
+volumes
+.RB ( --volumes ),
+orphaned containers
+.RB ( --remove-orphans ).
+Use this for a complete clean slate.
+.SS VS Code Remote
+.TP
+.B vsc " [path]"
+.B macOS:
+runs
+.BR code .
+.B Raspberry Pi:
+reverse-SSHes to the connecting Mac and opens VS Code with a Remote SSH session
+pointing at this Pi. Requires Mac Remote Login enabled and MAC_USER set in Pi's .bashrc
+(done automatically by
+.BR raauth ).
+.SS Mac-to-Mac
+.TP
+.B mch
+Show Mac-to-Mac alias reference.
+.TP
+.B mcp " <name>"
+SSH to
+.IR rainers@<name>.local .
+.TP
+.B mcw " <name>"
+SFTP to
+.IR rainers@<name>.local .
+.TP
+.B mcc " <name[,name]> <cmd>"
+Run a command on one or more Macs by
+.I .local
+name.
+.TP
+.B mcv " <name>"
+Open Screen Sharing (VNC) to
+.IR <name>.local .
+.SH GIT ALIASES
+Git aliases are loaded at login from
+.IR gitalias.zsh .
+.TP
+.B gs
+git status (short) + fetch + diff vs default branch
+.TP
+.B gps
+Push to default branch with tags.
+.TP
+.B gdm
+Diff current state vs default branch on origin.
+.TP
+.B gl
+Log with graph and all branches.
+.TP
+.B glo
+Log one-line.
+.TP
+.B ga
+git add
+.TP
+.B gc " <msg>"
+git commit -m
+.TP
+.B gac " <msg>"
+git commit -a -m
+.TP
+.B gch
+git checkout
+.TP
+.B gb
+git branch
+.TP
+.B gpl
+git pull
+.TP
+.B gdi
+git diff
+.TP
+.B gst " / " gstp
+Stash / stash pop.
+.SS History Management
+.TP
+.B gstrip
+Replace the full local history with a single commit (current files unchanged, remote untouched).
+Saves disk space after cloning.
+.TP
+.B gplstrip
+Fetch + reset to remote HEAD without restoring history. Use for routine updates on a stripped repo.
+.TP
+.B grestore
+Wipe local folder, re-clone from remote with full history.
+Use this before making commits that need to be pushed.
+.SH RASPBERRY PI ALIASES
+All
+.I ra*
+commands use
+.I ~/.ssh/id_rsa
+and skip host key checking
+.RI ( StrictHostKeyChecking=no )
+because Pis are frequently reinstalled.
+Commands are piped to
+.BR bash -i
+via stdin to avoid SSH quoting issues and to load .bashrc aliases.
+.SS SSH
+.TP
+.B rap " <octet>"
+SSH to
+.IR pi@192.168.1.<octet>
+with key.
+.TP
+.B rapp " <octet>"
+SSH to
+.IR pi@192.168.1.<octet>
+without key (password auth).
+.TP
+.B rapv " <host>"
+SSH to
+.IR pi@<host>.ssb8.local
+with key.
+.TP
+.B rapa " <host>"
+SSH to
+.IR pi@<host>.pi.hole
+with key.
+.TP
+.B raphav
+SSH to
+.I root@hassio.ssb8.local
+port 22222 (Home Assistant).
+.TP
+.B raphaa
+SSH to
+.I root@hassio.pi.hole
+port 22222 (Home Assistant).
+.SS Remote Command Execution
+.TP
+.B rac " <octet[,octet]> <cmd>"
+Run a command on one Pi (by IP octet) or multiple Pis (comma-separated).
+Example:
+.I rac 52,59 uptime
+.TP
+.B racv " <host[,host]> <cmd>"
+Run a command on one or more Pis by
+.I .ssb8.local
+hostname.
+.TP
+.B raca " <host[,host]> <cmd>"
+Run a command on one or more Pis by
+.I .pi.hole
+hostname.
+.SS VS Code Remote SSH
+.TP
+.B vscr " <octet> [path]"
+Open VS Code with Remote SSH to
+.IR pi@192.168.1.<octet>
+(default path:
+.IR /home/pi ).
+.TP
+.B vscrv " <host> [path]"
+Open VS Code with Remote SSH to
+.IR pi@<host>.ssb8.local .
+.TP
+.B vscra " <host> [path]"
+Open VS Code with Remote SSH to
+.IR pi@<host>.pi.hole .
+.SS SFTP / SCP
+.TP
+.B raw " <octet>"
+Interactive SFTP to Pi by IP octet.
+.TP
+.B rawv " <host>"
+Interactive SFTP to
+.IR pi@<host>.ssb8.local .
+.TP
+.B rawa " <host>"
+Interactive SFTP to
+.IR pi@<host>.pi.hole .
+.TP
+.B rawl " <octet> [dir]"
+List remote directory (SFTP).
+.TP
+.B rawg " <octet> <remote> [local]"
+Download file or directory from Pi (scp -r).
+.TP
+.B rawu " <octet> <local> [remote]"
+Upload file or directory to Pi (scp -r).
+.TP
+.B rawmk " <octet> <dir>"
+Create directory on Pi.
+.TP
+.B rawrm " <octet> <path>"
+Remove file on Pi (prompts for confirmation first).
+.TP
+.B rawh
+Show SFTP one-liner help.
+.SS Key Setup
+.TP
+.B raauth " <octet>"
+Add Mac's
+.I id_rsa.pub
+to Pi's
+.I authorized_keys
+AND write
+.I export MAC_USER=<you>
+to Pi's
+.IR .bashrc .
+One password prompt, one SSH call.
+Run this first for each new Pi.
+.TP
+.B racpub " <octet>"
+Copy
+.I id_rsa.pub
+to Pi.
+.TP
+.B racpri " <octet>"
+Copy
+.I id_rsa
+(private key) to Pi and
+.BR chmod " 600"
+it.
+Needed so the Pi can reverse-SSH back to the Mac for
+.BR vsc .
+.SH JUMP FUNCTION
+The
+.B cd
+command is wrapped to record every visited directory into
+.IR ~/.jumplocations .
+.TP
+.B j " <partial-name>"
+Jump to a previously visited directory by partial folder name (case-insensitive).
+If multiple matches are found, an interactive numbered menu is shown.
+.TP
+.B j -d
+Remove the current directory from the jump cache.
+.TP
+.B j -dr
+Remove the current directory and all subdirectories from the jump cache.
+.SH NETWORK TOOLS
+.B nw
+launches an interactive menu with the following tools:
+.PP
+.TS
+l l.
+1	IPv4 addresses
+i	IPv6 addresses
+2	IPv4 full details (interfaces, routes, DNS)
+j	IPv6 full details
+3	Release DHCP lease
+4	Renew DHCP lease
+5	Flush DNS cache
+6	Show ARP/neighbour table
+7	Clear ARP table
+8	Ping default gateway
+9	Ping 8.8.8.8 (internet check)
+a	Traceroute to host
+b	DNS lookup (A/AAAA/MX/NS/TXT)
+c	Routing table
+d	Active/listening ports
+e	External / public IP
+f	Port test (nc -zv)
+g	WiFi interface details
+h	Wake-on-LAN
+k	Interface summary table
+l	Bandwidth test (latency + download speed)
+0	Exit
+.TE
+.PP
+Run as
+.B nw <choice>
+to execute a single tool non-interactively and exit.
+Missing tools show a clear error with the
+.I apt install
+command rather than silently failing.
+.SH REPO UPDATE
+.TP
+.B alu
+Pull latest alias repo (shallow, strips old history) and re-run
+.IR deploy.sh .
+.TP
+.B dbu
+Pull latest deb repo (shallow, strips old history).
+.SH SSH CONFIG
+.I ~/alias/ssh_config
+(symlinked to
+.IR ~/.ssh/config )
+sets sensible defaults for all Pi hosts
+.RI ( 192.168.1.* ,
+.IR *.ssb8.local ,
+.IR *.pi.hole ):
+StrictHostKeyChecking=no, UserKnownHostsFile=/dev/null, ForwardAgent=yes, LogLevel=ERROR.
+.SH ENVIRONMENT
+.TP
+.B DOTFILES
+Path to the alias repo. Set in
+.I ~/.zshrc
+/
+.IR .bashrc .
+Default:
+.IR ~/alias .
+.TP
+.B MAC_USER
+Set in Pi's
+.I ~/.bashrc
+by
+.BR raauth .
+Used by
+.B vsc
+(Pi side) to reverse-SSH to the correct Mac user.
+.SH SEE ALSO
+.BR ssh (1),
+.BR sftp (1),
+.BR scp (1),
+.BR git (1),
+.BR docker (1)
+.SH VIEW THIS PAGE
+.RS
+man alias
+.RE
+.SH AUTHOR
+rainers

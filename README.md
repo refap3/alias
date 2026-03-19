@@ -91,6 +91,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `deploy.sh` | Install script — 4 variants: zsh/bash × home/custom |
 | `nwtools` | Interactive network troubleshooting menu (Mac + Pi) |
 | `nwtools_testplan.md` | Test plan for `nwtools` |
+| `man/man1/alias.1` | Man page — `man alias` (available once alias.zsh is sourced) |
 
 ## Aliases
 
@@ -130,12 +131,14 @@ source ~/.zshrc     # or source ~/.bashrc
 | `loop <n>s <cmd>` | Same with custom wait (e.g. `loop 5s ls`) |
 | `loop <cmd> + <cmd>` | Run multiple commands per cycle (e.g. `loop ls + pwd`) |
 | `loop "<cmd>;<cmd>"` | Same using quoted semicolons (e.g. `loop "ls;pwd"`) |
+| `loopk [<n>s] <cmd>` | Like `loop` but keeps output — no clear screen between runs |
 | `cpu` | System dashboard: CPU, OS, mem, disk, net, Docker, uptime (brief by default) |
 | `cpu -v` | Same info in full section-by-section view |
 | `vsc [path]` | **Mac:** open VS Code. **Pi:** open VS Code on Mac with Remote SSH to this Pi |
 | `dcu [folder]` | `docker compose up` (auto-detects plugin vs standalone; optional folder) |
 | `dcud [folder]` | `docker compose up -d` (detached; optional folder) |
 | `dcd [folder]` | `docker compose down` (optional folder) |
+| `dcde [folder]` | `docker compose down` + remove all images, volumes, networks, orphans |
 
 **Mac Screen Sharing setup** (one-time, run on the remote Mac if Remote Management blocks VNC):
 
