@@ -31,9 +31,9 @@ allal() {
 sl() {
     source ~/.bashrc
     # Bash lacks unalias -m; parse gitalias.zsh and unalias each entry
-    while read -r name; do
+    grep '^alias ' "$DOTFILES/gitalias.zsh" | sed 's/alias \([^=]*\)=.*/\1/' | while read -r name; do
         unalias "$name" 2>/dev/null
-    done < <(grep '^alias ' "$DOTFILES/gitalias.zsh" | sed 's/alias \([^=]*\)=.*/\1/')
+    done
     unset -f gs _git_default_branch 2>/dev/null
     echo ". sl executed! (Profile reloaded, Git aliases unloaded)"
 }
