@@ -484,9 +484,10 @@ Remove file on NAS (prompts for confirmation first).
 Add Mac's
 .I id_rsa.pub
 to NAS
-.IR authorized_keys .
-One password prompt, one SSH call.
-Run this first before key-based access.
+.I authorized_keys
+AND configure passwordless sudo.
+Two prompts: SSH password (step 1), sudo password (step 2).
+Run this first on a new Synology.
 .TP
 .B syh
 Show Synology alias help.

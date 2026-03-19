@@ -53,9 +53,13 @@ syvsc() { code --remote "ssh-remote+$SY_USER@$SY_HOST" "${1:-/volume1/homes/$SY_
 # --- Key setup (password auth — run before key auth is set up) ---
 syauth() {
     local _u; _u=$(whoami)
+    echo "Step 1/2: adding Mac pubkey (SSH password prompt)..."
     cat ~/.ssh/id_rsa.pub | ssh "${_SYOPT[@]}" "$SY_USER@$SY_HOST" \
         "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
-    echo "syauth done: Mac pubkey added to $SY_USER@$SY_HOST"
+    echo "Step 2/2: setting up passwordless sudo (sudo password prompt)..."
+    ssh "${_SYKEYOPT[@]}" "${_SYOPT[@]}" -t "$SY_USER@$SY_HOST" \
+        "echo '$SY_USER ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/$SY_USER > /dev/null && sudo chmod 0440 /etc/sudoers.d/$SY_USER && echo 'sudo: done'"
+    echo "syauth done: pubkey added, passwordless sudo configured."
 }
 
 # --- SFTP ---
