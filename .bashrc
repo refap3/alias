@@ -40,3 +40,6 @@ sl() {
 
 source ~/.jump.sh
 export MAC_USER=rainers
+
+# Synology: Docker requires root — alias transparently via passwordless sudo
+[ -f /etc/synoinfo.conf ] && alias docker='sudo docker'
