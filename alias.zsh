@@ -36,8 +36,9 @@ alias cdsp='claude --dangerously-skip-permissions'
 
 # Docker Compose — use plugin (docker compose) when available, fall back to standalone (docker-compose)
 _dc() {
-    if docker compose version >/dev/null 2>&1; then
-        docker compose "$@"
+    local _docker; [ -f /etc/synoinfo.conf ] && _docker='sudo docker' || _docker='docker'
+    if $_docker compose version >/dev/null 2>&1; then
+        $_docker compose "$@"
     else
         docker-compose "$@"
     fi
