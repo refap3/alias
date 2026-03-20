@@ -176,7 +176,7 @@ _tree_helper() {
         fi
     done
 }
-# Display folder/file tree; -u adds human-readable sizes on each node; -t totals per top-level dir
+# Display folder/file tree; -u sizes on each node; -h hidden files; -t top-level dirs with total recursive size
 tree() {
     local dir="." show_usage=0 hidden=0 show_totals=0
     for arg in "$@"; do

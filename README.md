@@ -125,6 +125,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `tree [dir]` | Display full file/folder tree from current (or given) directory |
 | `tree -u [dir]` | Same, with human-readable sizes on each node |
 | `tree -h [dir]` | Include hidden (dot) files and folders |
+| `tree -t [dir]` | Top-level directories only, each with its full recursive total size (incl. hidden content) |
 | `treed [dir]` | Display directory-only tree |
 | `treed -h [dir]` | Directory-only tree including hidden dirs |
 | `treed -j [dir]` | Directory tree and add all dirs to `~/.jumplocations` |
