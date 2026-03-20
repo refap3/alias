@@ -33,7 +33,8 @@ syh() {
     echo "  sywrm <path>     — rm on remote (confirms first)"
     echo ""
     echo "  syauth           — add Mac pubkey to NAS authorized_keys (password prompt)"
-    echo "  syvsc  [path]    — open VS Code Remote SSH on NAS"
+    echo ""
+    echo "  Note: VS Code Remote SSH not supported (NAS glibc 2.26 < required 2.28)"
 }
 
 # --- SSH ---
@@ -46,9 +47,6 @@ syc() {
     local _cmd; _cmd=$(printf 'shopt -s expand_aliases; %s' "$*")
     printf '%s\n' "$_cmd" | ssh "${_SYKEYOPT[@]}" "${_SYOPT[@]}" "$SY_USER@$SY_HOST" bash -i 2>/dev/null
 }
-
-# --- VS Code Remote SSH ---
-syvsc() { code --remote "ssh-remote+$SY_USER@$SY_HOST" "${1:-/volume1/homes/$SY_USER}"; }
 
 # --- Key setup (password auth — run before key auth is set up) ---
 syauth() {
@@ -71,4 +69,4 @@ sywl()  { _sykey; _sysftp "ls ${1:-.}"; }                                       
 sywg()  { _sykey; scp -r "${_SYKEYOPT[@]}" "${_SYOPT[@]}" "$SY_USER@$SY_HOST:$1" "${2:-.}"; }         # sywg  <remote> [local]
 sywu()  { _sykey; scp -r "${_SYKEYOPT[@]}" "${_SYOPT[@]}" "$1" "$SY_USER@$SY_HOST:${2:-.}"; }         # sywu  <local>  [remote]
 sywmk() { _sykey; _sysftp "mkdir $1"; }                                                                # sywmk <dir>
-sywrm() { _sykey; echo "rm $1? [y/N] "; read -rq && _sysftp "rm $1"; }                                # sywrm <path>
+sywrm() { _sykey; printf 'rm %s? [y/N] ' "$1"; read -r _reply; [[ "$_reply" == [yY] ]] && _sysftp "rm $1"; }  # sywrm <path>
