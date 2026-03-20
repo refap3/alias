@@ -176,16 +176,53 @@ _tree_helper() {
         fi
     done
 }
-# Display folder/file tree; -u adds human-readable sizes on each node
+# Display folder/file tree; -u adds human-readable sizes on each node; -t totals per top-level dir
 tree() {
-    local dir="." show_usage=0 hidden=0
+    local dir="." show_usage=0 hidden=0 show_totals=0
     for arg in "$@"; do
         case "$arg" in
             -*) case "$arg" in *u*) show_usage=1 ;; esac
-                case "$arg" in *h*) hidden=1 ;; esac ;;
+                case "$arg" in *h*) hidden=1 ;; esac
+                case "$arg" in *t*) show_totals=1 ;; esac ;;
             *)  dir="$arg" ;;
         esac
     done
+    if [ "$show_totals" = "1" ]; then
+        local entries=() entry i=0 count
+        if [ -n "$ZSH_VERSION" ]; then
+            if [ "$hidden" = "1" ]; then
+                eval 'for entry in "$dir"/*(ND/); do entries+=("$entry"); done'
+            else
+                eval 'for entry in "$dir"/*(N/); do entries+=("$entry"); done'
+            fi
+        else
+            local _ng; _ng=$(shopt -p nullglob 2>/dev/null)
+            shopt -s nullglob 2>/dev/null
+            if [ "$hidden" = "1" ]; then
+                local _dg; _dg=$(shopt -p dotglob 2>/dev/null)
+                shopt -s dotglob 2>/dev/null
+                for entry in "$dir"/*/; do entries+=("${entry%/}"); done
+                eval "$_dg" 2>/dev/null
+            else
+                for entry in "$dir"/*/; do entries+=("${entry%/}"); done
+            fi
+            eval "$_ng" 2>/dev/null
+        fi
+        echo "$dir"
+        count=${#entries[@]}
+        local _tname _tsz
+        for entry in "${entries[@]}"; do
+            i=$((i+1))
+            _tname="${entry##*/}"
+            _tsz=$(du -sk "$entry" 2>/dev/null | awk '{printf "%.0f\n", $1*1024}')
+            if [ "$i" -eq "$count" ]; then
+                echo "└── [$(_tree_humansize "${_tsz:-0}")] ${_tname}"
+            else
+                echo "├── [$(_tree_humansize "${_tsz:-0}")] ${_tname}"
+            fi
+        done
+        return
+    fi
     if [ "$show_usage" = "1" ]; then
         local total; total=$(du -sk "$dir" 2>/dev/null | awk '{printf "%.0f\n", $1*1024}')
         echo "$dir  [$(_tree_humansize "${total:-0}")]"
