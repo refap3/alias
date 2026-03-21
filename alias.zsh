@@ -473,6 +473,9 @@ mcc() {
 # Disk speed test (read/write benchmark on current directory)
 alias dst='~/deb/disk_speed_test'
 
+# Open deb interactive menu (~/deb/menu); optional choice arg (e.g. de b); skipped if not installed
+de() { [ -x "$HOME/deb/menu" ] && "$HOME/deb/menu" "$@" || echo "de: ~/deb/menu not found or not executable" >&2; }
+
 # Interactive network troubleshooting menu (ipconfig/arp/dns/ping/bw)
 alias nw='~/alias/nwtools'
 
