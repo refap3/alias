@@ -141,7 +141,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `dcud [folder]` | `docker compose up -d` (detached; optional folder) |
 | `dcd [folder]` | `docker compose down` (optional folder) |
 | `dcde [folder]` | `docker compose down` + remove all images, volumes, networks, orphans |
-| `de [choice]` | Open the deb interactive menu (`~/deb/menu`); optional choice arg (e.g. `de b`). Silently skipped if not installed |
+| `db [choice]` | Open the deb interactive menu (`~/deb/menu`); optional choice arg (e.g. `db b`). Silently skipped if not installed |
 
 **Mac Screen Sharing setup** (one-time, run on the remote Mac if Remote Management blocks VNC):
 
