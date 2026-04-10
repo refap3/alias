@@ -86,7 +86,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `.bashrc` | bash config — sets `DOTFILES` via `readlink`, loads alias files |
 | `alias.zsh` | General aliases (`up`, `home`, `cls`, `dt`, `aalias`, `ddd`, etc.) |
 | `gitalias.zsh` | Git shortcuts (auto-loaded at login, unload with `sl`) |
-| `raspberryalias.zsh` | SSH/SFTP aliases for Raspberry Pi hosts |
+| `raspberryalias.zsh` | SSH/SFTP aliases for Raspberry Pi hosts and Windows Server |
 | `synologyalias.zsh` | SSH/SFTP aliases for Synology NAS (fixed host, user pipi) |
 | `jump.sh` | Directory jump function (`j`) |
 | `deploy.sh` | Install script — 4 variants: zsh/bash × home/custom |
@@ -205,6 +205,41 @@ racpri 52    # copy private key to Pi
 vsc          # opens VS Code on Mac → Remote SSH → Pi 52:/home/pi
 vsc ~/myproject  # opens a specific folder
 ```
+
+**Windows Server** (`es.ssb8.local`, PowerShell remoting over SSH, key `~/.ssh/id_ed25519`):
+
+| Command | Description |
+|---------|-------------|
+| `raes` | PowerShell remoting → Windows Server as `ssb8\rainer` |
+| `raesa` | PowerShell remoting → Windows Server as `ssb8\Administrator` |
+
+**First-time setup on a new Mac for Windows Server:**
+
+1. Install PowerShell 7:
+   ```bash
+   # Download and install the pkg (adjust version as needed)
+   curl -L -o /tmp/pwsh.pkg "https://github.com/PowerShell/PowerShell/releases/download/v7.6.0/powershell-7.6.0-osx-arm64.pkg"
+   sudo installer -pkg /tmp/pwsh.pkg -target /
+   ```
+
+2. Copy SSH keys and config from an existing Mac (e.g. `mb`):
+   ```bash
+   ssh mm "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+   scp ~/.ssh/id_ed25519 ~/.ssh/id_ed25519.pub mm:~/.ssh/
+   ssh mm "chmod 600 ~/.ssh/id_ed25519"
+   scp ~/.ssh/config mm:~/.ssh/config
+   scp ~/alias/raspberryalias.zsh mm:~/alias/raspberryalias.zsh
+   ```
+
+3. Add the key to the agent on the new Mac:
+   ```bash
+   ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+   ```
+
+No changes needed on the Windows Server — it already has the key.
+
+> **Note:** `~/.ssh/config` must have a `Host es.ssb8.local` entry with `IdentityFile ~/.ssh/id_ed25519`
+> to override the wildcard `*.ssb8.local` entry (which uses `id_rsa`).
 
 **Synology NAS** (auto-loaded, host `192.168.1.116`, user `pipi`, key `~/.ssh/id_rsa`):
 

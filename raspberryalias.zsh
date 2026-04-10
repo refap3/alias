@@ -95,6 +95,10 @@ rappa() { ssh "${_PIOPT[@]}" pi@$1.pi.hole; }                           # rappa 
 raphav() { _pikey; ssh -p 22222 "${_PIKEYOPT[@]}" "${_PIOPT[@]}" root@hassio.ssb8.local; }
 raphaa() { _pikey; ssh -p 22222 "${_PIKEYOPT[@]}" "${_PIOPT[@]}" root@hassio.pi.hole; }
 
+# --- PSSession: Windows Server (es.ssb8.local, domain rainer) ---
+raes()  { pwsh -NoExit -Command "Enter-PSSession -HostName es.ssb8.local -UserName ssb8\\rainer"; }        # raes  — PowerShell remoting into Windows Server as rainer
+raesa() { pwsh -NoExit -Command "Enter-PSSession -HostName es.ssb8.local -UserName ssb8\\Administrator"; } # raesa — PowerShell remoting into Windows Server as Administrator
+
 # --- Copy SSH keys to remote host (password auth — use before key auth is set up) ---
 racpub()  { scp "${_PIOPT[@]}" ~/.ssh/id_rsa.pub pi@192.168.1.$1:~/.ssh/; }                                              # racpub <octet>  — copy public key file
 racpri()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh" && scp "${_PIOPT[@]}" ~/.ssh/id_rsa pi@192.168.1.$1:~/.ssh/ && ssh "${_PIOPT[@]}" pi@192.168.1.$1 "chmod 600 ~/.ssh/id_rsa"; } # racpri <octet>  — copy private key + fix perms

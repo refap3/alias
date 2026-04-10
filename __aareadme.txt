@@ -94,3 +94,21 @@ FIRST-TIME SETUP ON A NEW MACHINE
     git clone https://github.com/refap3/alias ~/alias
     ~/alias/deploy.sh
     source ~/.zshrc     # or source ~/.bashrc
+
+WINDOWS SERVER SETUP ON A NEW MAC (raes / raesa)
+-------------------------------------------------
+    1. Install PowerShell 7:
+       curl -L -o /tmp/pwsh.pkg "https://github.com/PowerShell/PowerShell/releases/download/v7.6.0/powershell-7.6.0-osx-arm64.pkg"
+       sudo installer -pkg /tmp/pwsh.pkg -target /
+
+    2. Copy SSH keys + config from an existing Mac (run from the existing Mac):
+       ssh <newmac> "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+       scp ~/.ssh/id_ed25519 ~/.ssh/id_ed25519.pub <newmac>:~/.ssh/
+       ssh <newmac> "chmod 600 ~/.ssh/id_ed25519"
+       scp ~/.ssh/config <newmac>:~/.ssh/config
+
+    3. On the new Mac — add key to agent:
+       ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+
+    No changes needed on the Windows Server.
+    Aliases raes / raesa work immediately after step 3.

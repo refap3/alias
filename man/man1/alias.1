@@ -49,7 +49,7 @@ reload with
 .BR gital .
 .TP
 .I raspberryalias.zsh
-SSH/SFTP aliases for Raspberry Pi hosts (by IP octet or hostname).
+SSH/SFTP aliases for Raspberry Pi hosts (by IP octet or hostname) and Windows Server PowerShell remoting.
 .TP
 .I synologyalias.zsh
 SSH/SFTP aliases for the Synology NAS (fixed host 192.168.1.116, user pipi).
@@ -437,6 +437,52 @@ Copy
 it.
 Needed so the Pi can reverse-SSH back to the Mac for
 .BR vsc .
+.SH WINDOWS SERVER ALIASES
+PowerShell remoting over SSH to
+.I es.ssb8.local
+(Windows Server 2012 domain controller).
+Uses
+.I ~/.ssh/id_ed25519
+(not id_rsa).
+Requires PowerShell 7 installed on the Mac.
+.SS PSSession
+.TP
+.B raes
+Enter PowerShell remote session as
+.IR ssb8\[rs]rainer .
+.TP
+.B raesa
+Enter PowerShell remote session as
+.IR ssb8\[rs]Administrator .
+.SS New Mac Setup
+.TP
+1.
+Install PowerShell 7:
+.RS
+.I curl -L -o /tmp/pwsh.pkg "https://github.com/PowerShell/PowerShell/releases/download/v7.6.0/powershell-7.6.0-osx-arm64.pkg"
+.br
+.I sudo installer -pkg /tmp/pwsh.pkg -target /
+.RE
+.TP
+2.
+Copy keys and config from an existing Mac:
+.RS
+.I ssh mm "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+.br
+.I scp ~/.ssh/id_ed25519 ~/.ssh/id_ed25519.pub mm:~/.ssh/
+.br
+.I ssh mm "chmod 600 ~/.ssh/id_ed25519"
+.br
+.I scp ~/.ssh/config mm:~/.ssh/config
+.RE
+.TP
+3.
+Add key to agent on the new Mac:
+.RS
+.I ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+.RE
+.PP
+No changes needed on the Windows Server \(em it already has the key.
 .SH SYNOLOGY ALIASES
 All
 .I sy*

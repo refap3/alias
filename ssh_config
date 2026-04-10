@@ -1,3 +1,9 @@
+Host mm
+    HostName 192.168.1.47
+
+Host es.ssb8.local
+    IdentityFile ~/.ssh/id_ed25519
+
 Host 192.168.1.* *.ssb8.local *.pi.hole mb.local mm.local mb mm
     ForwardAgent yes
     SendEnv -LANG -LC_*
