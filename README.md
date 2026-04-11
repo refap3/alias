@@ -86,7 +86,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `.bashrc` | bash config — sets `DOTFILES` via `readlink`, loads alias files |
 | `alias.zsh` | General aliases (`up`, `home`, `cls`, `dt`, `aalias`, `ddd`, etc.) |
 | `gitalias.zsh` | Git shortcuts (auto-loaded at login, unload with `sl`) |
-| `raspberryalias.zsh` | SSH/SFTP aliases for Raspberry Pi hosts and Windows Server |
+| `raspberryalias.zsh` | SSH/SFTP aliases for Raspberry Pi hosts and Windows PCs |
 | `synologyalias.zsh` | SSH/SFTP aliases for Synology NAS (fixed host, user pipi) |
 | `jump.sh` | Directory jump function (`j`) |
 | `deploy.sh` | Install script — 4 variants: zsh/bash × home/custom |
@@ -206,40 +206,92 @@ vsc          # opens VS Code on Mac → Remote SSH → Pi 52:/home/pi
 vsc ~/myproject  # opens a specific folder
 ```
 
-**Windows Server** (`es.ssb8.local`, PowerShell remoting over SSH, key `~/.ssh/id_ed25519`):
+**Windows PCs** (PowerShell remoting or SSH, key `~/.ssh/id_ed25519`, domain `ssb8`, user `rainer`):
 
 | Command | Description |
 |---------|-------------|
-| `raes` | PowerShell remoting → Windows Server as `ssb8\rainer` |
-| `raesa` | PowerShell remoting → Windows Server as `ssb8\Administrator` |
+| `pcp <octet>` | PowerShell remoting (PSSession) → `192.168.1.<octet>` as `ssb8\rainer` |
+| `pcpv <host>` | PowerShell remoting → `<host>.ssb8.local` as `ssb8\rainer` |
+| `pcpa <host>` | PowerShell remoting → `<host>.pi.hole` as `ssb8\rainer` |
+| `pcc <octet> <cmd>` | Run PowerShell command on Windows PC by IP octet (comma-separated for multiple) |
+| `pccv <host> <cmd>` | Run PowerShell command on Windows PC by `.ssb8.local` hostname |
+| `pcca <host> <cmd>` | Run PowerShell command on Windows PC by `.pi.hole` hostname |
 
-**First-time setup on a new Mac for Windows Server:**
+**First-time setup on Windows Server (OpenSSH + key auth):**
+
+Run these commands **on the Windows Server** (in an elevated PowerShell):
+
+```powershell
+# 1. Install OpenSSH Server (Windows Server 2019+ / Win 10 1809+)
+Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+Start-Service sshd
+Set-Service -Name sshd -StartupType 'Automatic'
+
+# 2. Set PowerShell 7 as the default shell for SSH sessions
+New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" `
+    -Name DefaultShell `
+    -Value "C:\Program Files\PowerShell\7\pwsh.exe" `
+    -PropertyType String -Force
+
+# 3. Allow SSH through the firewall (usually added automatically, verify):
+Get-NetFirewallRule -Name 'OpenSSH-Server-In-TCP'
+
+# 4. Add the Mac's public key to authorized_keys
+#    For regular users — place in the user's profile:
+$key = "paste-your-id_ed25519.pub-content-here"
+$sshDir = "$env:USERPROFILE\.ssh"
+New-Item -ItemType Directory -Force -Path $sshDir | Out-Null
+Add-Content -Path "$sshDir\authorized_keys" -Value $key
+
+#    For Administrator — the system reads from a fixed path instead:
+#    C:\ProgramData\ssh\administrators_authorized_keys
+#    File must be owned by SYSTEM or Administrators and not writable by others.
+
+# 5. Fix permissions on authorized_keys (Windows SSH requires strict ACL)
+icacls "$sshDir\authorized_keys" /inheritance:r /grant "${env:USERNAME}:(R)" /grant "SYSTEM:(R)"
+```
+
+**Copy the Mac's public key to Windows from the Mac:**
+
+```bash
+# Print your public key — paste it into the Windows PowerShell step above
+cat ~/.ssh/id_ed25519.pub
+```
+
+**First-time setup on a new Mac for Windows PCs:**
 
 1. Install PowerShell 7:
    ```bash
-   # Download and install the pkg (adjust version as needed)
    curl -L -o /tmp/pwsh.pkg "https://github.com/PowerShell/PowerShell/releases/download/v7.6.0/powershell-7.6.0-osx-arm64.pkg"
    sudo installer -pkg /tmp/pwsh.pkg -target /
    ```
 
-2. Copy SSH keys and config from an existing Mac (e.g. `mb`):
+2. Generate (or copy) the ed25519 key pair:
    ```bash
+   # Generate a new key (if not already present):
+   ssh-keygen -t ed25519 -C "rainers@mac" -f ~/.ssh/id_ed25519
+
+   # Or copy from an existing Mac (e.g. mm):
    ssh mm "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
    scp ~/.ssh/id_ed25519 ~/.ssh/id_ed25519.pub mm:~/.ssh/
    ssh mm "chmod 600 ~/.ssh/id_ed25519"
-   scp ~/.ssh/config mm:~/.ssh/config
-   scp ~/alias/raspberryalias.zsh mm:~/alias/raspberryalias.zsh
    ```
 
-3. Add the key to the agent on the new Mac:
+3. Add the key to the macOS keychain:
    ```bash
    ssh-add --apple-use-keychain ~/.ssh/id_ed25519
    ```
 
-No changes needed on the Windows Server — it already has the key.
+4. Verify `~/.ssh/config` has a host-specific entry for each Windows host to override the Pi wildcard:
+   ```
+   Host es.ssb8.local
+       IdentityFile ~/.ssh/id_ed25519
+   ```
+   Without this, the `*.ssb8.local` wildcard would use `id_rsa` instead.
 
-> **Note:** `~/.ssh/config` must have a `Host es.ssb8.local` entry with `IdentityFile ~/.ssh/id_ed25519`
-> to override the wildcard `*.ssb8.local` entry (which uses `id_rsa`).
+> **Note:** `pcc`/`pccv`/`pcca` pipe PowerShell commands to `pwsh` via SSH (no PSSession overhead).
+> This requires the Windows SSH server's default shell to be set to `pwsh.exe` (step 2 above).
+> `pcp`/`pcpv`/`pcpa` use full PSRemoting (`Enter-PSSession`) and always pass `-KeyFilePath` explicitly.
 
 **Synology NAS** (auto-loaded, host `192.168.1.116`, user `pipi`, key `~/.ssh/id_rsa`):
 

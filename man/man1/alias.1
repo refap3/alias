@@ -49,7 +49,7 @@ reload with
 .BR gital .
 .TP
 .I raspberryalias.zsh
-SSH/SFTP aliases for Raspberry Pi hosts (by IP octet or hostname) and Windows Server PowerShell remoting.
+SSH/SFTP aliases for Raspberry Pi hosts (by IP octet or hostname) and Windows PC PowerShell remoting and remote command execution.
 .TP
 .I synologyalias.zsh
 SSH/SFTP aliases for the Synology NAS (fixed host 192.168.1.116, user pipi).
@@ -437,23 +437,87 @@ Copy
 it.
 Needed so the Pi can reverse-SSH back to the Mac for
 .BR vsc .
-.SH WINDOWS SERVER ALIASES
-PowerShell remoting over SSH to
-.I es.ssb8.local
-(Windows Server 2012 domain controller).
+.SH WINDOWS PC ALIASES
+PowerShell remoting (PSSession) and SSH-based remote command execution for Windows PCs.
 Uses
 .I ~/.ssh/id_ed25519
-(not id_rsa).
+(not id_rsa), domain
+.IR ssb8 ,
+user
+.IR rainer .
 Requires PowerShell 7 installed on the Mac.
-.SS PSSession
+.SS PSSession (interactive)
 .TP
-.B raes
-Enter PowerShell remote session as
+.B pcp " <octet>"
+Enter PowerShell remote session to
+.IR 192.168.1.<octet>
+as
 .IR ssb8\[rs]rainer .
 .TP
-.B raesa
-Enter PowerShell remote session as
-.IR ssb8\[rs]Administrator .
+.B pcpv " <host>"
+Enter PowerShell remote session to
+.IR <host>.ssb8.local
+as
+.IR ssb8\[rs]rainer .
+.TP
+.B pcpa " <host>"
+Enter PowerShell remote session to
+.IR <host>.pi.hole
+as
+.IR ssb8\[rs]rainer .
+.SS Remote Command Execution
+Commands are piped to
+.B pwsh
+via SSH (analogous to
+.B rac
+for Pis).
+Requires OpenSSH server on Windows with
+.I pwsh.exe
+set as the default shell.
+.TP
+.B pcc " <octet[,octet]> <cmd>"
+Run a PowerShell command on one Windows PC (by IP octet) or multiple (comma-separated).
+.TP
+.B pccv " <host[,host]> <cmd>"
+Run a PowerShell command on one or more Windows PCs by
+.I .ssb8.local
+hostname.
+.TP
+.B pcca " <host[,host]> <cmd>"
+Run a PowerShell command on one or more Windows PCs by
+.I .pi.hole
+hostname.
+.SS Windows OpenSSH Setup (run once on the Windows Server, elevated PowerShell)
+.TP
+1.
+Install and enable OpenSSH Server:
+.RS
+.I Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+.br
+.I Start-Service sshd
+.br
+.I Set-Service -Name sshd -StartupType 'Automatic'
+.RE
+.TP
+2.
+Set PowerShell 7 as the SSH default shell:
+.RS
+.I New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value "C:\Program Files\PowerShell\7\pwsh.exe" -PropertyType String -Force
+.RE
+.TP
+3.
+Add Mac's public key to
+.IR authorized_keys :
+.RS
+For regular users:
+.I $HOME\\.ssh\\authorized_keys
+.br
+For Administrator:
+.I C:\ProgramData\ssh\administrators_authorized_keys
+.br
+Fix ACL:
+.I icacls "$HOME\\.ssh\\authorized_keys" /inheritance:r /grant "${env:USERNAME}:(R)" /grant "SYSTEM:(R)"
+.RE
 .SS New Mac Setup
 .TP
 1.
@@ -465,24 +529,29 @@ Install PowerShell 7:
 .RE
 .TP
 2.
-Copy keys and config from an existing Mac:
+Generate or copy the ed25519 key:
 .RS
-.I ssh mm "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+.I ssh-keygen -t ed25519 -C "rainers@mac" -f ~/.ssh/id_ed25519
 .br
-.I scp ~/.ssh/id_ed25519 ~/.ssh/id_ed25519.pub mm:~/.ssh/
-.br
-.I ssh mm "chmod 600 ~/.ssh/id_ed25519"
-.br
-.I scp ~/.ssh/config mm:~/.ssh/config
+Or copy from an existing Mac:
+.I scp mm:~/.ssh/id_ed25519{,.pub} ~/.ssh/ && chmod 600 ~/.ssh/id_ed25519
 .RE
 .TP
 3.
-Add key to agent on the new Mac:
+Add key to the macOS keychain:
 .RS
 .I ssh-add --apple-use-keychain ~/.ssh/id_ed25519
 .RE
-.PP
-No changes needed on the Windows Server \(em it already has the key.
+.TP
+4.
+Ensure
+.I ~/.ssh/config
+has a host-specific entry for each Windows host to override the Pi wildcard (which uses id_rsa):
+.RS
+.I Host es.ssb8.local
+.br
+.I "    "IdentityFile ~/.ssh/id_ed25519
+.RE
 .SH SYNOLOGY ALIASES
 All
 .I sy*

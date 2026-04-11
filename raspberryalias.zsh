@@ -95,9 +95,77 @@ rappa() { ssh "${_PIOPT[@]}" pi@$1.pi.hole; }                           # rappa 
 raphav() { _pikey; ssh -p 22222 "${_PIKEYOPT[@]}" "${_PIOPT[@]}" root@hassio.ssb8.local; }
 raphaa() { _pikey; ssh -p 22222 "${_PIKEYOPT[@]}" "${_PIOPT[@]}" root@hassio.pi.hole; }
 
-# --- PSSession: Windows Server (es.ssb8.local, domain rainer) ---
-raes()  { pwsh -NoExit -Command "Enter-PSSession -HostName es.ssb8.local -UserName ssb8\\rainer"; }        # raes  — PowerShell remoting into Windows Server as rainer
-raesa() { pwsh -NoExit -Command "Enter-PSSession -HostName es.ssb8.local -UserName ssb8\\Administrator"; } # raesa — PowerShell remoting into Windows Server as Administrator
+# --- PC (Windows) configuration ---
+PC_KEY="$HOME/.ssh/id_ed25519"
+PC_USER="rainer"
+PC_DOMAIN="ssb8"
+_PCOPT=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR)
+
+# Fix key permissions if present; set _PCKEYOPT for ssh calls.
+_pckey() {
+    if [ -f "$PC_KEY" ]; then
+        chmod 600 "$PC_KEY" 2>/dev/null
+        _PCKEYOPT=(-i "$PC_KEY")
+    else
+        _PCKEYOPT=()
+    fi
+}
+
+# --- PSSession: interactive PowerShell remoting (Enter-PSSession over SSH transport) ---
+pcp()  { pwsh -NoExit -Command "Enter-PSSession -HostName 192.168.1.$1 -UserName ${PC_DOMAIN}\\${PC_USER} -KeyFilePath ~/.ssh/id_ed25519"; }   # pcp  <octet>  — PSSession by IP
+pcpv() { pwsh -NoExit -Command "Enter-PSSession -HostName $1.ssb8.local -UserName ${PC_DOMAIN}\\${PC_USER} -KeyFilePath ~/.ssh/id_ed25519"; }  # pcpv <host>   — PSSession by .ssb8.local
+pcpa() { pwsh -NoExit -Command "Enter-PSSession -HostName $1.pi.hole -UserName ${PC_DOMAIN}\\${PC_USER} -KeyFilePath ~/.ssh/id_ed25519"; }     # pcpa <host>   — PSSession by .pi.hole
+
+# --- Remote command: run PowerShell command on Windows PC via SSH ---
+# Analogous to rac/racv/raca; command is piped to pwsh via stdin.
+pcc() {  # pcc <octet[,octet,...]> <cmd...>
+    _pckey
+    local _cmd="${@:2}"
+    case "$1" in
+        *,*)
+            local oct
+            for oct in $(printf '%s' "$1" | tr ',' ' '); do
+                printf '\n-- 192.168.1.%s --\n' "$oct"
+                printf '%s\n' "$_cmd" | ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@192.168.1.$oct" pwsh -NonInteractive -Command -
+            done
+            ;;
+        *)
+            printf '%s\n' "$_cmd" | ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@192.168.1.$1" pwsh -NonInteractive -Command -
+            ;;
+    esac
+}
+pccv() {  # pccv <host[,host,...]> <cmd...>
+    _pckey
+    local _cmd="${@:2}"
+    case "$1" in
+        *,*)
+            local h
+            for h in $(printf '%s' "$1" | tr ',' ' '); do
+                printf '\n-- %s --\n' "$h"
+                printf '%s\n' "$_cmd" | ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@$h.ssb8.local" pwsh -NonInteractive -Command -
+            done
+            ;;
+        *)
+            printf '%s\n' "$_cmd" | ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@$1.ssb8.local" pwsh -NonInteractive -Command -
+            ;;
+    esac
+}
+pcca() {  # pcca <host[,host,...]> <cmd...>
+    _pckey
+    local _cmd="${@:2}"
+    case "$1" in
+        *,*)
+            local h
+            for h in $(printf '%s' "$1" | tr ',' ' '); do
+                printf '\n-- %s --\n' "$h"
+                printf '%s\n' "$_cmd" | ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@$h.pi.hole" pwsh -NonInteractive -Command -
+            done
+            ;;
+        *)
+            printf '%s\n' "$_cmd" | ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@$1.pi.hole" pwsh -NonInteractive -Command -
+            ;;
+    esac
+}
 
 # --- Copy SSH keys to remote host (password auth — use before key auth is set up) ---
 racpub()  { scp "${_PIOPT[@]}" ~/.ssh/id_rsa.pub pi@192.168.1.$1:~/.ssh/; }                                              # racpub <octet>  — copy public key file
