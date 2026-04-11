@@ -94,6 +94,76 @@ source ~/.zshrc     # or source ~/.bashrc
 | `nwtools_testplan.md` | Test plan for `nwtools` |
 | `man/man1/alias.1` | Man page — `man alias` (available once alias.zsh is sourced) |
 
+## Naming convention
+
+Every alias follows the pattern **`<hw><action>[<addr>]`**:
+
+| Part | Values | Meaning |
+|------|--------|---------|
+| **hw** | `ra` | Raspberry Pi |
+| | `mc` | Mac |
+| | `pc` | Windows PC |
+| | `sy` | Synology NAS |
+| **action** | `p` | SSH interactive session *(heritage: PuTTY)* |
+| | `pp` | SSH, no key (password auth) |
+| | `c` | Run command(s) via SSH |
+| | `w` | SFTP interactive session *(heritage: WinSCP)* |
+| | `wl` | SFTP — list directory |
+| | `wg` | SFTP — get (download) |
+| | `wu` | SFTP — put (upload) |
+| | `wmk` | SFTP — mkdir |
+| | `wrm` | SFTP — rm |
+| **addr** | *(none)* | `192.168.1.<octet>` — by IP last octet |
+| | `v` | `<host>.ssb8.local` — Vienna DNS |
+| | `a` | `<host>.pi.hole` — Aigen DNS |
+
+> `mc` uses `<name>.local` (Bonjour) — no octet/v/a suffix.  
+> `sy` has a fixed host (`192.168.1.116`) — no address suffix.
+
+### Completeness matrix
+
+```
+        octet            v (.ssb8.local)    a (.pi.hole)       fixed
+──────────────────────────────────────────────────────────────────────
+ra  p   rap              rapv               rapa
+    pp  rapp             rappv              rappa
+    c   rac              racv               raca
+    w   raw              rawv               rawa
+    wl  rawl             rawlv              rawla
+    wg  rawg             rawgv              rawga
+    wu  rawu             rawuv              rawua
+    wmk rawmk            rawmkv             rawmka
+    wrm rawrm            rawrmv             rawrma
+
+pc  p   pcp              pcpv               pcpa
+    c   pcc              pccv               pcca
+    w   pcw              pcwv               pcwa
+    wl  pcwl             pcwlv              pcwla
+    wg  pcwg             pcwgv              pcwga
+    wu  pcwu             pcwuv              pcwua
+    wmk pcwmk            pcwmkv             pcwmka
+    wrm pcwrm            pcwrmv             pcwrma
+
+mc  p                                                  mcp <name>.local
+    c                                                  mcc <name>.local
+    w                                                  mcw <name>.local
+    v (screen sharing)                                 mcv <name>.local
+
+sy  p                                                  syp
+    pp                                                 sypp
+    c                                                  syc
+    w                                                  syw
+    wl                                                 sywl
+    wg                                                 sywg
+    wu                                                 sywu
+    wmk                                                sywmk
+    wrm                                                sywrm
+```
+
+**Intentional gaps:**
+- `pc` has no `pp` (no-key SSH) — Windows uses key auth exclusively
+- `mc` has no `wl/wg/wu/wmk/wrm` — Macs are peer machines; Finder/VS Code preferred for file transfer
+
 ## Aliases
 
 **General** (auto-loaded on shell start):
@@ -216,6 +286,15 @@ vsc ~/myproject  # opens a specific folder
 | `pcc <octet> <cmd>` | Run PowerShell command on Windows PC by IP octet (comma-separated for multiple) |
 | `pccv <host> <cmd>` | Run PowerShell command on Windows PC by `.ssb8.local` hostname |
 | `pcca <host> <cmd>` | Run PowerShell command on Windows PC by `.pi.hole` hostname |
+| `pcw <octet>` | SFTP → `rainer@192.168.1.<octet>` with key |
+| `pcwv <host>` | SFTP → `rainer@<host>.ssb8.local` with key |
+| `pcwa <host>` | SFTP → `rainer@<host>.pi.hole` with key |
+| `pcwl[v\|a] <host> [dir]` | List remote directory |
+| `pcwg[v\|a] <host> <remote> [local]` | Download file/dir (scp -r) |
+| `pcwu[v\|a] <host> <local> [remote]` | Upload file/dir (scp -r) |
+| `pcwmk[v\|a] <host> <dir>` | Create directory on Windows PC |
+| `pcwrm[v\|a] <host> <path>` | Remove file on Windows PC (confirms first) |
+| `pcwh` | Show Windows PC SFTP one-liner help |
 
 **First-time setup on Windows Server (OpenSSH + key auth):**
 

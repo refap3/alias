@@ -167,6 +167,51 @@ pcca() {  # pcca <host[,host,...]> <cmd...>
     esac
 }
 
+# --- SFTP: PC user (WinSCP equivalent) ---
+pcw()   { _pckey; sftp "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@192.168.1.$1"; }  # pcw  <octet>  — with key
+pcwv()  { _pckey; sftp "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@$1.ssb8.local"; } # pcwv <host>   — with key
+pcwa()  { _pckey; sftp "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@$1.pi.hole"; }    # pcwa <host>   — with key
+
+# SFTP one-liners: non-interactive file operations
+_pcsftp() { printf '%s\n' "${@:2}" | sftp "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -b - "$1"; }  # _pcsftp <host> <cmd...>
+
+# list remote dir
+pcwl()   { _pckey; _pcsftp "${PC_USER}@192.168.1.$1" "ls ${2:-.}"; }         # pcwl   <octet> [dir]
+pcwlv()  { _pckey; _pcsftp "${PC_USER}@$1.ssb8.local" "ls ${2:-.}"; }        # pcwlv  <host>  [dir]
+pcwla()  { _pckey; _pcsftp "${PC_USER}@$1.pi.hole"    "ls ${2:-.}"; }        # pcwla  <host>  [dir]
+
+# get (download) — scp; use -r for dirs
+pcwg()   { _pckey; scp -r "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@192.168.1.$1:$2" "${3:-.}"; }   # pcwg   <octet> <remote> [local]
+pcwgv()  { _pckey; scp -r "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@$1.ssb8.local:$2" "${3:-.}"; }  # pcwgv  <host>  <remote> [local]
+pcwga()  { _pckey; scp -r "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@$1.pi.hole:$2"    "${3:-.}"; }  # pcwga  <host>  <remote> [local]
+
+# put (upload) — scp; use -r for dirs
+pcwu()   { _pckey; scp -r "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "$2" "${PC_USER}@192.168.1.$1:${3:-.}"; }   # pcwu   <octet> <local> [remote]
+pcwuv()  { _pckey; scp -r "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "$2" "${PC_USER}@$1.ssb8.local:${3:-.}"; }  # pcwuv  <host>  <local> [remote]
+pcwua()  { _pckey; scp -r "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "$2" "${PC_USER}@$1.pi.hole:${3:-.}"; }     # pcwua  <host>  <local> [remote]
+
+# mkdir on remote
+pcwmk()  { _pckey; _pcsftp "${PC_USER}@192.168.1.$1" "mkdir $2"; }           # pcwmk  <octet> <dir>
+pcwmkv() { _pckey; _pcsftp "${PC_USER}@$1.ssb8.local" "mkdir $2"; }          # pcwmkv <host>  <dir>
+pcwmka() { _pckey; _pcsftp "${PC_USER}@$1.pi.hole"    "mkdir $2"; }          # pcwmka <host>  <dir>
+
+# rm on remote (with confirmation)
+pcwrm()  { _pckey; printf 'rm %s? [y/N] ' "$2"; read -rq && _pcsftp "${PC_USER}@192.168.1.$1" "rm $2"; }  # pcwrm  <octet> <path>
+pcwrmv() { _pckey; printf 'rm %s? [y/N] ' "$2"; read -rq && _pcsftp "${PC_USER}@$1.ssb8.local" "rm $2"; } # pcwrmv <host>  <path>
+pcwrma() { _pckey; printf 'rm %s? [y/N] ' "$2"; read -rq && _pcsftp "${PC_USER}@$1.pi.hole"    "rm $2"; } # pcwrma <host>  <path>
+
+# help
+pcwh() {
+  echo "SFTP one-liners  (pcw* = SFTP/SCP, variants: plain=IP octet, v=.ssb8.local, a=.pi.hole)"
+  echo "  pcwl [v|a]  <host>  [dir]            — list remote directory (default: ~)"
+  echo "  pcwg [v|a]  <host>  <remote> [local] — download file/dir (scp -r; default local: .)"
+  echo "  pcwu [v|a]  <host>  <local> [remote] — upload   file/dir (scp -r; default remote: ~)"
+  echo "  pcwmk[v|a] <host>  <dir>             — mkdir on remote"
+  echo "  pcwrm[v|a] <host>  <path>            — rm on remote (confirms first)"
+  echo "  pcw [v|a]  <host>                    — interactive SFTP session"
+  echo "  Note: no cd — use full remote paths"
+}
+
 # --- Copy SSH keys to remote host (password auth — use before key auth is set up) ---
 racpub()  { scp "${_PIOPT[@]}" ~/.ssh/id_rsa.pub pi@192.168.1.$1:~/.ssh/; }                                              # racpub <octet>  — copy public key file
 racpri()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh" && scp "${_PIOPT[@]}" ~/.ssh/id_rsa pi@192.168.1.$1:~/.ssh/ && ssh "${_PIOPT[@]}" pi@192.168.1.$1 "chmod 600 ~/.ssh/id_rsa"; } # racpri <octet>  — copy private key + fix perms

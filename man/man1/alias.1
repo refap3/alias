@@ -19,6 +19,63 @@ which symlinks dotfiles under
 .I ~/
 and auto-detects your shell.
 Once sourced, all commands below are available in every new shell.
+.SH NAMING CONVENTION
+Every alias follows the pattern
+.BR "<hw><action>[<addr>]>" .
+.SS Hardware prefix
+.TP
+.B ra
+Raspberry Pi
+.TP
+.B mc
+Mac (uses
+.I ~/.ssh/id_rsa
+and Bonjour
+.I .local
+names)
+.TP
+.B pc
+Windows PC (uses
+.I ~/.ssh/id_ed25519
+and domain
+.IR ssb8 )
+.TP
+.B sy
+Synology NAS (fixed host
+.IR 192.168.1.116 )
+.SS Action
+.TP
+.B p
+SSH interactive session (heritage: PuTTY)
+.TP
+.B pp
+SSH without key (password auth)
+.TP
+.B c
+Run command(s) via SSH
+.TP
+.B w
+SFTP interactive session (heritage: WinSCP)
+.TP
+.BR wl / wg / wu / wmk / wrm
+SFTP non-interactive: list / get / put / mkdir / rm
+.SS Address suffix (ra and pc only)
+.TP
+(none)
+.I 192.168.1.<octet>
+\(em by IP last octet
+.TP
+.B v
+.IR <host>.ssb8.local " \(em Vienna DNS"
+.TP
+.B a
+.IR <host>.pi.hole " \(em Aigen DNS"
+.PP
+.B mc
+uses
+.IR <name>.local " (Bonjour) \(em no octet/v/a suffix."
+.B sy
+has a fixed host \(em no address suffix.
 .SH INSTALL
 .B One-line install:
 .PP
@@ -487,6 +544,49 @@ hostname.
 Run a PowerShell command on one or more Windows PCs by
 .I .pi.hole
 hostname.
+.SS SFTP / SCP
+.TP
+.B pcw " <octet>"
+Interactive SFTP to Windows PC by IP octet.
+.TP
+.B pcwv " <host>"
+Interactive SFTP to
+.IR rainer@<host>.ssb8.local .
+.TP
+.B pcwa " <host>"
+Interactive SFTP to
+.IR rainer@<host>.pi.hole .
+.TP
+.B pcwl " <octet> [dir]"
+List remote directory.
+.TP
+.B pcwg " <octet> <remote> [local]"
+Download file or directory from Windows PC (scp -r).
+.TP
+.B pcwu " <octet> <local> [remote]"
+Upload file or directory to Windows PC (scp -r).
+.TP
+.B pcwmk " <octet> <dir>"
+Create directory on Windows PC.
+.TP
+.B pcwrm " <octet> <path>"
+Remove file on Windows PC (prompts for confirmation first).
+.TP
+.B pcwh
+Show Windows PC SFTP one-liner help.
+.PP
+All
+.I pcwl/pcwg/pcwu/pcwmk/pcwrm
+commands have
+.BR v " and " a
+variants (e.g.
+.BR pcwlv ,
+.BR pcwla )
+for
+.I .ssb8.local
+and
+.I .pi.hole
+addressing.
 .SS Windows OpenSSH Setup (run once on the Windows Server, elevated PowerShell)
 .TP
 1.
