@@ -1,3 +1,21 @@
+Host ssh59.deprec.uk
+    ProxyCommand /opt/homebrew/bin/cloudflared access ssh --hostname %h
+    User pi
+    IdentityFile ~/.ssh/id_rsa
+    ForwardAgent yes
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR
+
+Host ssh168.cfaig2vie.uk
+    ProxyCommand /opt/homebrew/bin/cloudflared access ssh --hostname %h
+    User pi
+    IdentityFile ~/.ssh/id_rsa
+    ForwardAgent yes
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR
+
 Host mm
     HostName 192.168.1.47
 
