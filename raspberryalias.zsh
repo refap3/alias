@@ -111,10 +111,10 @@ _pckey() {
     fi
 }
 
-# --- PSSession: interactive PowerShell remoting (Enter-PSSession over SSH transport) ---
-pcp()  { pwsh -NoExit -Command "Enter-PSSession -HostName 192.168.1.$1 -UserName ${PC_DOMAIN}\\${PC_USER} -KeyFilePath ~/.ssh/id_ed25519"; }   # pcp  <octet>  — PSSession by IP
-pcpv() { pwsh -NoExit -Command "Enter-PSSession -HostName $1.ssb8.local -UserName ${PC_DOMAIN}\\${PC_USER} -KeyFilePath ~/.ssh/id_ed25519"; }  # pcpv <host>   — PSSession by .ssb8.local
-pcpa() { pwsh -NoExit -Command "Enter-PSSession -HostName $1.pi.hole -UserName ${PC_DOMAIN}\\${PC_USER} -KeyFilePath ~/.ssh/id_ed25519"; }     # pcpa <host>   — PSSession by .pi.hole
+# --- PCP: interactive PowerShell session over SSH ---
+pcp()  { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@192.168.1.$1" pwsh; }   # pcp  <octet>  — by IP
+pcpv() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@$1.ssb8.local" pwsh; }  # pcpv <host>   — by .ssb8.local
+pcpa() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@$1.pi.hole"    pwsh; }  # pcpa <host>   — by .pi.hole
 
 # --- Remote command: run PowerShell command on Windows PC via SSH ---
 # Analogous to rac/racv/raca; command is piped to pwsh via stdin.

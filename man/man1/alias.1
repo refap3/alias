@@ -495,33 +495,42 @@ it.
 Needed so the Pi can reverse-SSH back to the Mac for
 .BR vsc .
 .SH WINDOWS PC ALIASES
-PowerShell remoting (PSSession) and SSH-based remote command execution for Windows PCs.
+SSH-based interactive PowerShell and remote command execution for Windows PCs.
 Uses
 .I ~/.ssh/id_ed25519
 (not id_rsa), domain
 .IR ssb8 ,
 user
 .IR rainer .
-Requires PowerShell 7 installed on the Mac.
-.SS PSSession (interactive)
+Requires OpenSSH server and PowerShell 7 on the Windows PC.
+.SS Interactive PowerShell (pcp)
 .TP
 .B pcp " <octet>"
-Enter PowerShell remote session to
-.IR 192.168.1.<octet>
+SSH to
+.I 192.168.1.<octet>
 as
-.IR ssb8\[rs]rainer .
+.I rainer
+and start an interactive
+.B pwsh
+session.
 .TP
 .B pcpv " <host>"
-Enter PowerShell remote session to
-.IR <host>.ssb8.local
+SSH to
+.I <host>.ssb8.local
 as
-.IR ssb8\[rs]rainer .
+.I rainer
+and start an interactive
+.B pwsh
+session.
 .TP
 .B pcpa " <host>"
-Enter PowerShell remote session to
-.IR <host>.pi.hole
+SSH to
+.I <host>.pi.hole
 as
-.IR ssb8\[rs]rainer .
+.I rainer
+and start an interactive
+.B pwsh
+session.
 .SS Remote Command Execution
 Commands are piped to
 .B pwsh

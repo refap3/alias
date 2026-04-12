@@ -276,13 +276,13 @@ vsc          # opens VS Code on Mac → Remote SSH → Pi 52:/home/pi
 vsc ~/myproject  # opens a specific folder
 ```
 
-**Windows PCs** (PowerShell remoting or SSH, key `~/.ssh/id_ed25519`, domain `ssb8`, user `rainer`):
+**Windows PCs** (SSH, key `~/.ssh/id_ed25519`, domain `ssb8`, user `rainer`):
 
 | Command | Description |
 |---------|-------------|
-| `pcp <octet>` | PowerShell remoting (PSSession) → `192.168.1.<octet>` as `ssb8\rainer` |
-| `pcpv <host>` | PowerShell remoting → `<host>.ssb8.local` as `ssb8\rainer` |
-| `pcpa <host>` | PowerShell remoting → `<host>.pi.hole` as `ssb8\rainer` |
+| `pcp <octet>` | SSH → `192.168.1.<octet>`, start interactive `pwsh` |
+| `pcpv <host>` | SSH → `<host>.ssb8.local`, start interactive `pwsh` |
+| `pcpa <host>` | SSH → `<host>.pi.hole`, start interactive `pwsh` |
 | `pcc <octet> <cmd>` | Run PowerShell command on Windows PC by IP octet (comma-separated for multiple) |
 | `pccv <host> <cmd>` | Run PowerShell command on Windows PC by `.ssb8.local` hostname |
 | `pcca <host> <cmd>` | Run PowerShell command on Windows PC by `.pi.hole` hostname |
@@ -368,9 +368,9 @@ cat ~/.ssh/id_ed25519.pub
    ```
    Without this, the `*.ssb8.local` wildcard would use `id_rsa` instead.
 
-> **Note:** `pcc`/`pccv`/`pcca` pipe PowerShell commands to `pwsh` via SSH (no PSSession overhead).
-> This requires the Windows SSH server's default shell to be set to `pwsh.exe` (step 2 above).
-> `pcp`/`pcpv`/`pcpa` use full PSRemoting (`Enter-PSSession`) and always pass `-KeyFilePath` explicitly.
+> **Note:** `pcc`/`pccv`/`pcca` pipe PowerShell commands to `pwsh` via SSH (non-interactive).
+> `pcp`/`pcpv`/`pcpa` SSH to the Windows PC and launch an interactive `pwsh` session directly.
+> Both require the Windows SSH server's default shell to be set to `pwsh.exe` (step 2 above).
 
 **Synology NAS** (auto-loaded, host `192.168.1.116`, user `pipi`, key `~/.ssh/id_rsa`):
 
