@@ -111,10 +111,10 @@ _pckey() {
     fi
 }
 
-# --- PCP: interactive PowerShell session over SSH ---
-pcp()  { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@192.168.1.$1" pwsh; }   # pcp  <octet>  — by IP
-pcpv() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@$1.ssb8.local" pwsh; }  # pcpv <host>   — by .ssb8.local
-pcpa() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@$1.pi.hole"    pwsh; }  # pcpa <host>   — by .pi.hole
+# --- PCP: interactive PowerShell session over SSH (loads remote $PROFILE) ---
+pcp()  { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@192.168.1.$1" 'pwsh -NoExit -Command ". $PROFILE"'; }   # pcp  <octet>  — by IP
+pcpv() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@$1.ssb8.local" 'pwsh -NoExit -Command ". $PROFILE"'; }  # pcpv <host>   — by .ssb8.local
+pcpa() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@$1.pi.hole"    'pwsh -NoExit -Command ". $PROFILE"'; }  # pcpa <host>   — by .pi.hole
 
 # --- Remote command: run PowerShell command on Windows PC via SSH ---
 # Analogous to rac/racv/raca; command is piped to pwsh via stdin.

@@ -280,9 +280,9 @@ vsc ~/myproject  # opens a specific folder
 
 | Command | Description |
 |---------|-------------|
-| `pcp <octet>` | SSH → `192.168.1.<octet>`, start interactive `pwsh` |
-| `pcpv <host>` | SSH → `<host>.ssb8.local`, start interactive `pwsh` |
-| `pcpa <host>` | SSH → `<host>.pi.hole`, start interactive `pwsh` |
+| `pcp <octet>` | SSH → `192.168.1.<octet>`, start interactive `pwsh` (loads `$PROFILE`) |
+| `pcpv <host>` | SSH → `<host>.ssb8.local`, start interactive `pwsh` (loads `$PROFILE`) |
+| `pcpa <host>` | SSH → `<host>.pi.hole`, start interactive `pwsh` (loads `$PROFILE`) |
 | `pcc <octet> <cmd>` | Run PowerShell command on Windows PC by IP octet (comma-separated for multiple) |
 | `pccv <host> <cmd>` | Run PowerShell command on Windows PC by `.ssb8.local` hostname |
 | `pcca <host> <cmd>` | Run PowerShell command on Windows PC by `.pi.hole` hostname |
@@ -369,7 +369,7 @@ cat ~/.ssh/id_ed25519.pub
    Without this, the `*.ssb8.local` wildcard would use `id_rsa` instead.
 
 > **Note:** `pcc`/`pccv`/`pcca` pipe PowerShell commands to `pwsh` via SSH (non-interactive).
-> `pcp`/`pcpv`/`pcpa` SSH to the Windows PC and launch an interactive `pwsh` session directly.
+> `pcp`/`pcpv`/`pcpa` SSH to the Windows PC, launch interactive `pwsh`, and source the remote `$PROFILE`.
 > Both require the Windows SSH server's default shell to be set to `pwsh.exe` (step 2 above).
 
 **Synology NAS** (auto-loaded, host `192.168.1.116`, user `pipi`, key `~/.ssh/id_rsa`):
