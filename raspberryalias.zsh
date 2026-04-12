@@ -80,6 +80,10 @@ raca() {  # raca <host[,host,...]> <cmd...>
     esac
 }
 
+# --- SSH: Cloudflare tunnel (external access) ---
+rap59cv()  { ssh pi@ssh59.deprec.uk; }     # rap59cv  — Pi .59 Vienna via Cloudflare tunnel
+rap168ca() { ssh pi@ssh168.cfaig2vie.uk; } # rap168ca — Pi .168 Aigen via Cloudflare tunnel
+
 # --- VS Code Remote SSH: open VS Code on Mac connected to a Pi ---
 vscr()  { code --remote "ssh-remote+pi@192.168.1.$1" "${2:-/home/pi}"; }  # vscr  <octet> [path]
 vscrv() { code --remote "ssh-remote+pi@$1.ssb8.local" "${2:-/home/pi}"; } # vscrv <host>  [path]
