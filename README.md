@@ -173,6 +173,7 @@ sy  p                                                  syp
 | `up` | `cd ..` |
 | `home` / `hom` | `cd ~` |
 | `cls` | Clear screen |
+| `d` | List files only (no dirs): name, date modified, human-readable size |
 | `dd` | List only directories in current dir |
 | `aalias <name>` | Show definition of any alias or function |
 | `alh` | One-line help for every alias and function (parsed from source comments) |

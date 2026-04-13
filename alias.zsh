@@ -30,6 +30,8 @@ alias mov='mv'
 alias move='mv'
 alias rd='rmdir'
 alias md='mkdir'
+# List files only (no directories): name, date modified, human-readable size
+d() { ls -lph | grep -v / | awk 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>9?" ":"") $i; printf "%-30s  %s %s %-7s  %s\n", name, $6, $7, $8, $5}'; }
 
 # claude
 alias cdsp='claude --dangerously-skip-permissions'
