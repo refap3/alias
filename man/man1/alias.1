@@ -791,6 +791,26 @@ to execute a single tool non-interactively and exit.
 Missing tools show a clear error with the
 .I apt install
 command rather than silently failing.
+.SH CLAUDE CODE ALIASES
+.TP
+.B cdsp
+Launch Claude Code with
+.I --dangerously-skip-permissions
+(bypasses all permission prompts).
+.TP
+.B csess
+Generate a session report for the current project (claudeExperiments) and open the interactive HTML in the browser.
+Outputs
+.I sessions_YYYY-MM-DD_HHMM.md
+and
+.I sessions_YYYY-MM-DD_HHMM.html
+to
+.IR ~/.dotfiles/sessions/ .
+.TP
+.B csessall
+Same as
+.B csess
+but covers all Claude Code projects on this machine.
 .SH REPO UPDATE
 .TP
 .B alu

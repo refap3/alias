@@ -35,6 +35,10 @@ d() { ls -lph | grep -v / | awk 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>
 
 # claude
 alias cdsp='claude --dangerously-skip-permissions'
+# Session reports: generate MD+HTML for current project, then open HTML
+alias csess='python3 ~/.dotfiles/tools/extract_sessions.py && open ~/.dotfiles/sessions/$(ls -t ~/.dotfiles/sessions/*.html | head -1)'
+# Session reports: all projects
+alias csessall='python3 ~/.dotfiles/tools/extract_sessions.py --all && open ~/.dotfiles/sessions/$(ls -t ~/.dotfiles/sessions/*.html | head -1)'
 
 # Docker Compose — use plugin (docker compose) when available, fall back to standalone (docker-compose)
 _dc() {
