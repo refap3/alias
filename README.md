@@ -213,7 +213,7 @@ sy  p                                                  syp
 | `dcd [folder]` | `docker compose down` (optional folder) |
 | `dcde [folder]` | `docker compose down` + remove all images, volumes, networks, orphans |
 | `dcinfo [-v] [name]` | List containers (running and stopped); optional `name` is a substring/regex filter. Without `-v`: one line per container (name, status, image, ports). With `-v`: full `docker inspect` output |
-| `dclog <name> [nn]` | Show last `nn` lines of logs for containers matching `name` (default 10; `0` = full log) |
+| `dclog [name] [nn]` | Show last `nn` lines of logs for containers matching `name` (all containers if omitted; default 10 lines; `0` = full log) |
 | `db [choice]` | Open the deb interactive menu (`~/deb/menu`); optional choice arg (e.g. `db b`). Silently skipped if not installed |
 
 **Mac Screen Sharing setup** (one-time, run on the remote Mac if Remote Management blocks VNC):

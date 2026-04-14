@@ -94,17 +94,18 @@ dcinfo() {
         docker ps -a $_filter --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}'
     fi
 }
-# dclog <name> [nn]  — show docker logs for containers matching name
+# dclog [name] [nn]  — show docker logs for containers matching name (all if omitted)
 #   nn: number of lines to show (default 10; 0 = entire log)
 dclog() {
     local _name="${1:-}" _lines="${2:-10}"
-    if [ -z "$_name" ]; then
-        printf 'Usage: dclog <name> [lines]\n' >&2; return 1
-    fi
     local _containers
-    _containers=$(docker ps -a --filter "name=${_name}" --format '{{.Names}}')
-    if [ -z "$_containers" ]; then
-        printf "dclog: no containers matching '%s'\n" "$_name" >&2; return 1
+    if [ -n "$_name" ]; then
+        _containers=$(docker ps -a --filter "name=${_name}" --format '{{.Names}}')
+        if [ -z "$_containers" ]; then
+            printf "dclog: no containers matching '%s'\n" "$_name" >&2; return 1
+        fi
+    else
+        _containers=$(docker ps -a --format '{{.Names}}')
     fi
     printf '%s\n' "$_containers" | while IFS= read -r _cname; do
         printf '=== %s ===\n' "$_cname"

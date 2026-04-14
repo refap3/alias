@@ -295,11 +295,14 @@ prints full
 .BR "docker inspect"
 JSON for each matched container.
 .TP
-.B dclog " <name> [nn]"
+.B dclog " [name] [nn]"
 Show the last
 .I nn
 log lines for each container whose name matches
 .IR name .
+If
+.I name
+is omitted, all containers are shown.
 If
 .I nn
 is
