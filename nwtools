@@ -410,7 +410,7 @@ tool_wol() {
         fi
     fi
     if command -v wakeonlan >/dev/null 2>&1; then
-        wakeonlan -i 192.168.1.255 "$wol_mac"
+        LC_ALL=C LANGUAGE= wakeonlan -i 192.168.1.255 "$wol_mac"
     elif command -v wol >/dev/null 2>&1; then
         wol "$wol_mac"
     else
