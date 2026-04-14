@@ -401,12 +401,20 @@ tool_wol() {
     fi
 
     echo ""
+    if ! command -v wakeonlan >/dev/null 2>&1 && ! command -v wol >/dev/null 2>&1; then
+        echo "wakeonlan not found — installing..."
+        if [ "$_OS" = "darwin" ]; then
+            brew install wakeonlan
+        else
+            sudo apt-get install -y wakeonlan
+        fi
+    fi
     if command -v wakeonlan >/dev/null 2>&1; then
         wakeonlan -i 192.168.1.255 "$wol_mac"
     elif command -v wol >/dev/null 2>&1; then
         wol "$wol_mac"
     else
-        echo "ERROR: wakeonlan / wol not found. Install: brew install wakeonlan  (Mac) / sudo apt install wakeonlan  (Linux)"
+        echo "ERROR: Could not install wakeonlan. Please install it manually."
         return 1
     fi
 }
