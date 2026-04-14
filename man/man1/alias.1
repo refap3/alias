@@ -281,6 +281,33 @@ volumes
 orphaned containers
 .RB ( --remove-orphans ).
 Use this for a complete clean slate.
+.TP
+.B dcinfo " [-v] [name]"
+List all containers (running and stopped).
+.I name
+is an optional substring/regex filter applied to container names.
+Without
+.BR -v :
+prints one line per container with name, status, image, and ports.
+With
+.BR -v :
+prints full
+.BR "docker inspect"
+JSON for each matched container.
+.TP
+.B dclog " <name> [nn]"
+Show the last
+.I nn
+log lines for each container whose name matches
+.IR name .
+If
+.I nn
+is
+.BR 0 ,
+the entire log is shown.
+If
+.I nn
+is omitted, the last 10 lines are shown.
 .SS VS Code Remote
 .TP
 .B vsc " [path]"

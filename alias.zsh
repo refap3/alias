@@ -71,6 +71,50 @@ dcde() {
     [ "$_ans" = "yes" ] || { echo "Aborted."; return 1; }
     _dc -f "$(_dc_file "${1:-.}")" down --rmi all --volumes --remove-orphans
 }
+# dcinfo [-v] [name]  — list containers (all or matching name wildcard)
+#   without -v: one line per container: name, status, image, ports
+#   with    -v: full docker inspect output for each matched container
+dcinfo() {
+    local _verbose=0 _name=""
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -v) _verbose=1 ;;
+            *)  _name="$1" ;;
+        esac
+        shift
+    done
+    local _filter=""
+    [ -n "$_name" ] && _filter="--filter name=${_name}"
+    if [ "$_verbose" = "1" ]; then
+        docker ps -a $_filter --format '{{.Names}}' | while IFS= read -r _cname; do
+            printf '=== %s ===\n' "$_cname"
+            docker inspect "$_cname"
+        done
+    else
+        docker ps -a $_filter --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}'
+    fi
+}
+# dclog <name> [nn]  — show docker logs for containers matching name
+#   nn: number of lines to show (default 10; 0 = entire log)
+dclog() {
+    local _name="${1:-}" _lines="${2:-10}"
+    if [ -z "$_name" ]; then
+        printf 'Usage: dclog <name> [lines]\n' >&2; return 1
+    fi
+    local _containers
+    _containers=$(docker ps -a --filter "name=${_name}" --format '{{.Names}}')
+    if [ -z "$_containers" ]; then
+        printf "dclog: no containers matching '%s'\n" "$_name" >&2; return 1
+    fi
+    printf '%s\n' "$_containers" | while IFS= read -r _cname; do
+        printf '=== %s ===\n' "$_cname"
+        if [ "$_lines" = "0" ]; then
+            docker logs "$_cname" 2>&1
+        else
+            docker logs --tail "$_lines" "$_cname" 2>&1
+        fi
+    done
+}
 
 # Open Visual Studio Code.
 # Mac: simple wrapper for the 'code' CLI.
