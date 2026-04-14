@@ -111,7 +111,8 @@ aalias() {
         typeset -f
     else
         alias | grep -i "$1"
-        print -l ${(k)functions} | grep -i "$1" | while IFS= read -r fn; do
+        { [ -n "$ZSH_VERSION" ] && print -l ${(k)functions} || declare -F | awk '{print $3}'; } \
+            | grep -i "$1" | while IFS= read -r fn; do
             typeset -f "$fn"
         done
     fi
