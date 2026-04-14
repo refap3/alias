@@ -4,6 +4,9 @@
 
 [ "$(uname)" = "Darwin" ] && _OS=darwin || _OS=linux
 
+# Suppress locale warnings inherited from SSH session on Linux hosts
+[ "$_OS" = "linux" ] && export LC_ALL=C LANGUAGE=
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
