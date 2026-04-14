@@ -406,7 +406,7 @@ tool_wol() {
     elif command -v wol >/dev/null 2>&1; then
         wol "$wol_mac"
     else
-        echo "ERROR: wakeonlan / wol not found. Install: brew install wakeonlan"
+        echo "ERROR: wakeonlan / wol not found. Install: brew install wakeonlan  (Mac) / sudo apt install wakeonlan  (Linux)"
         return 1
     fi
 }
