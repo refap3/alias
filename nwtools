@@ -348,18 +348,65 @@ tool_wifi_info() {
 }
 
 tool_wol() {
-    read -rp "MAC address (e.g. aa:bb:cc:dd:ee:ff): " wol_mac
-    if [ -z "$wol_mac" ]; then
-        echo "ERROR: MAC address required."
+    # Known WoL targets — add more entries as needed
+    local wol_labels=( "q1900" )
+    local wol_ips=(    "192.168.1.119" )
+    local wol_macs=(   "d0:50:99:87:2f:23" )
+
+    local count=${#wol_labels[@]}
+    echo "Known WoL targets:"
+    echo ""
+    local i
+    for i in $(seq 0 $((count - 1))); do
+        local label="${wol_labels[$i]}"
+        local ip="${wol_ips[$i]}"
+        local mac="${wol_macs[$i]}"
+        local status="offline"
+        if ping -c 1 -W 1 "$ip" >/dev/null 2>&1; then
+            # Server is online — confirm MAC via ARP
+            local arp_mac=""
+            if [ "$_OS" = "darwin" ]; then
+                arp_mac=$(arp -n "$ip" 2>/dev/null | awk '{print $4}' | grep -vE '^incomplete$' || true)
+            else
+                arp_mac=$(ip neigh show "$ip" 2>/dev/null | awk '{print $5}' || true)
+            fi
+            if [ -n "$arp_mac" ]; then
+                status="online  MAC: $arp_mac"
+            else
+                status="online  MAC: $mac"
+            fi
+        fi
+        printf "  %d.  %-12s  %-17s  (%s)\n" "$((i+1))" "$label" "$mac" "$status"
+    done
+
+    echo ""
+    echo "  m.  Enter MAC address manually"
+    echo ""
+    read -rp "Choice: " wol_choice
+
+    local wol_mac=""
+    if [[ "$wol_choice" =~ ^[0-9]+$ ]] && [ "$wol_choice" -ge 1 ] && [ "$wol_choice" -le "$count" ]; then
+        local idx=$((wol_choice - 1))
+        wol_mac="${wol_macs[$idx]}"
+        echo "Sending magic packet to ${wol_labels[$idx]} ($wol_mac) ..."
+    elif [ "$wol_choice" = "m" ] || [ "$wol_choice" = "M" ]; then
+        read -rp "MAC address (e.g. aa:bb:cc:dd:ee:ff): " wol_mac
+        if [ -z "$wol_mac" ]; then
+            echo "ERROR: MAC address required."
+            return 1
+        fi
+    else
+        echo "Invalid choice."
         return 1
     fi
+
     echo ""
     if command -v wakeonlan >/dev/null 2>&1; then
-        wakeonlan "$wol_mac"
+        wakeonlan -i 192.168.1.255 "$wol_mac"
     elif command -v wol >/dev/null 2>&1; then
         wol "$wol_mac"
     else
-        echo "ERROR: wakeonlan / wol not found. Install: sudo apt install wakeonlan"
+        echo "ERROR: wakeonlan / wol not found. Install: brew install wakeonlan"
         return 1
     fi
 }
