@@ -96,8 +96,15 @@ dcinfo() {
 }
 # dclog [name] [nn]  — show docker logs for containers matching name (all if omitted)
 #   nn: number of lines to show (default 10; 0 = entire log)
+#   if first arg is an integer, it is treated as nn and all containers are shown
 dclog() {
-    local _name="${1:-}" _lines="${2:-10}"
+    local _name="" _lines="10"
+    if [ $# -ge 1 ]; then
+        case "$1" in
+            ''|*[!0-9]*) _name="$1"; _lines="${2:-10}" ;;  # non-integer: it's the name
+            *)            _lines="$1" ;;                    # integer: it's the line count
+        esac
+    fi
     local _containers
     if [ -n "$_name" ]; then
         _containers=$(docker ps -a --filter "name=${_name}" --format '{{.Names}}')
