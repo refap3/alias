@@ -35,13 +35,12 @@ d() { ls -lph | grep -v / | awk 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>
 
 # claude
 alias cdsp='claude --dangerously-skip-permissions'
-# Session reports: generate MD+HTML for current project, then open HTML
-# Uses ANTHROPIC_API_KEY from env; falls back to ~/.config/anthropic/api_key
+# Session report for current project; --no-summaries skips AI descriptions (needs ANTHROPIC_API_KEY or ~/.config/anthropic/api_key)
 csess() {
     python3 ~/.dotfiles/tools/extract_sessions.py "$@" && \
         open "$(ls -t ~/.dotfiles/sessions/*.html | head -1)"
 }
-# Session reports: all projects
+# Session report for all projects; --no-summaries skips AI descriptions (needs ANTHROPIC_API_KEY or ~/.config/anthropic/api_key)
 csessall() {
     python3 ~/.dotfiles/tools/extract_sessions.py --all "$@" && \
         open "$(ls -t ~/.dotfiles/sessions/*.html | head -1)"
