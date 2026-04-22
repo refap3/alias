@@ -8,11 +8,13 @@ export MANPATH="$HOME/alias/man:$HOME/mdedit/man:$HOME/deb/man:$HOME/macscp/man$
 [ "$(/usr/bin/uname 2>/dev/null)" = "Darwin" ] && _ALIAS_OS=darwin || _ALIAS_OS=linux
 
 # Navigation
+# Go up one directory level
 alias up='cd ..'          # up = cd ..
 alias hom='cd ~'         # home = cd \  (root on Windows = home on Mac)
 alias home='cd ~'         # home = cd \  (root on Windows = home on Mac)
 
 # Shell
+# Exit current shell
 alias lo='exit'           # lo = exit
 
 # Open current directory in Finder (equivalent of: x = explorer /e, /root,%_cwd)
@@ -25,6 +27,7 @@ alias np='open -e'
 alias ia='ifconfig'
 
 # more ...
+# Show current directory path (pwd)
 alias sdf='pwd'
 alias mov='mv'
 alias move='mv'

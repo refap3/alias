@@ -19,6 +19,7 @@ _sykey() {
 }
 
 # --- Help ---
+# syh  — show Synology NAS alias reference
 syh() {
     echo "Synology aliases  (host: $SY_HOST  user: $SY_USER)"
     echo ""
@@ -38,7 +39,9 @@ syh() {
 }
 
 # --- SSH ---
+# syp  — interactive SSH session to NAS, using key
 syp()  { _sykey; ssh "${_SYKEYOPT[@]}" "${_SYOPT[@]}" "$SY_USER@$SY_HOST"; }
+# sypp — interactive SSH session to NAS, no key (password)
 sypp() { ssh "${_SYOPT[@]}" "$SY_USER@$SY_HOST"; }   # without key (password)
 
 # Run a command on the NAS via stdin → bash (avoids SSH quoting issues)
@@ -49,6 +52,7 @@ syc() {
 }
 
 # --- Key setup (password auth — run before key auth is set up) ---
+# syauth  — add Mac pubkey to NAS + configure passwordless sudo (password prompt)
 syauth() {
     local _u; _u=$(whoami)
     echo "Step 1/2: adding Mac pubkey (SSH password prompt)..."
@@ -61,6 +65,7 @@ syauth() {
 }
 
 # --- SFTP ---
+# syw  — interactive SFTP session to NAS
 syw() { _sykey; sftp "${_SYKEYOPT[@]}" "${_SYOPT[@]}" "$SY_USER@$SY_HOST"; }
 
 _sysftp() { printf '%s\n' "${@}" | sftp "${_SYKEYOPT[@]}" "${_SYOPT[@]}" -b - "$SY_USER@$SY_HOST"; }
