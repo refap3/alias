@@ -556,16 +556,16 @@ dbu() {
 alh() {
     local out
     out=$(awk '
-        /^[[:space:]]*#/ {
-            sub(/^[[:space:]]*#[[:space:]]?/, ""); last_comment = $0; next
+        /^[ \t]*#/ {
+            sub(/^[ \t]*#[ \t]?/, ""); last_comment = $0; next
         }
         /^alias [a-zA-Z]/ {
             name = $2; sub(/=.*/, "", name)
             if (name != "" && last_comment != "") print name "\t" last_comment
             last_comment = ""; next
         }
-        /^[a-zA-Z][a-zA-Z0-9_]*[[:space:]]*\(\)/ {
-            name = $1; sub(/[[:space:]]*\(\).*/, "", name)
+        /^[a-zA-Z][a-zA-Z0-9_]*[ \t]*\(\)/ {
+            name = $1; sub(/[ \t]*\(\).*/, "", name)
             if (name != "" && last_comment != "") print name "\t" last_comment
             last_comment = ""; next
         }
