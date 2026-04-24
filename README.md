@@ -261,6 +261,20 @@ racpri 59    # copies Mac's private key to Pi .59 (needed for Pi-to-Pi SSH and v
 
 After `raauth`, `rap <octet>` works from the Mac. After `racpri`, the Pi can also SSH into other Pis that have been set up with `raauth`.
 
+**Cloudflare tunnel from a Pi** — `rap59cv` and `rap168ca` use `cloudflared access ssh` as an SSH ProxyCommand. The Mac has `cloudflared` via Homebrew. Any Pi that needs to call these aliases (e.g. Pi 168 Aigen connecting to Pi 59 Vienna) must also have `cloudflared` installed:
+
+```bash
+# aarch64 / arm64 (Pi 3/4/5 running 64-bit OS):
+curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb \
+  -o /tmp/cloudflared.deb && sudo dpkg -i /tmp/cloudflared.deb
+
+# armv7 / 32-bit OS:
+curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm.deb \
+  -o /tmp/cloudflared.deb && sudo dpkg -i /tmp/cloudflared.deb
+```
+
+Check architecture first with `uname -m` (`aarch64` = arm64, `armv7l` = arm).
+
 **VS Code Remote SSH** (`vsc` from a Pi, or `vscr`/`vscrv`/`vscra` from the Mac):
 
 - **From Mac:** `vscr 52` opens VS Code connected to Pi 52 at `/home/pi`.

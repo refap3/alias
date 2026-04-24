@@ -538,6 +538,35 @@ Copy
 it.
 Needed so the Pi can reverse-SSH back to the Mac for
 .BR vsc .
+.SS Cloudflare Tunnel Client
+.B rap59cv
+and
+.B rap168ca
+use
+.I cloudflared access ssh
+as an SSH ProxyCommand.
+The Mac has
+.I cloudflared
+via Homebrew.
+Any Pi that calls these aliases must also have
+.I cloudflared
+installed.
+.PP
+Install on an aarch64 (64-bit) Pi:
+.PP
+.nf
+curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/\\
+download/cloudflared-linux-arm64.deb -o /tmp/cloudflared.deb
+sudo dpkg -i /tmp/cloudflared.deb
+.fi
+.PP
+For a 32-bit (armv7) Pi replace
+.I arm64
+with
+.IR arm .
+Check with
+.B uname -m
+.RI ( aarch64 " = arm64," " armv7l" " = arm)."
 .SH WINDOWS PC ALIASES
 SSH-based interactive PowerShell and remote command execution for Windows PCs.
 Uses
