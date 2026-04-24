@@ -33,8 +33,8 @@ alias mov='mv'
 alias move='mv'
 alias rd='rmdir'
 alias md='mkdir'
-# List files only (no directories): name, date modified, human-readable size
-d() { ls -lph | grep -v / | awk 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>9?" ":"") $i; printf "%-30s  %s %s %-7s  %s\n", name, $6, $7, $8, $5}'; }
+# List files only (no directories), including hidden: name, date modified, human-readable size
+d() { ls -lpAh | grep -v / | awk 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>9?" ":"") $i; printf "%-30s  %s %s %-7s  %s\n", name, $6, $7, $8, $5}'; }
 
 # claude
 alias cdsp='claude --dangerously-skip-permissions'
@@ -179,8 +179,8 @@ aalias() {
     fi
 }
 
-# List only directories in current directory
-alias dd='ls -d */'
+# List only directories in current directory, including hidden
+alias dd='ls -d -- */ .[^.]*/ 2>/dev/null'
 
 # Display folder/file tree rooted at current (or given) directory, like Windows tree
 # Pure shell — no external commands (no find, sort, basename, uname)
