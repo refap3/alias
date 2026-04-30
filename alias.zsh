@@ -10,7 +10,9 @@ export MANPATH="$HOME/alias/man:$HOME/mdedit/man:$HOME/deb/man:$HOME/macscp/man$
 # Navigation
 # Go up one directory level
 alias up='cd ..'          # up = cd ..
+# Go to home directory (equivalent of: home = cd \ on Windows)
 alias hom='cd ~'         # home = cd \  (root on Windows = home on Mac)
+# Go to home directory (equivalent of: home = cd \ on Windows)
 alias home='cd ~'         # home = cd \  (root on Windows = home on Mac)
 
 # Shell
@@ -29,14 +31,18 @@ alias ia='ifconfig'
 # more ...
 # Show current directory path (pwd)
 alias sdf='pwd'
+# Move file or directory (equivalent of: mov/move on Windows)
 alias mov='mv'
+# Move file or directory (equivalent of: mov/move on Windows)
 alias move='mv'
+# Remove directory (equivalent of: rd on Windows)
 alias rd='rmdir'
+# Make directory (equivalent of: md on Windows)
 alias md='mkdir'
 # List files only (no directories), including hidden: name, date modified, human-readable size
 d() { ls -lpAh | grep -v / | awk 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>9?" ":"") $i; printf "%-30s  %s %s %-7s  %s\n", name, $6, $7, $8, $5}'; }
 
-# claude
+# Run Claude CLI with --dangerously-skip-permissions (skips all permission prompts)
 alias cdsp='claude --dangerously-skip-permissions'
 # Session report for current project; --no-summaries skips AI descriptions (needs ANTHROPIC_API_KEY or ~/.config/anthropic/api_key)
 csess() {
@@ -573,7 +579,7 @@ alh() {
             last_comment = ""; next
         }
         { last_comment = "" }
-    ' "$DOTFILES"/*alias*.zsh | sort | awk -F'\t' '{printf "%-20s %s\n", $1, $2}')
+    ' "$DOTFILES"/*alias*.zsh "$DOTFILES"/jump.sh | sort | awk -F'\t' '{printf "%-20s %s\n", $1, $2}')
     if [ -n "${1:-}" ]; then
         echo "$out" | grep -i "$1"
     else
