@@ -44,6 +44,8 @@ d() { ls -lpAh | grep -v / | awk 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i
 
 # Run Claude CLI with --dangerously-skip-permissions (skips all permission prompts)
 alias cdsp='claude --dangerously-skip-permissions'
+alias cdspr='claude --dangerously-skip-permissions --resume'
+
 # Session report for current project; --no-summaries skips AI descriptions (needs ANTHROPIC_API_KEY or ~/.config/anthropic/api_key)
 csess() {
     python3 ~/.dotfiles/tools/extract_sessions.py "$@" && \
