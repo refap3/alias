@@ -563,6 +563,64 @@ dbu() {
     git -C "$dir" gc --prune=all --quiet
 }
 
+# Update all installed repos (alias, deb, dockersource, macscp, mdedit) and run their install steps
+superup() {
+    local _pass=0 _skip=0 _fail=0
+
+    # Plain git-only update helper
+    _sup() {
+        local _n="$1" _d="$2" _cmd="$3"
+        if [ ! -d "$_d/.git" ]; then
+            printf '  %-14s skipped\n' "$_n"; _skip=$((_skip+1)); return 0
+        fi
+        printf '\n--- %s\n' "$_n"
+        if eval "$_cmd"; then _pass=$((_pass+1))
+        else printf '%s: FAILED\n' "$_n" >&2; _fail=$((_fail+1)); fi
+    }
+
+    # Python repo update: git pull, then pip only if requirements.txt changed
+    _sup_py() {
+        local _n="$1" _d="$2"
+        if [ ! -d "$_d/.git" ]; then
+            printf '  %-14s skipped\n' "$_n"; _skip=$((_skip+1)); return 0
+        fi
+        printf '\n--- %s\n' "$_n"
+        local _req="$_d/requirements.txt" _h0="" _h1=""
+        [ -f "$_req" ] && _h0=$(cksum "$_req" 2>/dev/null)
+        if git -C "$_d" pull; then
+            [ -f "$_req" ] && _h1=$(cksum "$_req" 2>/dev/null)
+            if [ "$_h0" != "$_h1" ] || [ -z "$_h0" ]; then
+                printf 'requirements changed -- updating pip deps\n'
+                "$_d/.venv/bin/pip" install -q --upgrade pip
+                "$_d/.venv/bin/pip" install -q -r "$_req"
+            else
+                printf 'requirements unchanged -- pip skipped\n'
+            fi
+            _pass=$((_pass+1))
+        else
+            printf '%s: FAILED\n' "$_n" >&2; _fail=$((_fail+1))
+        fi
+    }
+
+    printf 'superup -- updating installed repos ...\n'
+
+    local _al="${DOTFILES:-$HOME/alias}"
+    local _db="${DEB_DIR:-$HOME/deb}"
+    local _ds="$HOME/dockersource"
+    local _ms="${MACSCP_DIR:-$HOME/macscp}"
+    local _md="${MDEDIT_DIR:-$HOME/mdedit}"
+
+    _sup  alias        "$_al" "git -C '$_al' fetch --depth=1 origin master && git -C '$_al' reset --hard origin/master && git -C '$_al' gc --prune=all --quiet && bash '$_al/deploy.sh'"
+    _sup  deb          "$_db" "git -C '$_db' fetch --depth=1 origin master && git -C '$_db' reset --hard origin/master && git -C '$_db' gc --prune=all --quiet"
+    _sup  dockersource "$_ds" "git -C '$_ds' pull --ff-only"
+    _sup_py macscp     "$_ms"
+    _sup_py mdedit     "$_md"
+
+    unset -f _sup _sup_py 2>/dev/null || true
+    printf '\nsuperup: updated %d  skipped %d  failed %d\n' "$_pass" "$_skip" "$_fail"
+    [ "$_fail" -eq 0 ]
+}
+
 # Show one-line help for every alias and function (from source-file comments); optional filter string
 alh() {
     local out

@@ -892,6 +892,17 @@ Pull latest alias repo (shallow, strips old history) and re-run
 .TP
 .B dbu
 Pull latest deb repo (shallow, strips old history).
+.TP
+.B superup
+Update all installed local repos in one shot: alias, deb, dockersource, macscp, mdedit.
+Skips any repo whose directory does not contain a
+.I .git
+folder (i.e.\& not installed on this node).
+Runs each repo's install/deploy step after pulling (deploy.sh for alias; update.sh for macscp and mdedit).
+For macscp and mdedit, pip deps are only reinstalled if
+.I requirements.txt
+changed.
+Prints a summary line: updated / skipped / failed counts.
 .SH SSH CONFIG
 .I ~/alias/ssh_config
 (symlinked to

@@ -12,11 +12,24 @@ Clones a shallow copy (no history) into `~/alias` and runs `deploy.sh`.
 
 ## Update
 
+### Update all repos at once
+
 ```bash
-alu
+superup
 ```
 
-Pulls the latest changes and re-runs `deploy.sh`. The `alu` alias is available once the repo is deployed. Or manually:
+Updates every installed local repo — alias, deb, dockersource, macscp, mdedit — in one command. Silently skips any repo not present on the current node, then runs each repo's install/deploy step. For macscp and mdedit, pip deps are only reinstalled if `requirements.txt` changed. Prints a summary: `updated N  skipped N  failed N`.
+
+### Update individual repos
+
+| Command | Repo | Post-pull step |
+|---------|------|----------------|
+| `alu` | alias | re-runs `deploy.sh` |
+| `dbu` | deb | — |
+| `bash ~/macscp/update.sh` | macscp | pip deps |
+| `bash ~/mdedit/update.sh` | mdedit | pip deps |
+
+`alu` is available once the repo is deployed. Or manually:
 
 ```bash
 git -C ~/alias pull && bash ~/alias/deploy.sh
