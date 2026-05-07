@@ -566,7 +566,7 @@ piv() {
         _site_resolves() {
             local ns="$1" domain="$2"
             if command -v dig >/dev/null 2>&1; then
-                dig "@$ns" "$domain" +short +time=1 +tries=1 2>/dev/null | grep -q .
+                dig "@$ns" "$domain" +short +time=1 +tries=1 2>/dev/null | grep -v '^;' | grep -q .
             elif command -v nslookup >/dev/null 2>&1; then
                 nslookup "$domain" "$ns" 2>/dev/null | grep -q "^Name:"
             else
