@@ -552,13 +552,25 @@ alias dst='~/deb/disk_speed_test'
 # Open deb interactive menu (~/deb/menu); optional choice arg (e.g. db b); skipped if not installed
 db() { [ -x "$HOME/deb/menu" ] && "$HOME/deb/menu" "$@" || echo "db: ~/deb/menu not found or not executable" >&2; }
 
-# Terminal ping monitor (pinginfoview); optional hosts file arg
+# Terminal ping monitor (pinginfoview); auto-detects site from local DNS
 piv() {
-    if [ -x "$HOME/deb/pinginfoview" ]; then
-        "$HOME/deb/pinginfoview" "$@"
-    else
+    if [ ! -x "$HOME/deb/pinginfoview" ]; then
         echo "piv: deb repo not installed. Install with:" >&2
         echo "  bash <(curl -fsSL https://raw.githubusercontent.com/refap3/deb/master/install.sh)" >&2
+        return 1
+    fi
+    if [ -n "$1" ]; then
+        "$HOME/deb/pinginfoview" "$1"
+    else
+        local hosts_file
+        if nslookup ssb8.local >/dev/null 2>&1; then
+            hosts_file="$HOME/deb/hosts-vienna.txt"
+        elif nslookup pi.hole >/dev/null 2>&1; then
+            hosts_file="$HOME/deb/hosts-aigen.txt"
+        else
+            hosts_file="$HOME/deb/hosts.txt"
+        fi
+        "$HOME/deb/pinginfoview" "$hosts_file"
     fi
 }
 

@@ -218,9 +218,17 @@ Silently skipped if not installed.
 .B piv " [hosts_file]"
 Launch the terminal ping monitor
 .RI ( ~/deb/pinginfoview ).
-Accepts an optional path to a hosts file; defaults to
-.I ~/deb/hosts.txt
-if omitted.
+Without an argument, auto-selects the hosts file by probing local DNS:
+.I ssb8.local
+resolves →
+.IR ~/deb/hosts-vienna.txt ;
+.I pi.hole
+resolves →
+.IR ~/deb/hosts-aigen.txt ;
+neither → falls back to
+.IR ~/deb/hosts.txt .
+The active site is shown in the status bar.
+Pass an explicit hosts file path to bypass detection.
 Prints a one-line install instruction if the deb repo is not present.
 .TP
 .B nw
