@@ -228,6 +228,7 @@ sy  p                                                  syp
 | `dcinfo [-v] [name]` | List containers (running and stopped); optional `name` is a substring/regex filter. Without `-v`: one line per container (name, status, image, ports). With `-v`: full `docker inspect` output |
 | `dclog [name] [nn]` | Show last `nn` lines of logs for containers matching `name` (all containers if omitted; default 10 lines; `0` = full log). If first arg is an integer, it is used as `nn` and all containers are shown |
 | `db [choice]` | Open the deb interactive menu (`~/deb/menu`); optional choice arg (e.g. `db b`). Silently skipped if not installed |
+| `piv [hosts_file]` | Launch the terminal ping monitor (`~/deb/pinginfoview`). Optional hosts file arg; defaults to `~/deb/hosts.txt`. Prints install instructions if deb repo is missing |
 
 **Mac Screen Sharing setup** (one-time, run on the remote Mac if Remote Management blocks VNC):
 

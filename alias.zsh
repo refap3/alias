@@ -552,6 +552,16 @@ alias dst='~/deb/disk_speed_test'
 # Open deb interactive menu (~/deb/menu); optional choice arg (e.g. db b); skipped if not installed
 db() { [ -x "$HOME/deb/menu" ] && "$HOME/deb/menu" "$@" || echo "db: ~/deb/menu not found or not executable" >&2; }
 
+# Terminal ping monitor (pinginfoview); optional hosts file arg
+piv() {
+    if [ -x "$HOME/deb/pinginfoview" ]; then
+        "$HOME/deb/pinginfoview" "$@"
+    else
+        echo "piv: deb repo not installed. Install with:" >&2
+        echo "  bash <(curl -fsSL https://raw.githubusercontent.com/refap3/deb/master/install.sh)" >&2
+    fi
+}
+
 # Interactive network troubleshooting menu (ipconfig/arp/dns/ping/bw)
 alias nw='~/alias/nwtools'
 

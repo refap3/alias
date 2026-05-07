@@ -215,6 +215,14 @@ optional choice argument to execute a specific item directly (e.g.
 .IR "db b" ).
 Silently skipped if not installed.
 .TP
+.B piv " [hosts_file]"
+Launch the terminal ping monitor
+.RI ( ~/deb/pinginfoview ).
+Accepts an optional path to a hosts file; defaults to
+.I ~/deb/hosts.txt
+if omitted.
+Prints a one-line install instruction if the deb repo is not present.
+.TP
 .B nw
 Launch the interactive network tools menu
 .RI ( ~/alias/nwtools ).
