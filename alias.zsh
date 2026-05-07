@@ -562,14 +562,17 @@ piv() {
     if [ -n "$1" ]; then
         "$HOME/deb/pinginfoview" "$1"
     else
+        # nslookup exits 0 even on NXDOMAIN on macOS — check output instead
+        _dns_resolves() { nslookup "$1" 2>/dev/null | grep -q "^Name:"; }
         local hosts_file
-        if nslookup ssb8.local >/dev/null 2>&1; then
+        if _dns_resolves ssb8.local; then
             hosts_file="$HOME/deb/hosts-vienna.txt"
-        elif nslookup pi.hole >/dev/null 2>&1; then
+        elif _dns_resolves pi.hole; then
             hosts_file="$HOME/deb/hosts-aigen.txt"
         else
             hosts_file="$HOME/deb/hosts.txt"
         fi
+        unset -f _dns_resolves
         "$HOME/deb/pinginfoview" "$hosts_file"
     fi
 }
