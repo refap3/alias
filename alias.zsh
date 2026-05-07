@@ -562,8 +562,17 @@ piv() {
     if [ -n "$1" ]; then
         "$HOME/deb/pinginfoview" "$1"
     else
-        # Query each site's nameserver directly — 1s timeout, works regardless of system DNS
-        _site_resolves() { dig "@$1" "$2" +short +time=1 +tries=1 2>/dev/null | grep -q .; }
+        # Query each site's nameserver directly — fallback chain: dig → nslookup → /dev/tcp
+        _site_resolves() {
+            local ns="$1" domain="$2"
+            if command -v dig >/dev/null 2>&1; then
+                dig "@$ns" "$domain" +short +time=1 +tries=1 2>/dev/null | grep -q .
+            elif command -v nslookup >/dev/null 2>&1; then
+                nslookup "$domain" "$ns" 2>/dev/null | grep -q "^Name:"
+            else
+                (echo >/dev/tcp/"$ns"/53) 2>/dev/null
+            fi
+        }
         local hosts_file
         if _site_resolves 192.168.1.203 ssb8.local; then
             hosts_file="$HOME/deb/hosts-vienna.txt"
