@@ -26,6 +26,8 @@ Updates every installed local repo — alias, deb, dockersource, macscp, mdedit 
 |---------|------|----------------|
 | `alu` | alias | re-runs `deploy.sh` |
 | `dbu` | deb | — |
+
+Both commands check for unpushed local commits before overwriting and prompt for confirmation if any are found.
 | `bash ~/macscp/update.sh` | macscp | pip deps |
 | `bash ~/mdedit/update.sh` | mdedit | pip deps |
 

@@ -505,7 +505,16 @@ psfed() {
 # Pull latest alias repo (shallow, strips old history) and re-run deploy.sh
 alu() {
     local dir="${DOTFILES:-$HOME/alias}"
-    git -C "$dir" fetch --depth=1 origin master &&
+    git -C "$dir" fetch --depth=1 origin master || return 1
+    local _ahead
+    _ahead=$(git -C "$dir" log origin/master..HEAD --oneline 2>/dev/null)
+    if [[ -n "$_ahead" ]]; then
+        echo "alu: WARNING — these local commits will be lost:"
+        echo "$_ahead" | sed 's/^/  /'
+        printf "Continue? [y/N] "
+        read -r _r
+        [[ "${_r:0:1}" == [yY] ]] || { echo "Aborted."; return 1; }
+    fi
     git -C "$dir" reset --hard origin/master &&
     git -C "$dir" gc --prune=all --quiet &&
     bash "$dir/deploy.sh"
@@ -592,7 +601,16 @@ alias nw='~/alias/nwtools'
 # Pull latest deb repo (shallow, strips old history)
 dbu() {
     local dir="${DEB_DIR:-$HOME/deb}"
-    git -C "$dir" fetch --depth=1 origin master &&
+    git -C "$dir" fetch --depth=1 origin master || return 1
+    local _ahead
+    _ahead=$(git -C "$dir" log origin/master..HEAD --oneline 2>/dev/null)
+    if [[ -n "$_ahead" ]]; then
+        echo "dbu: WARNING — these local commits will be lost:"
+        echo "$_ahead" | sed 's/^/  /'
+        printf "Continue? [y/N] "
+        read -r _r
+        [[ "${_r:0:1}" == [yY] ]] || { echo "Aborted."; return 1; }
+    fi
     git -C "$dir" reset --hard origin/master &&
     git -C "$dir" gc --prune=all --quiet
 }
