@@ -141,15 +141,41 @@ Open current directory in Finder (macOS).
 .B np " <file>"
 Open file in TextEdit (macOS).
 .TP
-.B d
-List files only (no directories), including hidden files, showing name, date modified, and human-readable size.
+.B d " [name]"
+List files only (no directories), including hidden files, showing name, date modified, and human-readable size. Optional
+.I name
+filters by filename (case-insensitive); without
+.B *
+the match is exact; a leading or trailing
+.B *
+is a wildcard (e.g.\&
+.BR "'*py'" ).
+Quote patterns containing
+.B *
+to prevent shell expansion.
 .TP
-.B dd
-List only directories in current directory, including hidden directories.
+.B dd " [name]"
+List only directories in current directory, including hidden directories. Optional
+.I name
+filters by directory name (case-insensitive); without
+.B *
+the match is exact; a leading or trailing
+.B *
+is a wildcard. Quote patterns containing
+.B *
+to prevent shell expansion.
 .SS File Tools
 .TP
-.B dt " [dir]"
-List files created or modified today (default: current dir).
+.B dt " [name]"
+List files and directories created or modified today in the current directory. Optional
+.I name
+filters by name (case-insensitive); without
+.B *
+the match is exact; a leading or trailing
+.B *
+is a wildcard. Quote patterns containing
+.B *
+to prevent shell expansion.
 .TP
 .B ff " <name> [dir]"
 Find file by name, skipping hidden directories.

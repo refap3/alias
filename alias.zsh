@@ -40,7 +40,25 @@ alias rd='rmdir'
 # Make directory (equivalent of: md on Windows)
 alias md='mkdir'
 # List files only (no directories), including hidden: name, date modified, human-readable size
-d() { ls -lpAh | grep -v / | awk 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>9?" ":"") $i; printf "%-30s  %s %s %-7s  %s\n", name, $6, $7, $8, $5}'; }
+# Optional arg: filter by name, case-insensitive. No *: exact match. With *: wildcard (quote if needed: d '*py').
+# Unquoted wildcards that shell-expands to multiple files are handled automatically.
+d() {
+  if [[ $# -eq 0 ]]; then
+    ls -lpAh | grep -v / | awk 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>9?" ":"") $i; printf "%-30s  %s %s %-7s  %s\n", name, $6, $7, $8, $5}'
+  elif [[ $# -eq 1 && "$1" == *\** ]]; then
+    local re
+    re=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/\./\\./g; s/\*/.*/g')
+    ls -lpAh | grep -v / | awk -v pat="^${re}$" 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>9?" ":"") $i; if(tolower(name) ~ pat) printf "%-30s  %s %s %-7s  %s\n", name, $6, $7, $8, $5}'
+  else
+    local re="" arg esc
+    for arg in "$@"; do
+      esc=$(printf '%s' "$arg" | tr '[:upper:]' '[:lower:]' | sed 's/\./\\./g')
+      [[ -n "$re" ]] && re="${re}|"
+      re="${re}^${esc}$"
+    done
+    ls -lpAh | grep -v / | awk -v pat="$re" 'NR>1 {name=""; for(i=9;i<=NF;i++) name=name (i>9?" ":"") $i; if(tolower(name) ~ pat) printf "%-30s  %s %s %-7s  %s\n", name, $6, $7, $8, $5}'
+  fi
+}
 
 # Run Claude CLI with --dangerously-skip-permissions (skips all permission prompts)
 alias cdsp='claude --dangerously-skip-permissions'
@@ -170,8 +188,27 @@ fi
 # Clear screen
 alias cls='clear'
 
-# List all files in current directory created/modified today
-dt() { find "${1:-.}" -maxdepth 1 -newermt "$(date +%Y-%m-%d)" ! -name "." | sort; }
+# List all files/dirs in current directory created/modified today
+# Optional arg: filter by name, case-insensitive. No *: exact match. With *: wildcard (quote if needed: dt '*.log').
+# Unquoted wildcards that shell-expands to multiple names are handled automatically.
+dt() {
+  local today
+  today="$(date +%Y-%m-%d)"
+  if [[ $# -eq 0 ]]; then
+    find . -maxdepth 1 -newermt "$today" ! -name "." | sort
+  elif [[ $# -eq 1 ]]; then
+    find . -maxdepth 1 -newermt "$today" ! -name "." -iname "$1" | sort
+  else
+    local find_args=( \( ) first=1 arg
+    for arg in "$@"; do
+      [[ $first -eq 0 ]] && find_args+=( -o )
+      find_args+=( -iname "$arg" )
+      first=0
+    done
+    find_args+=( \) )
+    find . -maxdepth 1 -newermt "$today" ! -name "." "${find_args[@]}" | sort
+  fi
+}
 
 # Show alias/function definitions. No arg = show all. Arg = case-insensitive wildcard match.
 aalias() {
@@ -188,7 +225,24 @@ aalias() {
 }
 
 # List only directories in current directory, including hidden
-alias dd='ls -d -- */ .[^.]*/ 2>/dev/null'
+# Optional arg: filter by name, case-insensitive. No *: exact match. With *: wildcard (quote if needed: dd 'ma*').
+# Unquoted wildcards that shell-expands to multiple dirs are handled automatically.
+dd() {
+  if [[ $# -eq 0 ]]; then
+    ls -d -- */ .[^.]*/ 2>/dev/null
+  elif [[ $# -eq 1 ]]; then
+    find . -maxdepth 1 -mindepth 1 -type d -iname "$1" | sed 's|^\./||' | sort
+  else
+    local find_args=( \( ) first=1 arg
+    for arg in "$@"; do
+      [[ $first -eq 0 ]] && find_args+=( -o )
+      find_args+=( -iname "$arg" )
+      first=0
+    done
+    find_args+=( \) )
+    find . -maxdepth 1 -mindepth 1 -type d "${find_args[@]}" | sed 's|^\./||' | sort
+  fi
+}
 
 # Display folder/file tree rooted at current (or given) directory, like Windows tree
 # Pure shell — no external commands (no find, sort, basename, uname)
