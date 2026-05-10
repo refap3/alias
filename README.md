@@ -212,6 +212,8 @@ sy  p                                                  syp
 | `tree -u [dir]` | Same, with human-readable sizes on each node |
 | `tree -h [dir]` | Include hidden (dot) files and folders |
 | `tree -t [dir]` | Top-level directories only, each with its full recursive total size (incl. hidden content) |
+| `tree -tz [dir]` | Same as `-t`, sorted by size ascending (largest last) |
+| `fr` | Free disk space on the filesystem containing the current directory |
 | `treed [dir]` | Display directory-only tree |
 | `treed -h [dir]` | Directory-only tree including hidden dirs |
 | `treed -j [dir]` | Directory tree and add all dirs to `~/.jumplocations` |

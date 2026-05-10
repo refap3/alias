@@ -203,7 +203,12 @@ adds human-readable sizes,
 .B \-h
 includes hidden files,
 .B \-t
-shows only top-level directories each with its full recursive total size (including hidden content).
+shows only top-level directories each with its full recursive total size (including hidden content),
+.B \-z
+(with \fB\-t\fR) sorts the directories by size ascending, largest last.
+.TP
+.B fr
+Show free disk space on the filesystem containing the current directory (free, used, total, percent used).
 .TP
 .B treed " [dir]"
 Directory-only tree.

@@ -306,14 +306,15 @@ _tree_helper() {
         fi
     done
 }
-# Display folder/file tree; -u sizes on each node; -h hidden files; -t top-level dirs with total recursive size
+# Display folder/file tree; -u sizes on each node; -h hidden files; -t top-level dirs with total recursive size; -z with -t sorts by size ascending (largest last)
 tree() {
-    local dir="." show_usage=0 hidden=0 show_totals=0
+    local dir="." show_usage=0 hidden=0 show_totals=0 sort_size=0
     for arg in "$@"; do
         case "$arg" in
             -*) case "$arg" in *u*) show_usage=1 ;; esac
                 case "$arg" in *h*) hidden=1 ;; esac
-                case "$arg" in *t*) show_totals=1 ;; esac ;;
+                case "$arg" in *t*) show_totals=1 ;; esac
+                case "$arg" in *z*) sort_size=1 ;; esac ;;
             *)  dir="$arg" ;;
         esac
     done
@@ -338,13 +339,25 @@ tree() {
             fi
             eval "$_ng" 2>/dev/null
         fi
-        echo "$dir"
-        count=${#entries[@]}
-        local _tname _tsz
+        local size_pairs=() _tname _tsz pair
         for entry in "${entries[@]}"; do
-            i=$((i+1))
-            _tname="${entry##*/}"
             _tsz=$(du -sk "$entry" 2>/dev/null | awk '{printf "%.0f\n", $1*1024}')
+            size_pairs+=("${_tsz:-0}	${entry}")
+        done
+        if [ "$sort_size" = "1" ]; then
+            local sorted=()
+            while IFS= read -r pair; do sorted+=("$pair"); done \
+                < <(printf '%s\n' "${size_pairs[@]}" | sort -t$'\t' -k1 -n)
+            size_pairs=("${sorted[@]}")
+        fi
+        echo "$dir"
+        count=${#size_pairs[@]}
+        i=0
+        for pair in "${size_pairs[@]}"; do
+            i=$((i+1))
+            _tsz="${pair%%	*}"
+            _tname="${pair##*	}"
+            _tname="${_tname##*/}"
             if [ "$i" -eq "$count" ]; then
                 echo "└── [$(_tree_humansize "${_tsz:-0}")] ${_tname}"
             else
@@ -427,6 +440,9 @@ treed() {
     _treed_helper "$abs_dir" "" "$jump" "$hidden"
     [ "$jump" = "1" ] && echo "Directories added to ~/.jumplocations"
 }
+
+# Show free disk space on the filesystem containing the current directory
+fr() { df -h "$PWD" | awk 'NR==2 {printf "Free: %s  Used: %s  Total: %s  (%s used)\n", $4, $3, $2, $5}'; }
 
 # Find file recursively from current directory (ff <partial name> [dir])
 ff()  { find "${2:-.}" -not -path "*/.*" -iname "*$1*" 2>/dev/null; }   # skips hidden files/dirs
