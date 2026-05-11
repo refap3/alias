@@ -36,6 +36,15 @@ Host ssh5.cfaig2vie.uk
     UserKnownHostsFile /dev/null
     LogLevel ERROR
 
+Host ssh203.deprec.uk
+    ProxyCommand sh -c 'PATH=/opt/homebrew/bin:/usr/local/bin:$PATH exec cloudflared access ssh --hostname %h'
+    User rainer
+    IdentityFile ~/.ssh/id_ed25519
+    ForwardAgent yes
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR
+
 Host mm
     HostName 192.168.1.47
 

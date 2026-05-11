@@ -150,7 +150,7 @@ ra  p   rap              rapv               rapa
     wmk rawmk            rawmkv             rawmka
     wrm rawrm            rawrmv             rawrma
 
-pc  p   pcp              pcpv               pcpa
+pc  p   pcp              pcpv               pcpa             pcp203cv
     c   pcc              pccv               pcca
     w   pcw              pcwv               pcwa
     wl  pcwl             pcwlv              pcwla
@@ -322,6 +322,7 @@ vsc ~/myproject  # opens a specific folder
 | `pcp <octet>` | SSH → `192.168.1.<octet>`, start interactive `pwsh` (loads `$profile.CurrentUserAllHosts`) |
 | `pcpv <host>` | SSH → `<host>.ssb8.local`, start interactive `pwsh` (loads `$profile.CurrentUserAllHosts`) |
 | `pcpa <host>` | SSH → `<host>.pi.hole`, start interactive `pwsh` (loads `$profile.CurrentUserAllHosts`) |
+| `pcp203cv` | SSH → `ssh203.deprec.uk` (PC .203 Vienna) via Cloudflare tunnel, start interactive `pwsh` |
 | `pcc <octet> <cmd>` | Run PowerShell command on Windows PC by IP octet (comma-separated for multiple) |
 | `pccv <host> <cmd>` | Run PowerShell command on Windows PC by `.ssb8.local` hostname |
 | `pcca <host> <cmd>` | Run PowerShell command on Windows PC by `.pi.hole` hostname |
