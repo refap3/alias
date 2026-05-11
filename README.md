@@ -256,6 +256,8 @@ Then connect with `mcv <name>` using the VNC password set above (not the Mac log
 | `raphaa` | SSH → `root@hassio.pi.hole` port 22222 with key |
 | `rap59cv` | SSH → Pi .59 Vienna via Cloudflare tunnel (`ssh59.deprec.uk`) |
 | `rap168ca` | SSH → Pi .168 Aigen via Cloudflare tunnel (`ssh168.cfaig2vie.uk`) |
+| `raphacv` | SSH → HA Vienna via Cloudflare tunnel (`ssh32.deprec.uk`) port 22222 |
+| `raphaca` | SSH → HA Aigen via Cloudflare tunnel (`ssh5.cfaig2vie.uk`) port 22222 |
 | `rac <octet> <cmd>` | Run command on Pi by IP octet (or comma-separated list) |
 | `racv <host> <cmd>` | Run command on Pi by `.ssb8.local` hostname |
 | `raca <host> <cmd>` | Run command on Pi by `.pi.hole` hostname |

@@ -90,6 +90,10 @@ raca() {  # raca <host[,host,...]> <cmd...>
 rap59cv()  { ssh pi@ssh59.deprec.uk; }     # rap59cv  — Pi .59 Vienna via Cloudflare tunnel
 # rap168ca — SSH to Pi .168 Aigen via Cloudflare tunnel
 rap168ca() { ssh pi@ssh168.cfaig2vie.uk; } # rap168ca — Pi .168 Aigen via Cloudflare tunnel
+# raphacv  — SSH to Home Assistant Vienna via Cloudflare tunnel, port 22222
+raphacv()  { ssh ssh32.deprec.uk; }    # raphacv  — HA Vienna via Cloudflare tunnel
+# raphaca  — SSH to Home Assistant Aigen via Cloudflare tunnel, port 22222
+raphaca()  { ssh ssh5.cfaig2vie.uk; }  # raphaca  — HA Aigen via Cloudflare tunnel
 
 # --- VS Code Remote SSH: open VS Code on Mac connected to a Pi ---
 # vscr <octet> [path]  — open VS Code remote SSH to Pi by IP octet
