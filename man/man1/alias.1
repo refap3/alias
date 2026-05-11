@@ -592,10 +592,10 @@ to Pi.
 .TP
 .B racpri " <octet>"
 Copy
-.I id_rsa
-(private key) to Pi and
+.IR id_rsa ", " id_ed25519 ", and " id_ed25519.pub
+(private keys) to Pi and
 .BR chmod " 600"
-it.
+them.
 Needed so the Pi can reverse-SSH back to the Mac for
 .BR vsc .
 .SS Cloudflare Tunnel Client

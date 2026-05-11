@@ -247,8 +247,8 @@ pcwh() {
 # --- Copy SSH keys to remote host (password auth — use before key auth is set up) ---
 # racpub <octet>  — copy Mac public key file to Pi
 racpub()  { scp "${_PIOPT[@]}" ~/.ssh/id_rsa.pub pi@192.168.1.$1:~/.ssh/; }                                              # racpub <octet>  — copy public key file
-# racpri <octet>  — copy Mac private key to Pi + fix permissions
-racpri()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh" && scp "${_PIOPT[@]}" ~/.ssh/id_rsa pi@192.168.1.$1:~/.ssh/ && ssh "${_PIOPT[@]}" pi@192.168.1.$1 "chmod 600 ~/.ssh/id_rsa"; } # racpri <octet>  — copy private key + fix perms
+# racpri <octet>  — copy Mac private keys to Pi + fix permissions
+racpri()  { ssh "${_PIOPT[@]}" pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh" && scp "${_PIOPT[@]}" ~/.ssh/id_rsa ~/.ssh/id_ed25519 ~/.ssh/id_ed25519.pub pi@192.168.1.$1:~/.ssh/ && ssh "${_PIOPT[@]}" pi@192.168.1.$1 "chmod 600 ~/.ssh/id_rsa ~/.ssh/id_ed25519"; } # racpri <octet>  — copy private keys + fix perms
 # raauth <octet>  — add Mac pubkey + write MAC_USER to Pi .bashrc (one password prompt)
 raauth()  { local _u; _u=$(whoami); cat ~/.ssh/id_rsa.pub | ssh "${_PIOPT[@]}" pi@192.168.1.$1 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && grep -q 'export MAC_USER=' ~/.bashrc || echo 'export MAC_USER=$_u' >> ~/.bashrc"; echo "raauth done: key added, MAC_USER=$_u written to Pi .bashrc"; }  # raauth <octet>  — add Mac pubkey + write MAC_USER (single SSH = one password prompt)
 

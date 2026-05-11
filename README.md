@@ -266,7 +266,7 @@ Then connect with `mcv <name>` using the VNC password set above (not the Mac log
 | `rawa <host>` | SFTP → `pi@<host>.pi.hole` with key |
 | `raauth <octet>` | Add Mac's `id_rsa.pub` to Pi's `authorized_keys` + write `MAC_USER` to Pi's `.bashrc` |
 | `racpub <octet>` | Copy `id_rsa.pub` to `pi@192.168.1.<octet>:~/.ssh/` |
-| `racpri <octet>` | Copy `id_rsa` to `pi@192.168.1.<octet>:~/.ssh/` and `chmod 600` |
+| `racpri <octet>` | Copy `id_rsa`, `id_ed25519`, `id_ed25519.pub` to `pi@192.168.1.<octet>:~/.ssh/` and `chmod 600` |
 | `vscr <octet> [path]` | Open VS Code with Remote SSH to `pi@192.168.1.<octet>` |
 | `vscrv <host> [path]` | Open VS Code with Remote SSH to `pi@<host>.ssb8.local` |
 | `vscra <host> [path]` | Open VS Code with Remote SSH to `pi@<host>.pi.hole` |
