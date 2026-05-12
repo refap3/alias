@@ -229,7 +229,7 @@ aalias() {
 # Unquoted wildcards that shell-expands to multiple dirs are handled automatically.
 dd() {
   if [[ $# -eq 0 ]]; then
-    ls -d -- */ .[^.]*/ 2>/dev/null
+    ls -d -- */(N) .[^.]*/(N) 2>/dev/null
   elif [[ $# -eq 1 ]]; then
     find . -maxdepth 1 -mindepth 1 -type d -iname "$1" | sed 's|^\./||' | sort
   else
