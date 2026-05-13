@@ -229,7 +229,11 @@ aalias() {
 # Unquoted wildcards that shell-expands to multiple dirs are handled automatically.
 dd() {
   if [[ $# -eq 0 ]]; then
-    ls -d -- */(N) .[^.]*/(N) 2>/dev/null
+    if [ -n "$ZSH_VERSION" ]; then
+      ls -d -- */(N) .[^.]*/(N) 2>/dev/null
+    else
+      find . -maxdepth 1 -mindepth 1 -type d | sed 's|^\./||' | sort
+    fi
   elif [[ $# -eq 1 ]]; then
     find . -maxdepth 1 -mindepth 1 -type d -iname "$1" | sed 's|^\./||' | sort
   else
