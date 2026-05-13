@@ -673,13 +673,16 @@ dbu() {
     local dir="${DEB_DIR:-$HOME/deb}"
     git -C "$dir" fetch --depth=1 origin master || return 1
     local _ahead
-    _ahead=$(git -C "$dir" log origin/master..HEAD --oneline 2>/dev/null)
-    if [[ -n "$_ahead" ]]; then
-        echo "dbu: WARNING — these local commits will be lost:"
-        echo "$_ahead" | sed 's/^/  /'
-        printf "Continue? [y/N] "
-        read -r _r
-        [[ "${_r:0:1}" == [yY] ]] || { echo "Aborted."; return 1; }
+    # Skip check on shallow clones — grafted history causes false diverge
+    if [ ! -f "$dir/.git/shallow" ]; then
+        _ahead=$(git -C "$dir" log origin/master..HEAD --oneline 2>/dev/null)
+        if [[ -n "$_ahead" ]]; then
+            echo "dbu: WARNING — these local commits will be lost:"
+            echo "$_ahead" | sed 's/^/  /'
+            printf "Continue? [y/N] "
+            read -r _r
+            [[ "${_r:0:1}" == [yY] ]] || { echo "Aborted."; return 1; }
+        fi
     fi
     git -C "$dir" reset --hard origin/master &&
     git -C "$dir" gc --prune=all --quiet
