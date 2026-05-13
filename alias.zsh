@@ -690,9 +690,7 @@ dbu() {
     git -C "$dir" gc --prune=all --quiet
 }
 
-# Update all installed repos (alias, deb, dockersource, macscp, mdedit) and run their install steps
-# -full    convert all repos to full history (unshallow)
-# -shallow leave all repos at depth=1
+# Update all repos (alias, deb, dockersource, macscp, mdedit) and run install steps [-full|-shallow]
 superup() {
     local _pass=0 _skip=0 _fail=0 _mode=""
 

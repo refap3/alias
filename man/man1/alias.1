@@ -962,7 +962,8 @@ Pull latest alias repo (shallow, strips old history) and re-run
 .B dbu
 Pull latest deb repo (shallow, strips old history).
 .TP
-.B superup
+.B superup\c
+ [\fB\-full\fP|\fB\-shallow\fP]
 Update all installed local repos in one shot: alias, deb, dockersource, macscp, mdedit.
 Skips any repo whose directory does not contain a
 .I .git
@@ -972,6 +973,14 @@ For macscp and mdedit, pip deps are only reinstalled if
 .I requirements.txt
 changed.
 Prints a summary line: updated / skipped / failed counts.
+.RS
+.TP
+.B \-full
+Convert all repos to full history (unshallow). Repos already at full history are unaffected.
+.TP
+.B \-shallow
+Set all repos to depth=1 (last commit only).
+.RE
 .SH SSH CONFIG
 .I ~/alias/ssh_config
 (symlinked to
