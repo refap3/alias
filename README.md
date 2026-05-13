@@ -20,6 +20,12 @@ superup
 
 Updates every installed local repo — alias, deb, dockersource, macscp, mdedit — in one command. Silently skips any repo not present on the current node, then runs each repo's install/deploy step. For macscp and mdedit, pip deps are only reinstalled if `requirements.txt` changed. Prints a summary: `updated N  skipped N  failed N`.
 
+| Flag | Behaviour |
+|------|-----------|
+| _(none)_ | Default: alias/deb fetched shallow (depth=1); dockersource/macscp/mdedit pulled normally |
+| `-full` | All repos converted to full history (unshallow); already-full repos unaffected |
+| `-shallow` | All repos set to depth=1 (last commit only) |
+
 ### Update individual repos
 
 | Command | Repo | Post-pull step |

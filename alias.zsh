@@ -691,8 +691,17 @@ dbu() {
 }
 
 # Update all installed repos (alias, deb, dockersource, macscp, mdedit) and run their install steps
+# -full    convert all repos to full history (unshallow)
+# -shallow leave all repos at depth=1
 superup() {
-    local _pass=0 _skip=0 _fail=0
+    local _pass=0 _skip=0 _fail=0 _mode=""
+
+    for _a in "$@"; do
+        case "$_a" in
+            -full)    _mode=full   ;;
+            -shallow) _mode=shallow ;;
+        esac
+    done
 
     # Plain git-only update helper
     _sup() {
@@ -706,15 +715,25 @@ superup() {
     }
 
     # Python repo update: git pull, then pip only if requirements.txt changed
+    # $3 = mode (full|shallow|"")
     _sup_py() {
-        local _n="$1" _d="$2"
+        local _n="$1" _d="$2" _m="${3:-}"
         if [ ! -d "$_d/.git" ]; then
             printf '  %-14s skipped\n' "$_n"; _skip=$((_skip+1)); return 0
         fi
         printf '\n--- %s\n' "$_n"
-        local _req="$_d/requirements.txt" _h0="" _h1=""
+        local _req="$_d/requirements.txt" _h0="" _h1="" _pulled=0
         [ -f "$_req" ] && _h0=$(cksum "$_req" 2>/dev/null)
-        if git -C "$_d" pull; then
+        if [ "$_m" = full ]; then
+            git -C "$_d" fetch --unshallow origin 2>/dev/null || true
+            git -C "$_d" pull && _pulled=1
+        elif [ "$_m" = shallow ]; then
+            git -C "$_d" fetch --depth=1 origin \
+                && git -C "$_d" reset --hard FETCH_HEAD && _pulled=1
+        else
+            git -C "$_d" pull && _pulled=1
+        fi
+        if [ "$_pulled" = 1 ]; then
             [ -f "$_req" ] && _h1=$(cksum "$_req" 2>/dev/null)
             if [ "$_h0" != "$_h1" ] || [ -z "$_h0" ]; then
                 printf 'requirements changed -- updating pip deps\n'
@@ -729,7 +748,9 @@ superup() {
         fi
     }
 
-    printf 'superup -- updating installed repos ...\n'
+    local _label=""
+    [ -n "$_mode" ] && _label=" ($_mode)"
+    printf 'superup%s -- updating installed repos ...\n' "$_label"
 
     local _al="${DOTFILES:-$HOME/alias}"
     local _db="${DEB_DIR:-$HOME/deb}"
@@ -737,11 +758,21 @@ superup() {
     local _ms="${MACSCP_DIR:-$HOME/macscp}"
     local _md="${MDEDIT_DIR:-$HOME/mdedit}"
 
-    _sup  alias        "$_al" "git -C '$_al' fetch --depth=1 origin master && git -C '$_al' reset --hard origin/master && git -C '$_al' gc --prune=all --quiet && bash '$_al/deploy.sh'"
-    _sup  deb          "$_db" "git -C '$_db' fetch --depth=1 origin master && git -C '$_db' reset --hard origin/master && git -C '$_db' gc --prune=all --quiet"
-    _sup  dockersource "$_ds" "git -C '$_ds' pull --ff-only"
-    _sup_py macscp     "$_ms"
-    _sup_py mdedit     "$_md"
+    if [ "$_mode" = full ]; then
+        _sup  alias        "$_al" "git -C '$_al' fetch --unshallow origin master 2>/dev/null || git -C '$_al' fetch origin master; git -C '$_al' reset --hard origin/master && bash '$_al/deploy.sh'"
+        _sup  deb          "$_db" "git -C '$_db' fetch --unshallow origin master 2>/dev/null || git -C '$_db' fetch origin master; git -C '$_db' reset --hard origin/master"
+        _sup  dockersource "$_ds" "{ git -C '$_ds' fetch --unshallow origin 2>/dev/null || true; } && git -C '$_ds' pull --ff-only"
+    elif [ "$_mode" = shallow ]; then
+        _sup  alias        "$_al" "git -C '$_al' fetch --depth=1 origin master && git -C '$_al' reset --hard origin/master && git -C '$_al' gc --prune=all --quiet && bash '$_al/deploy.sh'"
+        _sup  deb          "$_db" "git -C '$_db' fetch --depth=1 origin master && git -C '$_db' reset --hard origin/master && git -C '$_db' gc --prune=all --quiet"
+        _sup  dockersource "$_ds" "git -C '$_ds' fetch --depth=1 origin && git -C '$_ds' reset --hard FETCH_HEAD"
+    else
+        _sup  alias        "$_al" "git -C '$_al' fetch --depth=1 origin master && git -C '$_al' reset --hard origin/master && git -C '$_al' gc --prune=all --quiet && bash '$_al/deploy.sh'"
+        _sup  deb          "$_db" "git -C '$_db' fetch --depth=1 origin master && git -C '$_db' reset --hard origin/master && git -C '$_db' gc --prune=all --quiet"
+        _sup  dockersource "$_ds" "git -C '$_ds' pull --ff-only"
+    fi
+    _sup_py macscp "$_ms" "$_mode"
+    _sup_py mdedit "$_md" "$_mode"
 
     unset -f _sup _sup_py 2>/dev/null || true
     printf '\nsuperup: updated %d  skipped %d  failed %d\n' "$_pass" "$_skip" "$_fail"
