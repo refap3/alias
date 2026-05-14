@@ -144,6 +144,8 @@ pcpv() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@$1.ssb8.loc
 pcpa() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@$1.pi.hole"    'pwsh -NoExit -Command ". $profile.CurrentUserAllHosts"'; }  # pcpa <host>   — by .pi.hole
 # pcp203cv      — PowerShell SSH session to Windows PC .203 Vienna via Cloudflare tunnel
 pcp203cv() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" -t "${PC_USER}@ssh203.deprec.uk" 'pwsh -NoExit -Command ". $profile.CurrentUserAllHosts"'; }  # pcp203cv — PC .203 Vienna via Cloudflare tunnel
+# pcs203cv      — SSH session to Windows PC .203 Vienna via Cloudflare tunnel
+pcs203cv() { _pckey; ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@ssh203.deprec.uk"; }  # pcs203cv — PC .203 Vienna via Cloudflare tunnel (plain SSH)
 
 # --- Remote command: run PowerShell command on Windows PC via SSH ---
 # pcc <octet[,octet,...]> <cmd...>  — run PowerShell command on PC by IP octet(s)
