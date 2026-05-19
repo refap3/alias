@@ -211,7 +211,6 @@ sy  p                                                  syp
 | `sshfp` | Show fingerprints of all `~/.ssh` key pairs (private + public) to verify they match |
 | `mch` | Show Mac-to-Mac alias reference |
 | `mcv <name>` | Open Screen Sharing → `<name>.local` (e.g. `mcv mm`) |
-| `ipadx [on\|off]` | Toggle iPoRai4 as extended display via Sidecar (no arg = toggle) |
 | `mcp <name>` | SSH → `rainers@<name>.local` using private key (e.g. `mcp mm`, `mcp mb`) |
 | `mcw <name>` | SFTP → `rainers@<name>.local` using private key (e.g. `mcw mm`, `mcw mb`) |
 | `mcc <name[,name]> <cmd>` | Run command on one or more Macs by `.local` name (e.g. `mcc mm,mb uptime`) |
