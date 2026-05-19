@@ -46,3 +46,6 @@ function sl() {
 source ~/.jump.sh
 
 export EDITOR="code --wait"
+
+test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
+
