@@ -955,11 +955,25 @@ in the environment or saved to
 Pass
 .B \-\-no\-summaries
 to skip API calls entirely.
+Pass
+.B \-d
+.RI [ N ]
+to limit the report to sessions from the last
+.I N
+days;
+.B \-d
+with no argument means today only.
 .TP
 .B csessall
 Same as
 .B csess
 but covers all Claude Code projects on this machine.
+Accepts the same
+.B \-\-no\-summaries
+and
+.B \-d
+.RI [ N ]
+flags.
 .SH REPO UPDATE
 .TP
 .B alu

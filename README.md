@@ -525,6 +525,7 @@ gstrip        # strip again when done
 | `cdsp` | Launch Claude Code with `--dangerously-skip-permissions` (bypasses all permission prompts) |
 | `csess` | Generate MD + interactive HTML session report for the current project (claudeExperiments), then open the HTML |
 | `csessall` | Same as `csess` but covers all Claude Code projects on this machine |
+| `csess -d [N]` | Limit report to last N days; `-d` alone = today only |
 
 ### Session reports (`csess` / `csessall`)
 
@@ -543,6 +544,13 @@ Or export `ANTHROPIC_API_KEY` in your environment. Pass `--no-summaries` to skip
 ```bash
 csess --no-summaries
 csessall --no-summaries
+```
+
+**Date filter** — `-d [N]` limits the report to sessions from the last N days. `-d` with no argument means today only:
+```bash
+csess -d 7          # last 7 days
+csessall -d         # today only
+csess -d 3 --no-summaries
 ```
 
 ---

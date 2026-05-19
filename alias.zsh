@@ -64,12 +64,12 @@ d() {
 alias cdsp='claude --dangerously-skip-permissions'
 alias cdspr='claude --dangerously-skip-permissions --resume'
 
-# Session report for current project; --no-summaries skips AI descriptions (needs ANTHROPIC_API_KEY or ~/.config/anthropic/api_key)
+# Session report for current project; --no-summaries skips AI descriptions; -d [N] limits to last N days (-d alone = today)
 csess() {
     python3 ~/.dotfiles/tools/extract_sessions.py "$@" && \
         open "$(ls -t ~/.dotfiles/sessions/*.html | head -1)"
 }
-# Session report for all projects; --no-summaries skips AI descriptions (needs ANTHROPIC_API_KEY or ~/.config/anthropic/api_key)
+# Session report for all projects; --no-summaries skips AI descriptions; -d [N] limits to last N days (-d alone = today)
 csessall() {
     python3 ~/.dotfiles/tools/extract_sessions.py --all "$@" && \
         open "$(ls -t ~/.dotfiles/sessions/*.html | head -1)"
