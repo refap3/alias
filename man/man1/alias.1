@@ -227,6 +227,29 @@ Show definition of any alias or function. No argument = show all.
 One-line help for every alias and function, parsed from source comments.
 Optional filter string for case-insensitive grep.
 .TP
+.B manr " <repo> [\-l | section]"
+Open the man page for a local repo, jumping to an optional section.
+Both
+.I repo
+and
+.I section
+are partial, case-insensitive matches.
+Use
+.B \-l
+to list all sections and subsections without opening the pager.
+Errors if
+.I repo
+matches more than one name.
+Valid repos:
+.BR alias ", " deb ", " dockersource ", " macscp ", " mdedit "."
+.br
+Examples:
+.BR "manr alias ins" " \(-> alias man at INSTALL" ","
+.BR "manr de nw" " \(-> deb man at NW section" ","
+.BR "manr dock \-l" " \(-> list dockersource sections" ","
+.BR "manr dock syn" " \(-> dockersource man at SYNOLOGY" ","
+.BR "manr mac" " \(-> macscp man at top" "."
+.TP
 .B ia
 Network info (ifconfig).
 .TP

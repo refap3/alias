@@ -1,8 +1,8 @@
 # macOS/zsh equivalents of ALIAS.DAT
 # Sourced automatically by .zshrc / .bashrc via DOTFILES glob
 
-# Man pages for local repos: man alias / man mdedit / man deb / man macscp
-export MANPATH="$HOME/alias/man:$HOME/mdedit/man:$HOME/deb/man:$HOME/macscp/man${MANPATH:+:$MANPATH}"
+# Man pages for local repos: man alias / man mdedit / man deb / man macscp / man dockersource
+export MANPATH="$HOME/alias/man:$HOME/mdedit/man:$HOME/deb/man:$HOME/macscp/man:$HOME/dockersource/man${MANPATH:+:$MANPATH}"
 
 # Detect OS once at source time for use in tree functions
 [ "$(/usr/bin/uname 2>/dev/null)" = "Darwin" ] && _ALIAS_OS=darwin || _ALIAS_OS=linux
@@ -775,6 +775,33 @@ superup() {
     unset -f _sup _sup_py 2>/dev/null || true
     printf '\nsuperup: updated %d  skipped %d  failed %d\n' "$_pass" "$_skip" "$_fail"
     [ "$_fail" -eq 0 ]
+}
+
+# Open man page for a local repo; partial match for repo and section. -l lists sections. e.g. manr de nw  manr dock -l
+manr() {
+    local _repos=(alias deb dockersource macscp mdedit)
+    local _q="${1:-}" _sec="${2:-}" _match="" _r _n=0
+    if [ -z "$_q" ]; then
+        printf 'Usage: manr <repo> [section]\nRepos: %s\n' "${_repos[*]}" >&2; return 1
+    fi
+    for _r in "${_repos[@]}"; do
+        case "$_r" in *"$_q"*) _match="$_r"; _n=$((_n+1)) ;; esac
+    done
+    if [ "$_n" -eq 0 ]; then
+        printf 'manr: no repo matches "%s". Valid: %s\n' "$_q" "${_repos[*]}" >&2; return 1
+    elif [ "$_n" -gt 1 ]; then
+        printf 'manr: "%s" is ambiguous — be more specific\n' "$_q" >&2; return 1
+    fi
+    if [ "$_sec" = "-l" ]; then
+        local _f="$HOME/$_match/man/man1/$_match.1"
+        awk '/^\.SH / { print substr($0,5) } /^\.SS / { print "  " substr($0,5) }' "$_f"
+        return 0
+    fi
+    if [ -n "$_sec" ]; then
+        MANPAGER="less +/$(printf '%s' "$_sec" | tr '[:lower:]' '[:upper:]')" man "$_match"
+    else
+        man "$_match"
+    fi
 }
 
 # Show one-line help for every alias and function (from source-file comments); optional filter string
