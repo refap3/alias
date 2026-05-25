@@ -607,13 +607,55 @@ Functional equivalents of all major `alias.zsh` / `gitalias.zsh` / `raspberryali
 | `synologyalias.ps1` | NAS SSH/SFTP helpers |
 | `deploy.ps1` | One-shot profile setup (dot-sources all `.ps1` files) |
 
-### Install
+### Install on a new Windows machine
+
+**Prerequisites** (skip any already present):
+```powershell
+winget install Microsoft.PowerShell   # PS 7+ (if still on PS 5)
+winget install Git.Git                # git
+```
+
+**With git:**
+```powershell
+git clone https://github.com/refap3/alias.git ~/alias
+pwsh ~/alias/deploy.ps1
+. $PROFILE.CurrentUserAllHosts
+```
+
+**Without git** (download zip):
+```powershell
+Invoke-WebRequest https://github.com/refap3/alias/archive/refs/heads/master.zip -OutFile alias.zip
+Expand-Archive alias.zip ~
+Rename-Item ~/alias-master ~/alias
+pwsh ~/alias/deploy.ps1
+. $PROFILE.CurrentUserAllHosts
+```
+
+**Verify:**
+```powershell
+tree ~/alias -u    # repo tree with sizes
+j alias            # jump to ~/alias
+alh                # show all function help
+```
+
+**Tests** (optional):
+```powershell
+Install-Module Pester -Force -Scope CurrentUser
+Invoke-Pester ~/alias/tests/ -Output Detailed
+```
+
+### Install on macOS (pwsh)
+
+```bash
+# If not already cloned:
+git clone https://github.com/refap3/alias.git ~/alias
+# Then:
+pwsh ~/alias/deploy.ps1
+```
+
+### One-off / manual source
 
 ```powershell
-# Permanent — run once, adds dot-source lines to $PROFILE:
-pwsh ~/alias/deploy.ps1
-
-# One-off / manual:
 . ~/alias/alias.ps1
 . ~/alias/gitalias.ps1
 . ~/alias/jump.ps1
