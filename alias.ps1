@@ -196,18 +196,18 @@ function _PsTreeHelper {
         [bool]$SortBySize
     )
     $gcArgs = @{ Path = $Dir; Force = $ShowHidden; ErrorAction = 'SilentlyContinue' }
-    $items  = Get-ChildItem @gcArgs
+    $items  = @(Get-ChildItem @gcArgs)
     # On Windows, dotfiles have no Hidden attribute — filter them explicitly when -h not set
-    if (-not $ShowHidden) { $items = $items | Where-Object { $_.Name -notlike '.*' } }
+    if (-not $ShowHidden) { $items = @($items | Where-Object { $_.Name -notlike '.*' }) }
     if ($SortBySize) {
-        $items = $items | Sort-Object {
+        $items = @($items | Sort-Object {
             if ($_.PSIsContainer) {
                 (Get-ChildItem $_.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
                     Measure-Object Length -Sum).Sum
             } else { $_.Length }
-        }
+        })
     } else {
-        $items = $items | Sort-Object Name
+        $items = @($items | Sort-Object Name)
     }
     $count = $items.Count
     for ($i = 0; $i -lt $count; $i++) {
@@ -248,16 +248,15 @@ function tree {
     $absPath = (Resolve-Path $Path).Path
 
     if ($t) {
-        $items = Get-ChildItem -Path $absPath -Directory -Force:$h -ErrorAction SilentlyContinue
-        if (-not $h) { $items = $items | Where-Object { $_.Name -notlike '.*' } }
-        $items = $items |
-            Sort-Object Name
-        $pairs = $items | ForEach-Object {
+        $items = @(Get-ChildItem -Path $absPath -Directory -Force:$h -ErrorAction SilentlyContinue)
+        if (-not $h) { $items = @($items | Where-Object { $_.Name -notlike '.*' }) }
+        $items = @($items | Sort-Object Name)
+        $pairs = @($items | ForEach-Object {
             $sz = (Get-ChildItem $_.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
                 Measure-Object Length -Sum).Sum ?? 0
             [pscustomobject]@{ Name = $_.Name; Size = $sz }
-        }
-        if ($z) { $pairs = $pairs | Sort-Object Size }
+        })
+        if ($z) { $pairs = @($pairs | Sort-Object Size) }
         $count = $pairs.Count
         $absPath
         for ($i = 0; $i -lt $count; $i++) {
@@ -284,9 +283,9 @@ function _PsTreedHelper {
         [string]$Prefix,
         [bool]$ShowHidden
     )
-    $items = Get-ChildItem -Path $Dir -Directory -Force:$ShowHidden -ErrorAction SilentlyContinue
-    if (-not $ShowHidden) { $items = $items | Where-Object { $_.Name -notlike '.*' } }
-    $items = $items | Sort-Object Name
+    $items = @(Get-ChildItem -Path $Dir -Directory -Force:$ShowHidden -ErrorAction SilentlyContinue)
+    if (-not $ShowHidden) { $items = @($items | Where-Object { $_.Name -notlike '.*' }) }
+    $items = @($items | Sort-Object Name)
     $count = $items.Count
     for ($i = 0; $i -lt $count; $i++) {
         $item   = $items[$i]
