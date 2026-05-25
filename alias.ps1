@@ -178,9 +178,11 @@ function sshfp {
 # _PsHumanSize <bytes> — format bytes as human-readable string (helper)
 function _PsHumanSize {
     param([long]$Bytes)
-    if     ($Bytes -ge 1GB) { "{0:N1}G" -f ($Bytes / 1GB) }
-    elseif ($Bytes -ge 1MB) { "{0:N1}M" -f ($Bytes / 1MB) }
-    elseif ($Bytes -ge 1KB) { "{0:N1}K" -f ($Bytes / 1KB) }
+    # Use InvariantCulture so decimal separator is always '.' regardless of system locale
+    $ic = [System.Globalization.CultureInfo]::InvariantCulture
+    if     ($Bytes -ge 1GB) { [string]::Format($ic, "{0:N1}G", $Bytes / 1GB) }
+    elseif ($Bytes -ge 1MB) { [string]::Format($ic, "{0:N1}M", $Bytes / 1MB) }
+    elseif ($Bytes -ge 1KB) { [string]::Format($ic, "{0:N1}K", $Bytes / 1KB) }
     else                    { "${Bytes}B" }
 }
 
@@ -195,6 +197,8 @@ function _PsTreeHelper {
     )
     $gcArgs = @{ Path = $Dir; Force = $ShowHidden; ErrorAction = 'SilentlyContinue' }
     $items  = Get-ChildItem @gcArgs
+    # On Windows, dotfiles have no Hidden attribute — filter them explicitly when -h not set
+    if (-not $ShowHidden) { $items = $items | Where-Object { $_.Name -notlike '.*' } }
     if ($SortBySize) {
         $items = $items | Sort-Object {
             if ($_.PSIsContainer) {
@@ -244,7 +248,9 @@ function tree {
     $absPath = (Resolve-Path $Path).Path
 
     if ($t) {
-        $items = Get-ChildItem -Path $absPath -Directory -Force:$h -ErrorAction SilentlyContinue |
+        $items = Get-ChildItem -Path $absPath -Directory -Force:$h -ErrorAction SilentlyContinue
+        if (-not $h) { $items = $items | Where-Object { $_.Name -notlike '.*' } }
+        $items = $items |
             Sort-Object Name
         $pairs = $items | ForEach-Object {
             $sz = (Get-ChildItem $_.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
@@ -278,8 +284,9 @@ function _PsTreedHelper {
         [string]$Prefix,
         [bool]$ShowHidden
     )
-    $items = Get-ChildItem -Path $Dir -Directory -Force:$ShowHidden -ErrorAction SilentlyContinue |
-        Sort-Object Name
+    $items = Get-ChildItem -Path $Dir -Directory -Force:$ShowHidden -ErrorAction SilentlyContinue
+    if (-not $ShowHidden) { $items = $items | Where-Object { $_.Name -notlike '.*' } }
+    $items = $items | Sort-Object Name
     $count = $items.Count
     for ($i = 0; $i -lt $count; $i++) {
         $item   = $items[$i]

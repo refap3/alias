@@ -592,21 +592,34 @@ Missing tools (nc, traceroute, etc.) show a clear error with `apt install` hint 
 
 ---
 
-## PowerShell (alias.ps1)
+## PowerShell
 
-Functional equivalents of the core `alias.zsh` functions for **PowerShell 7+**, running on both Windows and macOS (`pwsh`).
+Functional equivalents of all major `alias.zsh` / `gitalias.zsh` / `raspberryalias.zsh` / `synologyalias.zsh` / `jump.sh` functions for **PowerShell 7+**, running on both Windows and macOS (`pwsh`).
+
+### Files
+
+| File | Contents |
+|------|----------|
+| `alias.ps1` | Navigation, file listing, tree, loop, Docker Compose, alh |
+| `gitalias.ps1` | Git shortcuts + smart functions (gs, gps, gstrip, grestore) |
+| `jump.ps1` | `j` jump function + `Set-Location` cache wrapper |
+| `raspberryalias.ps1` | Pi SSH/SFTP + Windows PC SSH/SFTP helpers |
+| `synologyalias.ps1` | NAS SSH/SFTP helpers |
+| `deploy.ps1` | One-shot profile setup (dot-sources all `.ps1` files) |
 
 ### Install
 
 ```powershell
-# Dot-source manually (one-off):
-. ~/alias/alias.ps1
+# Permanent — run once, adds dot-source lines to $PROFILE:
+pwsh ~/alias/deploy.ps1
 
-# Or add to $PROFILE for permanent use (run once):
-pwsh ~/alias/deploy.ps1          # coming in next phase
+# One-off / manual:
+. ~/alias/alias.ps1
+. ~/alias/gitalias.ps1
+. ~/alias/jump.ps1
 ```
 
-### Functions ported
+### Core functions (alias.ps1)
 
 | Function | Description |
 |----------|-------------|
@@ -614,16 +627,16 @@ pwsh ~/alias/deploy.ps1          # coming in next phase
 | `md`, `rd`, `mov` | mkdir, rmdir, mv |
 | `x` | Open current dir in Explorer (Windows) / Finder (macOS) |
 | `np` | Open file in Notepad / TextEdit |
-| `w` | Open file/URL in default app (`Start-Process` / `open`) |
+| `w` | Open file/URL in default app |
 | `ia` | Network info (`ipconfig` / `ifconfig`) |
 | `vsc` | Open VS Code |
-| `d [filter]` | List files only, human-readable sizes; optional glob filter |
-| `dd [filter]` | List directories only; optional glob filter |
-| `dt [filter]` | List files/dirs modified today; optional glob filter |
-| `ff <pat> [dir]` | Find files recursively, skip hidden dirs |
+| `d [filter]` | List files only, human-readable sizes |
+| `dd [filter]` | List directories only |
+| `dt [filter]` | List files/dirs modified today |
+| `ff <pat> [dir]` | Find files recursively, skip hidden |
 | `fff <pat> [dir]` | Find files recursively, include hidden |
-| `fr` | Show free/used/total for current drive |
-| `psfe [dir]` | Count files by extension, sorted by count |
+| `fr` | Free/used/total for current drive |
+| `psfe [dir]` | Count files by extension |
 | `psfed [-d\|-dr] [dir]` | Find/delete empty directories |
 | `sshfp` | Show SSH key fingerprints |
 | `tree [dir] [-u] [-h] [-t] [-z]` | Directory tree with optional sizes/hidden/totals |
@@ -631,9 +644,28 @@ pwsh ~/alias/deploy.ps1          # coming in next phase
 | `loop [<n>s] <cmd> [+ <cmd>]` | Repeat command(s), clear screen; ESC stops |
 | `loopk [<n>s] <cmd> [+ <cmd>]` | Like `loop` but keeps output |
 | `dcu/dcud/dcd/dcde [dir]` | Docker Compose up/up-d/down/down+erase |
-| `dcinfo [-v] [name]` | List containers (brief or full inspect) |
-| `dclog [name] [n]` | Show container logs (default 10 lines) |
-| `alh [filter]` | One-line help for all PS aliases/functions |
+| `dcinfo [-v] [name]` | List containers |
+| `dclog [name] [n]` | Show container logs |
+| `alh [filter]` | One-line help from comments in all `.ps1` files |
+
+### Git (gitalias.ps1)
+
+Same shortcuts as `gitalias.zsh`: `gi`, `gcl`, `ga`, `gc`, `gac`, `gch`, `gb`, `gm`, `gdi`, `gdin`, `gt`, `gl`, `glo`, `glf`, `glfp`, `grh`, `gre`, `gpl`, `gps`, `gf`, `gr`, `grs`, `gbl`, `gbis`/`gbir`/`gbig`/`gbib`, `gst`, `gstp`, `grl`, `gs`, `gdm`, `gstrip`, `gplstrip`, `grestore`.
+
+Note: `gi`/`gc`/`gl` conflict with PS built-in aliases — these are removed automatically on load.
+
+### Jump (jump.ps1)
+
+| Function | Description |
+|----------|-------------|
+| `j <name>` | Jump to cached dir by partial name |
+| `j -d` | Remove current dir from cache |
+| `j -dr` | Remove current dir + subdirs from cache |
+| `Set-Location` | Wrapped to auto-cache every visited dir |
+
+### Remote helpers (raspberryalias.ps1 / synologyalias.ps1)
+
+Same SSH/SFTP functions as the `.zsh` originals — uses OpenSSH (standard on Windows 10 1809+). `pcc203cv` is available for running PS commands on the Windows .203 server via Cloudflare tunnel.
 
 ### Platform splits
 
@@ -650,19 +682,20 @@ pwsh ~/alias/deploy.ps1          # coming in next phase
 # Install Pester (one-off):
 Install-Module Pester -Force -Scope CurrentUser
 
-# Run all tests:
-Invoke-Pester ./tests/alias.Tests.ps1 -Output Detailed
+# Run all 42 tests:
+Invoke-Pester ./tests/ -Output Detailed
 ```
 
-26 tests cover `_PsHumanSize`, `tree`/`treed` (all flags), `d`/`dd`/`dt`, `ff`/`fff`, `fr`, `psfe`, and `loop`.
+42 tests across three files cover `alias.ps1` (26), `gitalias.ps1` (9), and `jump.ps1` (7).
 
 ### Run tests on remote Windows PC
 
 ```bash
-# From Mac — pipe a PS command to the Windows server via Cloudflare tunnel:
-pcc203cv "Invoke-Pester C:/Users/rainer/alias/tests/alias.Tests.ps1 -Output Detailed"
+# From Mac — upload tests and run via Cloudflare tunnel:
+scp -r ~/alias rainer@ssh203.deprec.uk:alias
+pcc203cv "cd alias; Install-Module Pester -Force -Scope CurrentUser; Invoke-Pester ./tests/ -Output Detailed"
 ```
 
 ### Not ported
 
-Functions that depend on macOS-only tools (`mcv` Screen Sharing, `piv` pinginfoview, `manr`), deb-repo scripts (`db`, `dst`), and the interactive `nwtools` menu are intentionally excluded. Git aliases, jump, Pi/NAS SSH helpers, and `deploy.ps1` are planned for subsequent phases.
+`mcv` (Screen Sharing), `piv` (pinginfoview), `manr` (man pages), `db`/`dst` (deb repo scripts), `nwtools` (interactive menu), and Claude CLI aliases (`cdsp`, `csess`) are excluded — macOS-only or depend on unrelated repos.

@@ -1053,46 +1053,47 @@ Used by
 .B vsc
 (Pi side) to reverse-SSH to the correct Mac user.
 .SH POWERSHELL
-.B alias.ps1
-provides functional equivalents of the core
-.B alias.zsh
-functions for PowerShell 7+ on Windows and macOS (pwsh).
+PowerShell 7+ equivalents of all major shell functions, for Windows and macOS (pwsh).
 .PP
-Ported functions include: navigation (up, hom, sdf, cls, lo, md, rd, mov), file
-listing (d, dd, dt, ff, fff, fr, psfe, psfed), tree display (tree, treed),
-loop utilities (loop, loopk), SSH key info (sshfp), Docker Compose wrappers
-(dcu, dcud, dcd, dcde, dcinfo, dclog), and help (alh).
+.TS
+l l.
+alias.ps1	navigation, file listing, tree, loop, Docker Compose, alh
+gitalias.ps1	git shortcuts + gs/gps/gstrip/grestore
+jump.ps1	j() + Set-Location cache wrapper
+raspberryalias.ps1	Pi/PC SSH/SFTP helpers (OpenSSH)
+synologyalias.ps1	NAS SSH/SFTP helpers
+deploy.ps1	one-shot $PROFILE setup
+.TE
 .PP
 Platform-split functions (x, np, ia, w) detect
 .B $IsWindows
 /
 .B $IsMacOS
-at runtime and call the appropriate native command.
+at runtime.
+Built-in PS aliases that conflict with git shortcuts (gi, gc, gl) are removed on load.
 .PP
-Source from
-.B $PROFILE
-or dot-source manually:
+Install:
 .RS
 .nf
-. ~/alias/alias.ps1
+pwsh ~/alias/deploy.ps1
 .fi
 .RE
-.SS Remote command helper (pcc203cv)
+.SS pcc203cv
 .TP
 .B pcc203cv <cmd...>
-Run a PowerShell command on Windows PC .203 via Cloudflare tunnel (non-interactive).
-Mirrors
-.B pcc
-but targets
-.I ssh203.deprec.uk
-instead of a LAN IP.
+Run a PowerShell command on Windows PC .203 via Cloudflare tunnel.
+Available in both
+.B raspberryalias.zsh
+(from Mac) and
+.B raspberryalias.ps1
+(from any PS session).
 .SS Test suite
-Pester 5.x tests live in
-.IR tests/alias.Tests.ps1 .
-Run with:
+42 Pester 5.x tests in
+.IR tests/ :
+alias.Tests.ps1 (26), gitalias.Tests.ps1 (9), jump.Tests.ps1 (7).
 .RS
 .nf
-Invoke-Pester ./tests/alias.Tests.ps1 -Output Detailed
+Invoke-Pester ./tests/ -Output Detailed
 .fi
 .RE
 .SH SEE ALSO
