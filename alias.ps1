@@ -1,6 +1,6 @@
 # alias.ps1 — PowerShell equivalents of alias.zsh
 # Requires PowerShell 7+. Source from $PROFILE via deploy.ps1.
-# alh: Get-Content $PSCommandPath | Select-String '# \w.*—' | ForEach-Object { $_.Line.Trim() }
+# alh: Get-Content $PSCommandPath | Select-String '# [\w_][\w_\-]*.*—' | ForEach-Object { $_.Line.Trim() }
 
 # ── Navigation ───────────────────────────────────────────────────────────────
 
@@ -59,7 +59,7 @@ function vsc { code @args }
 function d {
     param([Parameter(ValueFromRemainingArguments)][string[]]$Filter)
     $items = Get-ChildItem -Force | Where-Object { -not $_.PSIsContainer }
-    if ($Filter.Count -gt 0) {
+    if ($Filter) {
         $items = $items | Where-Object {
             $name = $_.Name
             $Filter | ForEach-Object { $name -ilike $_ } | Where-Object { $_ } | Select-Object -First 1
@@ -75,7 +75,7 @@ function d {
 function dd {
     param([Parameter(ValueFromRemainingArguments)][string[]]$Filter)
     $items = Get-ChildItem -Force | Where-Object { $_.PSIsContainer }
-    if ($Filter.Count -gt 0) {
+    if ($Filter) {
         $items = $items | Where-Object {
             $name = $_.Name
             $Filter | ForEach-Object { $name -ilike $_ } | Where-Object { $_ } | Select-Object -First 1
@@ -89,7 +89,7 @@ function dt {
     param([Parameter(ValueFromRemainingArguments)][string[]]$Filter)
     $today = (Get-Date).Date
     $items = Get-ChildItem -Force | Where-Object { $_.LastWriteTime.Date -eq $today }
-    if ($Filter.Count -gt 0) {
+    if ($Filter) {
         $items = $items | Where-Object {
             $name = $_.Name
             $Filter | ForEach-Object { $name -ilike $_ } | Where-Object { $_ } | Select-Object -First 1
@@ -315,11 +315,11 @@ function loop {
     param([Parameter(ValueFromRemainingArguments)][string[]]$Args)
     $wait = 2
     $startIdx = 0
-    if ($Args.Count -gt 0 -and $Args[0] -match '^(\d+)s$') {
+    if ($Args -and $Args[0] -match '^(\d+)s$') {
         $wait = [int]$Matches[1]
         $startIdx = 1
     }
-    $cmdParts = $Args[$startIdx..($Args.Count - 1)]
+    $cmdParts = if ($Args) { $Args[$startIdx..($Args.Count - 1)] } else { @() }
     $cmd = ($cmdParts -join ' ') -replace '\s*\+\s*', '; '
 
     try {
@@ -343,11 +343,11 @@ function loopk {
     param([Parameter(ValueFromRemainingArguments)][string[]]$Args)
     $wait = 2
     $startIdx = 0
-    if ($Args.Count -gt 0 -and $Args[0] -match '^(\d+)s$') {
+    if ($Args -and $Args[0] -match '^(\d+)s$') {
         $wait = [int]$Matches[1]
         $startIdx = 1
     }
-    $cmdParts = $Args[$startIdx..($Args.Count - 1)]
+    $cmdParts = if ($Args) { $Args[$startIdx..($Args.Count - 1)] } else { @() }
     $cmd = ($cmdParts -join ' ') -replace '\s*\+\s*', '; '
 
     try {
@@ -426,10 +426,10 @@ function dclog {
 # alh [filter] — show one-line help for all functions from comments
 function alh {
     param([string]$Filter = "")
-    $files = Get-ChildItem (Split-Path $PSCommandPath) -Filter "*.ps1" -ErrorAction SilentlyContinue
+    $files = Get-ChildItem (Split-Path $MyInvocation.MyCommand.ScriptBlock.File) -Filter "*.ps1" -ErrorAction SilentlyContinue
     $files | ForEach-Object {
         Get-Content $_.FullName |
-            Select-String '^\s*#\s*\w[\w\-]*\s*[—\-]' |
+            Select-String '^\s*#\s*[\w_][\w_\-]*.*—' |
             ForEach-Object { $_.Line.Trim() }
     } | Where-Object {
         $_ -notmatch '^#\s*(Requires|Source|alh)' -and
