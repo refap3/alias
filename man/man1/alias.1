@@ -77,22 +77,63 @@ uses
 .B sy
 has a fixed host \(em no address suffix.
 .SH INSTALL
-.B One-line install:
-.PP
+.SS macOS / Linux (zsh or bash)
+One-line install:
 .RS
+.nf
 curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh | bash
+.fi
 .RE
-.PP
-.B Update (once installed):
-.PP
+Update once installed:
 .RS
 alu
 .RE
-.PP
-.B Deploy options:
-.PP
+Deploy options:
 .RS
+.nf
 ./deploy.sh [\-\-shell zsh|bash] [\-\-home | \-\-path <dir>]
+.fi
+.RE
+.SS Windows (PowerShell 7+)
+Prerequisites (skip if already present):
+.RS
+.nf
+winget install Microsoft.PowerShell
+winget install Git.Git
+.fi
+.RE
+Install with git:
+.RS
+.nf
+git clone https://github.com/refap3/alias.git ~/alias
+pwsh ~/alias/deploy.ps1
+. $PROFILE.CurrentUserAllHosts
+.fi
+.RE
+Install without git (zip):
+.RS
+.nf
+Invoke-WebRequest https://github.com/refap3/alias/archive/refs/heads/master.zip \
+    -OutFile alias.zip
+Expand-Archive alias.zip ~
+Rename-Item ~/alias-master ~/alias
+pwsh ~/alias/deploy.ps1
+. $PROFILE.CurrentUserAllHosts
+.fi
+.RE
+Verify:
+.RS
+.nf
+tree ~/alias -u
+j alias
+alh
+.fi
+.RE
+.SS macOS (pwsh)
+.RS
+.nf
+pwsh ~/alias/deploy.ps1
+.fi
 .RE
 .SH FILES
 .TP
