@@ -589,3 +589,80 @@ Interactive menu for network troubleshooting — Windows `ipconfig`/`arp` equiva
 | `0` | exit | |
 
 Missing tools (nc, traceroute, etc.) show a clear error with `apt install` hint rather than silently failing.
+
+---
+
+## PowerShell (alias.ps1)
+
+Functional equivalents of the core `alias.zsh` functions for **PowerShell 7+**, running on both Windows and macOS (`pwsh`).
+
+### Install
+
+```powershell
+# Dot-source manually (one-off):
+. ~/alias/alias.ps1
+
+# Or add to $PROFILE for permanent use (run once):
+pwsh ~/alias/deploy.ps1          # coming in next phase
+```
+
+### Functions ported
+
+| Function | Description |
+|----------|-------------|
+| `up`, `hom`, `sdf`, `cls`, `lo` | Navigation: up, home, pwd, clear, exit |
+| `md`, `rd`, `mov` | mkdir, rmdir, mv |
+| `x` | Open current dir in Explorer (Windows) / Finder (macOS) |
+| `np` | Open file in Notepad / TextEdit |
+| `w` | Open file/URL in default app (`Start-Process` / `open`) |
+| `ia` | Network info (`ipconfig` / `ifconfig`) |
+| `vsc` | Open VS Code |
+| `d [filter]` | List files only, human-readable sizes; optional glob filter |
+| `dd [filter]` | List directories only; optional glob filter |
+| `dt [filter]` | List files/dirs modified today; optional glob filter |
+| `ff <pat> [dir]` | Find files recursively, skip hidden dirs |
+| `fff <pat> [dir]` | Find files recursively, include hidden |
+| `fr` | Show free/used/total for current drive |
+| `psfe [dir]` | Count files by extension, sorted by count |
+| `psfed [-d\|-dr] [dir]` | Find/delete empty directories |
+| `sshfp` | Show SSH key fingerprints |
+| `tree [dir] [-u] [-h] [-t] [-z]` | Directory tree with optional sizes/hidden/totals |
+| `treed [dir] [-h]` | Directory-only tree |
+| `loop [<n>s] <cmd> [+ <cmd>]` | Repeat command(s), clear screen; ESC stops |
+| `loopk [<n>s] <cmd> [+ <cmd>]` | Like `loop` but keeps output |
+| `dcu/dcud/dcd/dcde [dir]` | Docker Compose up/up-d/down/down+erase |
+| `dcinfo [-v] [name]` | List containers (brief or full inspect) |
+| `dclog [name] [n]` | Show container logs (default 10 lines) |
+| `alh [filter]` | One-line help for all PS aliases/functions |
+
+### Platform splits
+
+| Function | Windows | macOS pwsh |
+|----------|---------|------------|
+| `x` | `explorer .` | `open .` |
+| `np` | `notepad` | `open -e` |
+| `ia` | `ipconfig` | `ifconfig` |
+| `w` | `Start-Process` | `open` |
+
+### Test suite
+
+```powershell
+# Install Pester (one-off):
+Install-Module Pester -Force -Scope CurrentUser
+
+# Run all tests:
+Invoke-Pester ./tests/alias.Tests.ps1 -Output Detailed
+```
+
+26 tests cover `_PsHumanSize`, `tree`/`treed` (all flags), `d`/`dd`/`dt`, `ff`/`fff`, `fr`, `psfe`, and `loop`.
+
+### Run tests on remote Windows PC
+
+```bash
+# From Mac — pipe a PS command to the Windows server via Cloudflare tunnel:
+pcc203cv "Invoke-Pester C:/Users/rainer/alias/tests/alias.Tests.ps1 -Output Detailed"
+```
+
+### Not ported
+
+Functions that depend on macOS-only tools (`mcv` Screen Sharing, `piv` pinginfoview, `manr`), deb-repo scripts (`db`, `dst`), and the interactive `nwtools` menu are intentionally excluded. Git aliases, jump, Pi/NAS SSH helpers, and `deploy.ps1` are planned for subsequent phases.

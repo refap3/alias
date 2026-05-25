@@ -199,6 +199,8 @@ pcca() {  # pcca <host[,host,...]> <cmd...>
             ;;
     esac
 }
+# pcc203cv <cmd...>  — run PowerShell command on PC .203 Vienna via Cloudflare tunnel
+pcc203cv() { _pckey; printf '%s\n' "${*}" | ssh "${_PCKEYOPT[@]}" "${_PCOPT[@]}" "${PC_USER}@ssh203.deprec.uk" pwsh -NonInteractive -Command -; }  # pcc203cv <cmd...> — PC .203 Vienna via Cloudflare tunnel
 
 # --- SFTP: PC user (WinSCP equivalent) ---
 # pcw <octet>  — interactive SFTP session to Windows PC by IP octet
