@@ -3,17 +3,17 @@
 # Set-Location wrapper: auto-caches every directory visit
 # Source from $PROFILE via deploy.ps1.
 
-$script:JumpCache = Join-Path $HOME ".jumplocations"
+$global:JumpCache = Join-Path $HOME ".jumplocations"
 
 # _JumpAdd <path> — add path to cache if not already present (helper)
 function _JumpAdd {
     param([string]$Path)
-    if (-not (Test-Path $script:JumpCache)) {
-        New-Item $script:JumpCache -ItemType File -Force | Out-Null
+    if (-not (Test-Path $global:JumpCache)) {
+        New-Item $global:JumpCache -ItemType File -Force | Out-Null
     }
-    $existing = Get-Content $script:JumpCache -ErrorAction SilentlyContinue
+    $existing = Get-Content $global:JumpCache -ErrorAction SilentlyContinue
     if ($existing -notcontains $Path) {
-        Add-Content $script:JumpCache $Path
+        Add-Content $global:JumpCache $Path
     }
 }
 
@@ -37,7 +37,7 @@ function j {
         return
     }
 
-    $cache = $script:JumpCache
+    $cache = $global:JumpCache
     if (-not (Test-Path $cache)) {
         "No cached locations found."
         return

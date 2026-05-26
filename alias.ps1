@@ -2,6 +2,9 @@
 # Requires PowerShell 7+. Source from $PROFILE via deploy.ps1.
 # alh: Get-Content $PSCommandPath | Select-String '# [\w_][\w_\-]*.*—' | ForEach-Object { $_.Line.Trim() }
 
+# Remove built-in aliases that would shadow our functions
+'psfe', 'psfed', 'sdf' | ForEach-Object { Remove-Item "Alias:$_" -Force -ErrorAction SilentlyContinue }
+
 # ── Navigation ───────────────────────────────────────────────────────────────
 
 # up — go up one directory

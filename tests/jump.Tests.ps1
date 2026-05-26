@@ -6,8 +6,8 @@ BeforeAll {
     . (Join-Path $PSScriptRoot "../jump.ps1")
 
     # Use a temp cache file so tests don't touch the real ~/.jumplocations
-    $script:realCache = $script:JumpCache
-    $script:JumpCache = Join-Path ([System.IO.Path]::GetTempPath()) "jump_test_$(Get-Random).txt"
+    $script:realCache = $global:JumpCache
+    $global:JumpCache = Join-Path ([System.IO.Path]::GetTempPath()) "jump_test_$(Get-Random).txt"
 
     # Create temp dirs for jumping
     $script:dirA = Join-Path ([System.IO.Path]::GetTempPath()) "jumptest_alpha_$(Get-Random)"
@@ -16,29 +16,29 @@ BeforeAll {
     New-Item $script:dirB -ItemType Directory | Out-Null
 }
 AfterAll {
-    Remove-Item $script:JumpCache -Force -ErrorAction SilentlyContinue
+    Remove-Item $global:JumpCache -Force -ErrorAction SilentlyContinue
     Remove-Item $script:dirA -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item $script:dirB -Recurse -Force -ErrorAction SilentlyContinue
-    $script:JumpCache = $script:realCache
+    $global:JumpCache = $script:realCache
 }
 
 Describe "_JumpAdd" {
     It "adds a new path to cache" {
         _JumpAdd $script:dirA
-        Get-Content $script:JumpCache | Should -Contain $script:dirA
+        Get-Content $global:JumpCache | Should -Contain $script:dirA
     }
 
     It "does not add duplicate" {
         _JumpAdd $script:dirA
         _JumpAdd $script:dirA
-        $lines = @(Get-Content $script:JumpCache | Where-Object { $_ -eq $script:dirA })
+        $lines = @(Get-Content $global:JumpCache | Where-Object { $_ -eq $script:dirA })
         $lines.Count | Should -Be 1
     }
 }
 
 Describe "j" {
     BeforeAll {
-        Set-Content $script:JumpCache "$($script:dirA)`n$($script:dirB)"
+        Set-Content $global:JumpCache "$($script:dirA)`n$($script:dirB)"
     }
 
     It "jumps to unique partial match" {
@@ -54,7 +54,7 @@ Describe "j" {
     It "-d removes current dir from cache" {
         Microsoft.PowerShell.Management\Set-Location $script:dirA
         j "-d"
-        $lines = Get-Content $script:JumpCache
+        $lines = Get-Content $global:JumpCache
         $lines | Should -Not -Contain $script:dirA
     }
 
@@ -66,8 +66,8 @@ Describe "j" {
 
 Describe "Set-Location cache integration" {
     It "caches dir after Set-Location" {
-        Set-Content $script:JumpCache ""
+        Set-Content $global:JumpCache ""
         Set-Location $script:dirB
-        Get-Content $script:JumpCache | Should -Contain $script:dirB
+        Get-Content $global:JumpCache | Should -Contain $script:dirB
     }
 }
