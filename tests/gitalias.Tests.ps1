@@ -6,6 +6,7 @@
 $script:gitAvailable = [bool](Get-Command git -ErrorAction SilentlyContinue)
 
 BeforeAll {
+    Set-StrictMode -Version Latest
     . (Join-Path $PSScriptRoot "../gitalias.ps1")
 }
 

@@ -3,6 +3,7 @@
 # Run: Invoke-Pester ./tests/alias.Tests.ps1 -Output Detailed
 
 BeforeAll {
+    Set-StrictMode -Version Latest
     . (Join-Path $PSScriptRoot "../alias.ps1")
 }
 
@@ -267,6 +268,27 @@ Describe "psfe" {
         $lines = psfe $tmp7
         $first = ($lines[0] -split '\s+').Where({ $_ -ne '' })[-1]
         $first | Should -Be "3"
+    }
+}
+
+# ── alh ──────────────────────────────────────────────────────────────────────
+
+Describe "alh" {
+    It "returns entries containing em-dash separator" {
+        $out = alh
+        $out | Should -Not -BeNullOrEmpty
+        $out | Where-Object { $_ -match '—' } | Should -Not -BeNullOrEmpty
+    }
+
+    It "filter narrows results to matching entries" {
+        $out = alh "tree"
+        $out | Should -Match "tree"
+        $out | Should -Not -Match "loop"
+    }
+
+    It "filter returns nothing for unknown term" {
+        $out = alh "zzznomatch"
+        $out | Should -BeNullOrEmpty
     }
 }
 

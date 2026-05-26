@@ -2,6 +2,7 @@
 # Pester 5.x tests for jump.ps1
 
 BeforeAll {
+    Set-StrictMode -Version Latest
     . (Join-Path $PSScriptRoot "../jump.ps1")
 
     # Use a temp cache file so tests don't touch the real ~/.jumplocations
@@ -30,7 +31,7 @@ Describe "_JumpAdd" {
     It "does not add duplicate" {
         _JumpAdd $script:dirA
         _JumpAdd $script:dirA
-        $lines = Get-Content $script:JumpCache | Where-Object { $_ -eq $script:dirA }
+        $lines = @(Get-Content $script:JumpCache | Where-Object { $_ -eq $script:dirA })
         $lines.Count | Should -Be 1
     }
 }
