@@ -237,6 +237,11 @@ sy  p                                                  syp
 | `dcde [folder]` | `docker compose down` + remove all images, volumes, networks, orphans |
 | `dcinfo [-v] [name]` | List containers (running and stopped); optional `name` is a substring/regex filter. Without `-v`: one line per container (name, status, image, ports). With `-v`: full `docker inspect` output |
 | `dclog [name] [nn]` | Show last `nn` lines of logs for containers matching `name` (all containers if omitted; default 10 lines; `0` = full log). If first arg is an integer, it is used as `nn` and all containers are shown |
+| `dru` | Pick a container → `docker start -a` (attached/foreground) |
+| `drud` | Pick a container → `docker start` (detached) |
+| `drd` | Pick a running container → `docker stop` |
+| `drde` | Pick a container → stop, remove container + volumes, optionally remove image |
+| `drinfo [-v] [name]` | Same as `dcinfo` — list containers (plain docker equivalent) |
 | `db [choice]` | Open the deb interactive menu (`~/deb/menu`); optional choice arg (e.g. `db b`). Silently skipped if not installed |
 | `piv [hosts_file]` | Launch the terminal ping monitor (`~/deb/pinginfoview`). Queries `192.168.1.203` for `ssb8.local` (→Vienna) and `192.168.1.198` for `pi.hole` (→Aigen); falls back to `hosts.txt`. Uses `dig`→`nslookup`→`/dev/tcp` so detection works without `dnsutils`. Pass an explicit path to override. Prints install instructions if deb repo is missing |
 
@@ -688,6 +693,8 @@ pwsh ~/alias/deploy.ps1
 | `dcu/dcud/dcd/dcde [dir]` | Docker Compose up/up-d/down/down+erase |
 | `dcinfo [-v] [name]` | List containers |
 | `dclog [name] [n]` | Show container logs |
+| `dru/drud/drd/drde` | Docker run: pick container → start/start-d/stop/stop+erase |
+| `drinfo [-v] [name]` | Same as `dcinfo` |
 | `alh [filter]` | One-line help from comments in all `.ps1` files |
 
 ### Git (gitalias.ps1)

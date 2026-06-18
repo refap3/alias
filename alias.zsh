@@ -159,6 +159,62 @@ dclog() {
     done
 }
 
+# _dr_pick [0|1]  — list containers and prompt for selection; 0=running only, 1=all (default)
+_dr_pick() {
+    local _all="${1:-1}"
+    local _names
+    if [ "$_all" = "1" ]; then
+        _names=$(docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}')
+    else
+        _names=$(docker ps --format '{{.Names}}\t{{.Status}}\t{{.Image}}')
+    fi
+    [ -z "$_names" ] && { printf 'dr: no containers found\n' >&2; return 1; }
+    printf '%s\n' "$_names" | awk '{printf "  %2d)  %s\n", NR, $0}'
+    printf 'Pick [1]: '
+    read _sel
+    _sel="${_sel:-1}"
+    local _picked
+    _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
+    [ -z "$_picked" ] && { printf 'dr: invalid selection\n' >&2; return 1; }
+    printf '%s' "$_picked"
+}
+# dru  — docker start (attached): pick container to start in foreground
+dru() {
+    local _c
+    _c=$(_dr_pick 1) || return 1
+    docker start -a "$_c"
+}
+# drud  — docker start (detached): pick container to start in background
+drud() {
+    local _c
+    _c=$(_dr_pick 1) || return 1
+    docker start "$_c"
+    printf 'Started: %s\n' "$_c"
+}
+# drd  — docker stop: pick running container to stop
+drd() {
+    local _c
+    _c=$(_dr_pick 0) || return 1
+    docker stop "$_c"
+}
+# drde  — docker stop + remove container, volumes, and image: pick container to erase
+drde() {
+    local _c _img _ans
+    _c=$(_dr_pick 1) || return 1
+    _img=$(docker inspect --format '{{.Config.Image}}' "$_c" 2>/dev/null)
+    printf 'This will stop and remove container "%s" and its volumes. Are you sure? [yes/N] ' "$_c"
+    read _ans
+    [ "$_ans" = "yes" ] || { printf 'Aborted.\n'; return 1; }
+    docker rm -f -v "$_c"
+    if [ -n "$_img" ]; then
+        printf 'Also remove image "%s"? [yes/N] ' "$_img"
+        read _ans
+        [ "$_ans" = "yes" ] && docker rmi "$_img"
+    fi
+}
+# drinfo [-v] [name]  — list containers (all or matching name): same as dcinfo
+drinfo() { dcinfo "$@"; }
+
 # Open Visual Studio Code.
 # Mac: simple wrapper for the 'code' CLI.
 # Pi/Linux: SSH back to the connecting Mac and open VS Code with Remote SSH
