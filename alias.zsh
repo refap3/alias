@@ -169,9 +169,9 @@ _dr_pick() {
         _names=$(docker ps --format '{{.Names}}\t{{.Status}}\t{{.Image}}')
     fi
     [ -z "$_names" ] && { printf 'dr: no containers found\n' >&2; return 1; }
-    printf '%s\n' "$_names" | awk '{printf "  %2d)  %s\n", NR, $0}' >&2
-    printf 'Pick [1]: ' >&2
-    read _sel
+    printf '%s\n' "$_names" | awk '{printf "  %2d)  %s\n", NR, $0}' >/dev/tty
+    printf 'Pick [1]: ' >/dev/tty
+    read _sel </dev/tty
     _sel="${_sel:-1}"
     local _picked
     _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
