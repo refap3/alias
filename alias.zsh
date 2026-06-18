@@ -172,7 +172,7 @@ _dr_pick() {
     printf '%s\n' "$_names" | awk '{printf "  %2d)  %s\n", NR, $0}' >/dev/tty
     printf 'Pick [1]: ' >/dev/tty
     read _sel </dev/tty
-    _sel="${_sel:-1}"
+    [ -z "$_sel" ] && { printf 'Cancelled.\n' >/dev/tty; return 1; }
     local _picked
     _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
     [ -z "$_picked" ] && { printf 'dr: invalid selection\n' >&2; return 1; }
