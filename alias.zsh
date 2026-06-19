@@ -349,6 +349,7 @@ _div_tui_help() {
     printf '\n'
     printf '  %-34s  %s\n' 'SORT ORDER (same key = reverse)' 'ACTIONS'
     printf '  %-34s  %s\n' 'n  by name (default)' 'd  dig into container (full inspect)'
+    printf '  %-34s  %s\n' '' 'l  show last 20 log lines'
     printf '  %-34s  %s\n' 't  by status' 'SPACE  force refresh now'
     printf '  %-34s  %s\n' 'i  by container ID' 'q / ESC  quit'
     printf '  %-34s  %s\n' 'u  by uptime (running first)' 'h / ?  toggle this help'
@@ -377,7 +378,32 @@ _div_tui_dig() {
     else read -t 60 -n 1 _x 2>/dev/null || true; fi
     stty "$_t" 2>/dev/null
 }
-# div — docker TUI: live container view; q/ESC quit; s/c type; r/x state; n/t/i/u sort; d dig; h help
+_div_tui_log() {
+    local _names _sel _picked _t _x
+    _names=$(docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null)
+    if [ -z "$_names" ]; then
+        printf 'No containers. Press any key...'
+        read -r _x; return
+    fi
+    clear
+    printf 'Select container for logs (q to cancel):\n\n'
+    printf '%s\n' "$_names" | awk -F'\t' '{printf "  %2d)  %-28s  %-22s  %s\n", NR, $1, $2, $3}'
+    printf '\nPick: '
+    read -r _sel
+    [ -z "$_sel" ] || [ "$_sel" = "q" ] && return
+    _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
+    if [ -z "$_picked" ]; then printf 'Invalid.\n'; sleep 1; return; fi
+    clear
+    printf '=== logs: %s (last 20 lines) ===\n\n' "$_picked"
+    docker logs --tail 20 "$_picked" 2>&1
+    printf '\n[Press any key to return to div]\n'
+    _t=$(stty -g 2>/dev/null)
+    stty cbreak -echo 2>/dev/null
+    if [ -n "$ZSH_VERSION" ]; then read -t 60 -k 1 _x 2>/dev/null || true
+    else read -t 60 -n 1 _x 2>/dev/null || true; fi
+    stty "$_t" 2>/dev/null
+}
+# div — docker TUI: live container view; q/ESC quit; s/c type; r/x state; n/t/i/u sort; d dig; l log; h help
 div() {
     local _type="" _state="" _sort="name" _sort_rev=0 _help=0 _interval=5
     local _key _i _old_tty _sort_lbl _content
@@ -407,7 +433,7 @@ div() {
         clear
         printf '[div] type:%-8s state:%-8s sort:%-10s| [s]sngl [c]comp [a]all  [r]run [x]stop [b]both\n' \
             "${_type:-both}" "${_state:-both}" "$_sort_lbl"
-        printf '[n]name [t]status [i]id [u]uptime (same key=rev)  [d]dig  [SPC]refresh  [h/?]help  [q/ESC]quit\n'
+        printf '[n]name [t]status [i]id [u]uptime (same=rev)  [d]dig  [l]log(20)  [SPC]refresh  [h/?]help  [q/ESC]quit\n'
         printf '%s\n' "$(printf '%118s' '' | tr ' ' '-')"
         printf '%s\n' "$_content"
         _i=0
@@ -435,6 +461,11 @@ div() {
                     d)
                         stty "$_old_tty" 2>/dev/null
                         _div_tui_dig
+                        stty cbreak -echo 2>/dev/null
+                        ;;
+                    l)
+                        stty "$_old_tty" 2>/dev/null
+                        _div_tui_log
                         stty cbreak -echo 2>/dev/null
                         ;;
                 esac
