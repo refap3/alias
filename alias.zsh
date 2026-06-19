@@ -269,7 +269,7 @@ _div_inspect() {
     fi
 }
 _div_list() {
-    local _type="$1" _state="$2" _sort="${3:-name}"
+    local _type="$1" _state="$2" _sort="${3:-name}" _rev="${4:-0}"
     local _all="-a" _xfilter=""
     case "$_state" in
         running) _all="" ;;
@@ -277,25 +277,16 @@ _div_list() {
     esac
     local _names
     _names=$(docker ps $_all $_xfilter --format '{{.Names}}' 2>/dev/null)
-    [ -z "$_names" ] && { printf "div: no containers found\n" >&2; return 1; }
-    # Bulk inspect: name (slice strips leading /), compose project, startedAt, state
-    local _inspect
+    [ -z "$_names" ] && { printf "  (no containers found)\n"; return 1; }
+    # Collect all data before any output to avoid blank-screen-while-loading
+    local _inspect _stats _ps
     _inspect=$(printf '%s\n' "$_names" | xargs docker inspect \
         --format '{{slice .Name 1}}|{{index .Config.Labels "com.docker.compose.project"}}|{{.State.StartedAt}}|{{.State.Status}}' \
         2>/dev/null)
-    # Resource stats (running containers only)
-    local _stats
     _stats=$(docker stats --no-stream \
         --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.NetIO}}' 2>/dev/null)
-    # PS data: name, short ID, human status, image
-    local _ps
     _ps=$(docker ps $_all $_xfilter \
         --format '{{.Names}}|{{.ID}}|{{.Status}}|{{.Image}}' 2>/dev/null)
-    # Header
-    printf "%-24s  %-8s  %-8s  %-19s  %-7s  %-20s  %-16s  %s\n" \
-        "NAME" "TYPE" "STATE" "STATUS" "CPU%" "MEM (used/limit)" "NET (in/out)" "IMAGE"
-    printf '%s\n' "$(printf '%120s' '' | tr ' ' '-')"
-    # Collect rows with sort key prefix, then sort and print
     local _rows=""
     while IFS= read -r _name; do
         [ -z "$_name" ] && continue
@@ -304,7 +295,6 @@ _div_list() {
         _proj=$(     printf '%s' "$_iline" | cut -d'|' -f2)
         _startedAt=$(printf '%s' "$_iline" | cut -d'|' -f3)
         _cstate=$(   printf '%s' "$_iline" | cut -d'|' -f4)
-        # Type filter
         if [ -n "$_type" ]; then
             [ "$_type" = "compose" ] && [ -z "$_proj" ] && continue
             [ "$_type" = "single"  ] && [ -n "$_proj" ] && continue
@@ -333,29 +323,35 @@ _div_list() {
             uptime) [ "$_cstate" = "running" ] && _key="A_${_startedAt}" || _key="Z_${_startedAt}" ;;
             *)      _key="$_name" ;;
         esac
-        _rows="${_rows}${_key}"$'\t'"${_name}"$'\t'"${_ttype}"$'\t'"${_cstate}"$'\t'"${_hstatus}"$'\t'"${_cpu}"$'\t'"${_mem}"$'\t'"${_net}"$'\t'"${_image}"$'\n'
+        _rows="${_rows}${_key}"$'\t'"${_name}"$'\t'"${_id}"$'\t'"${_ttype}"$'\t'"${_cstate}"$'\t'"${_hstatus}"$'\t'"${_cpu}"$'\t'"${_mem}"$'\t'"${_net}"$'\t'"${_image}"$'\n'
     done <<< "$_names"
-    [ -z "$_rows" ] && { printf "div: no containers match filter\n" >&2; return 1; }
-    printf '%s' "$_rows" | sort | while IFS=$'\t' read -r _k _name _ttype _cstate _hstatus _cpu _mem _net _image; do
-        local _dstatus
-        _dstatus=$(printf '%s' "$_hstatus" | sed 's/^Up /up /' | sed 's/^Exited ([0-9]*) /exit /')
-        printf "%-24s  %-8s  %-8s  %-19s  %-7s  %-20s  %-16s  %s\n" \
-            "${_name:0:23}" "$_ttype" "$_cstate" "${_dstatus:0:18}" "${_cpu:0:6}" \
-            "${_mem:0:19}" "${_net:0:15}" "${_image:0:30}"
-    done
+    [ -z "$_rows" ] && { printf "  (no containers match filter)\n"; return 1; }
+    local _sort_cmd="sort"
+    [ "$_rev" = "1" ] && _sort_cmd="sort -r"
+    printf "%-12s  %-20s  %-8s  %-8s  %-16s  %-6s  %-18s  %-14s  %s\n" \
+        "ID" "NAME" "TYPE" "STATE" "STATUS" "CPU%" "MEM (used/limit)" "NET (in/out)" "IMAGE"
+    printf '%s\n' "$(printf '%118s' '' | tr ' ' '-')"
+    printf '%s' "$_rows" | eval "$_sort_cmd" | \
+        while IFS=$'\t' read -r _k _name _id _ttype _cstate _hstatus _cpu _mem _net _image; do
+            local _dstatus
+            _dstatus=$(printf '%s' "$_hstatus" | sed 's/^Up /up /' | sed 's/^Exited ([0-9]*) /exit /')
+            printf "%-12s  %-20s  %-8s  %-8s  %-16s  %-6s  %-18s  %-14s  %s\n" \
+                "${_id:0:11}" "${_name:0:19}" "$_ttype" "$_cstate" "${_dstatus:0:15}" \
+                "${_cpu:0:5}" "${_mem:0:17}" "${_net:0:13}" "${_image:0:28}"
+        done
 }
 _div_tui_help() {
     printf '\n'
-    printf '  %-32s  %s\n' 'FILTER TYPE' 'FILTER STATE'
-    printf '  %-32s  %s\n' 's  single (docker run) only' 'r  running only'
-    printf '  %-32s  %s\n' 'c  compose stacks only' 'x  stopped/exited only'
-    printf '  %-32s  %s\n' 'a  all types (clear filter)' 'b  both states (clear filter)'
+    printf '  %-34s  %s\n' 'FILTER TYPE' 'FILTER STATE'
+    printf '  %-34s  %s\n' 's  single (docker run) only' 'r  running only'
+    printf '  %-34s  %s\n' 'c  compose stacks only' 'x  stopped/exited only'
+    printf '  %-34s  %s\n' 'a  all types (clear filter)' 'b  both states (clear filter)'
     printf '\n'
-    printf '  %-32s  %s\n' 'SORT ORDER' 'ACTIONS'
-    printf '  %-32s  %s\n' 'n  by name (default)' 'd  dig into container (full inspect)'
-    printf '  %-32s  %s\n' 't  by status' 'SPACE  force refresh now'
-    printf '  %-32s  %s\n' 'i  by container ID' 'q / ESC  quit'
-    printf '  %-32s  %s\n' 'u  by uptime (running first)' 'h / ?  toggle this help'
+    printf '  %-34s  %s\n' 'SORT ORDER (same key = reverse)' 'ACTIONS'
+    printf '  %-34s  %s\n' 'n  by name (default)' 'd  dig into container (full inspect)'
+    printf '  %-34s  %s\n' 't  by status' 'SPACE  force refresh now'
+    printf '  %-34s  %s\n' 'i  by container ID' 'q / ESC  quit'
+    printf '  %-34s  %s\n' 'u  by uptime (running first)' 'h / ?  toggle this help'
 }
 _div_tui_dig() {
     local _names _sel _picked _t _x
@@ -383,7 +379,8 @@ _div_tui_dig() {
 }
 # div — docker TUI: live container view; q/ESC quit; s/c type; r/x state; n/t/i/u sort; d dig; h help
 div() {
-    local _type="" _state="" _sort="name" _help=0 _interval=5 _key _i _old_tty
+    local _type="" _state="" _sort="name" _sort_rev=0 _help=0 _interval=5
+    local _key _i _old_tty _sort_lbl _content
     while [ $# -gt 0 ]; do
         case "$1" in
             -s|--single)  _type=single ;;
@@ -392,7 +389,7 @@ div() {
             -x|--stopped) _state=stopped ;;
             --sort) shift; _sort="${1:-name}" ;;
             -*) printf "div: unknown option: %s\n" "$1" >&2; return 1 ;;
-            *)  _div_inspect "$1"; return ;;  # bare name → one-shot detailed inspect
+            *)  _div_inspect "$1"; return ;;
         esac
         shift
     done
@@ -400,15 +397,19 @@ div() {
     stty cbreak -echo 2>/dev/null
     trap 'stty "$_old_tty" 2>/dev/null; trap - INT TERM; clear; return' INT TERM
     while true; do
-        clear
-        printf '[div]  type:%-8s  state:%-8s  sort:%-8s  [h:help  q:quit]\n' \
-            "${_type:-both}" "${_state:-both}" "$_sort"
-        printf '%s\n' "$(printf '%120s' '' | tr ' ' '-')"
+        # Collect all data BEFORE clearing screen (one-sweep render, no blank-screen lag)
+        _sort_lbl="${_sort}$([ "$_sort_rev" = "1" ] && printf 'v' || printf '^')"
         if [ "$_help" = "1" ]; then
-            _div_tui_help
+            _content=$(_div_tui_help)
         else
-            _div_list "$_type" "$_state" "$_sort" 2>&1 || true
+            _content=$(_div_list "$_type" "$_state" "$_sort" "$_sort_rev" 2>&1)
         fi
+        clear
+        printf '[div] type:%-8s state:%-8s sort:%-10s| [s]sngl [c]comp [a]all  [r]run [x]stop [b]both\n' \
+            "${_type:-both}" "${_state:-both}" "$_sort_lbl"
+        printf '[n]name [t]status [i]id [u]uptime (same key=rev)  [d]dig  [SPC]refresh  [h/?]help  [q/ESC]quit\n'
+        printf '%s\n' "$(printf '%118s' '' | tr ' ' '-')"
+        printf '%s\n' "$_content"
         _i=0
         while [ "$_i" -lt "$((_interval * 10))" ]; do
             _key=""
@@ -427,10 +428,10 @@ div() {
                     r)  [ "$_state" = "running" ] && _state="" || _state=running ;;
                     x)  [ "$_state" = "stopped" ] && _state="" || _state=stopped ;;
                     b)  _state="" ;;
-                    n)  _sort=name ;;
-                    t)  _sort=status ;;
-                    i)  _sort=id ;;
-                    u)  _sort=uptime ;;
+                    n)  [ "$_sort" = "name"   ] && _sort_rev=$(( 1 - _sort_rev )) || { _sort=name;   _sort_rev=0; } ;;
+                    t)  [ "$_sort" = "status" ] && _sort_rev=$(( 1 - _sort_rev )) || { _sort=status; _sort_rev=0; } ;;
+                    i)  [ "$_sort" = "id"     ] && _sort_rev=$(( 1 - _sort_rev )) || { _sort=id;     _sort_rev=0; } ;;
+                    u)  [ "$_sort" = "uptime" ] && _sort_rev=$(( 1 - _sort_rev )) || { _sort=uptime; _sort_rev=0; } ;;
                     d)
                         stty "$_old_tty" 2>/dev/null
                         _div_tui_dig
