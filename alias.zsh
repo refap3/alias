@@ -397,22 +397,23 @@ _div_picker_names() {
     done <<< "$(printf '%s\n' "$_ps")" | eval "$_sort_cmd" | cut -f2-
 }
 _div_tui_pick() {
-    # Shared picker: shows sorted list, returns selected name; prompt=$1 type=$2 state=$3 sort=$4 rev=$5
+    # Shared picker: shows sorted list, returns selected name via stdout.
+    # All display output goes to /dev/tty so it works inside $() substitution.
     local _prompt="$1" _type="$2" _state="$3" _sort="$4" _rev="$5"
     local _names _sel _picked _x
     _names=$(_div_picker_names "$_type" "$_state" "$_sort" "$_rev")
     if [ -z "$_names" ]; then
-        printf 'No containers. Press any key...'
-        read -r _x; return 1
+        printf 'No containers. Press any key...' >/dev/tty
+        read -r _x </dev/tty; return 1
     fi
-    clear
-    printf '%s\n\n' "$_prompt"
-    printf '%s\n' "$_names" | awk -F'\t' '{printf "  %2d)  %-28s  %-22s  %s\n", NR, $1, $2, $3}'
-    printf '\nPick (q to cancel): '
-    read -r _sel
+    printf '\033[2J\033[H' >/dev/tty
+    printf '%s\n\n' "$_prompt" >/dev/tty
+    printf '%s\n' "$_names" | awk -F'\t' '{printf "  %2d)  %-28s  %-22s  %s\n", NR, $1, $2, $3}' >/dev/tty
+    printf '\nPick (q to cancel): ' >/dev/tty
+    read -r _sel </dev/tty
     [ -z "$_sel" ] || [ "$_sel" = "q" ] && return 1
     _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
-    if [ -z "$_picked" ]; then printf 'Invalid.\n'; sleep 1; return 1; fi
+    if [ -z "$_picked" ]; then printf 'Invalid.\n' >/dev/tty; sleep 1; return 1; fi
     printf '%s' "$_picked"
 }
 _div_tui_wait_key() {
