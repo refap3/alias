@@ -242,6 +242,7 @@ sy  p                                                  syp
 | `drd` | Pick a running container → `docker stop` |
 | `drde` | Pick a container → stop, remove container + volumes, optionally remove image |
 | `drinfo [-v] [name]` | Same as `dcinfo` — list containers (plain docker equivalent) |
+| `div [-s\|-c] [-r\|-x] [--sort KEY] [-p] [name]` | Docker info view: one line per container with name, type (standalone/compose), state, CPU%, mem, net I/O, image. `-s` standalone only, `-c` compose only, `-r` running only, `-x` stopped only. `--sort name\|status\|id\|uptime`. `-p` interactive picker → detailed view. Pass a container name for full inspect (ports, mounts, networks, env, resources) |
 | `db [choice]` | Open the deb interactive menu (`~/deb/menu`); optional choice arg (e.g. `db b`). Silently skipped if not installed |
 | `piv [hosts_file]` | Launch the terminal ping monitor (`~/deb/pinginfoview`). Queries `192.168.1.203` for `ssb8.local` (→Vienna) and `192.168.1.198` for `pi.hole` (→Aigen); falls back to `hosts.txt`. Uses `dig`→`nslookup`→`/dev/tcp` so detection works without `dnsutils`. Pass an explicit path to override. Prints install instructions if deb repo is missing |
 
@@ -695,6 +696,7 @@ pwsh ~/alias/deploy.ps1
 | `dclog [name] [n]` | Show container logs |
 | `dru/drud/drd/drde` | Docker run: pick container → start/start-d/stop/stop+erase |
 | `drinfo [-v] [name]` | Same as `dcinfo` |
+| `div [-s\|-c] [-r\|-x] [--sort KEY] [-p] [name]` | Docker info view: one-line overview + resource usage per container |
 | `alh [filter]` | One-line help from comments in all `.ps1` files |
 
 ### Git (gitalias.ps1)

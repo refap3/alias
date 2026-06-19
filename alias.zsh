@@ -215,6 +215,195 @@ drde() {
 # drinfo [-v] [name]  — list containers (all or matching name): same as dcinfo
 drinfo() { dcinfo "$@"; }
 
+# div [-s|-c] [-r|-x] [--sort name|status|id|uptime] [-p|-h] [name]
+#   Docker info view: one line per container with resource usage
+#   -s, --single   only standalone (docker run) containers
+#   -c, --compose  only docker compose containers (default: both)
+#   -r, --running  only running containers
+#   -x, --stopped  only stopped/exited containers
+#   --sort KEY     sort by: name (default), status, id, uptime
+#   -p, --pick     interactive picker → detailed single-container view
+#   name           show detailed info for this specific container
+_div_help() {
+    printf 'div — docker info view\n'
+    printf 'Usage: div [-s|-c] [-r|-x] [--sort KEY] [-p|-h] [name]\n\n'
+    printf '  -s, --single   only standalone (docker run) containers\n'
+    printf '  -c, --compose  only docker compose containers\n'
+    printf '  -r, --running  only running containers\n'
+    printf '  -x, --stopped  only stopped/exited containers\n'
+    printf '  --sort KEY     name (default) | status | id | uptime\n'
+    printf '  -p, --pick     pick container interactively -> detailed view\n'
+    printf '  name           show detailed view for this container\n'
+}
+_div_inspect() {
+    local _name="$1"
+    docker inspect "$_name" >/dev/null 2>&1 || {
+        printf "div: container '%s' not found\n" "$_name" >&2; return 1
+    }
+    local _f _state _id _image _started _finished _restarts _proj _svc
+    _f=$(docker inspect --format \
+        '{{printf "%.12s" .Id}}|{{.Config.Image}}|{{.State.Status}}|{{.State.StartedAt}}|{{.State.FinishedAt}}|{{.RestartCount}}|{{index .Config.Labels "com.docker.compose.project"}}|{{index .Config.Labels "com.docker.compose.service"}}' \
+        "$_name" 2>/dev/null)
+    _id=$(       printf '%s' "$_f" | cut -d'|' -f1)
+    _image=$(    printf '%s' "$_f" | cut -d'|' -f2)
+    _state=$(    printf '%s' "$_f" | cut -d'|' -f3)
+    _started=$(  printf '%s' "$_f" | cut -d'|' -f4)
+    _finished=$( printf '%s' "$_f" | cut -d'|' -f5)
+    _restarts=$( printf '%s' "$_f" | cut -d'|' -f6)
+    _proj=$(     printf '%s' "$_f" | cut -d'|' -f7)
+    _svc=$(      printf '%s' "$_f" | cut -d'|' -f8)
+    printf '=== %s ===\n' "$_name"
+    printf 'ID:        %s\n' "$_id"
+    printf 'Image:     %s\n' "$_image"
+    printf 'State:     %s\n' "$_state"
+    printf 'Started:   %s\n' "$_started"
+    [ "$_state" != "running" ] && printf 'Finished:  %s\n' "$_finished"
+    printf 'Restarts:  %s\n' "$_restarts"
+    if [ -n "$_proj" ]; then
+        printf 'Compose:   project=%s  service=%s\n' "$_proj" "$_svc"
+    else
+        printf 'Type:      standalone\n'
+    fi
+    printf '\n--- Ports ---\n'
+    docker inspect --format \
+        '{{range $p,$b := .NetworkSettings.Ports}}{{if $b}}  {{$p}} -> {{(index $b 0).HostPort}}{{"\n"}}{{else}}  {{$p}} (not published){{"\n"}}{{end}}{{end}}' \
+        "$_name" 2>/dev/null
+    printf '\n--- Mounts ---\n'
+    docker inspect --format \
+        '{{range .Mounts}}  {{.Type}}: {{.Source}} -> {{.Destination}}{{if eq .RW false}} [ro]{{end}}{{"\n"}}{{end}}' \
+        "$_name" 2>/dev/null
+    printf '\n--- Networks ---\n'
+    docker inspect --format \
+        '{{range $n,$v := .NetworkSettings.Networks}}  {{$n}}: {{$v.IPAddress}}{{"\n"}}{{end}}' \
+        "$_name" 2>/dev/null
+    printf '\n--- Environment ---\n'
+    docker inspect --format \
+        '{{range .Config.Env}}  {{.}}{{"\n"}}{{end}}' \
+        "$_name" 2>/dev/null
+    if [ "$_state" = "running" ]; then
+        printf '\n--- Resources ---\n'
+        docker stats --no-stream --format \
+            '  CPU: {{.CPUPerc}}   MEM: {{.MemUsage}}   NET: {{.NetIO}}   BLOCK: {{.BlockIO}}' \
+            "$_name" 2>/dev/null
+        printf '\n'
+    fi
+}
+_div_pick() {
+    local _state="$1"
+    local _all="-a"
+    [ "$_state" = "running" ] && _all=""
+    local _names
+    _names=$(docker ps $_all --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null)
+    [ -z "$_names" ] && { printf 'div: no containers found\n' >&2; return 1; }
+    printf '%s\n' "$_names" | awk '{printf "  %2d)  %s\n", NR, $0}' >/dev/tty
+    printf 'Pick [1]: ' >/dev/tty
+    read _sel </dev/tty
+    [ -z "$_sel" ] && { printf 'Cancelled.\n' >/dev/tty; return 1; }
+    local _picked
+    _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
+    [ -z "$_picked" ] && { printf 'div: invalid selection\n' >&2; return 1; }
+    printf '%s' "$_picked"
+}
+_div_list() {
+    local _type="$1" _state="$2" _sort="${3:-name}"
+    local _all="-a" _xfilter=""
+    case "$_state" in
+        running) _all="" ;;
+        stopped) _xfilter="--filter status=exited --filter status=created --filter status=dead" ;;
+    esac
+    local _names
+    _names=$(docker ps $_all $_xfilter --format '{{.Names}}' 2>/dev/null)
+    [ -z "$_names" ] && { printf "div: no containers found\n" >&2; return 1; }
+    # Bulk inspect: name (slice strips leading /), compose project, startedAt, state
+    local _inspect
+    _inspect=$(printf '%s\n' "$_names" | xargs docker inspect \
+        --format '{{slice .Name 1}}|{{index .Config.Labels "com.docker.compose.project"}}|{{.State.StartedAt}}|{{.State.Status}}' \
+        2>/dev/null)
+    # Resource stats (running containers only)
+    local _stats
+    _stats=$(docker stats --no-stream \
+        --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}|{{.NetIO}}' 2>/dev/null)
+    # PS data: name, short ID, human status, image
+    local _ps
+    _ps=$(docker ps $_all $_xfilter \
+        --format '{{.Names}}|{{.ID}}|{{.Status}}|{{.Image}}' 2>/dev/null)
+    # Header
+    printf "%-24s  %-8s  %-8s  %-19s  %-7s  %-20s  %-16s  %s\n" \
+        "NAME" "TYPE" "STATE" "STATUS" "CPU%" "MEM (used/limit)" "NET (in/out)" "IMAGE"
+    printf '%s\n' "$(printf '%120s' '' | tr ' ' '-')"
+    # Collect rows with sort key prefix, then sort and print
+    local _rows=""
+    while IFS= read -r _name; do
+        [ -z "$_name" ] && continue
+        local _iline _proj _startedAt _cstate
+        _iline=$(printf '%s\n' "$_inspect" | awk -F'|' -v n="$_name" '$1==n{print;exit}')
+        _proj=$(     printf '%s' "$_iline" | cut -d'|' -f2)
+        _startedAt=$(printf '%s' "$_iline" | cut -d'|' -f3)
+        _cstate=$(   printf '%s' "$_iline" | cut -d'|' -f4)
+        # Type filter
+        if [ -n "$_type" ]; then
+            [ "$_type" = "compose" ] && [ -z "$_proj" ] && continue
+            [ "$_type" = "single"  ] && [ -n "$_proj" ] && continue
+        fi
+        local _ttype="single"
+        [ -n "$_proj" ] && _ttype="compose"
+        local _psline _id _hstatus _image
+        _psline=$(printf '%s\n' "$_ps" | awk -F'|' -v n="$_name" '$1==n{print;exit}')
+        _id=$(     printf '%s' "$_psline" | cut -d'|' -f2)
+        _hstatus=$(printf '%s' "$_psline" | cut -d'|' -f3)
+        _image=$(  printf '%s' "$_psline" | cut -d'|' -f4)
+        local _cpu="-" _mem="-" _net="-"
+        if [ "$_cstate" = "running" ]; then
+            local _sline
+            _sline=$(printf '%s\n' "$_stats" | awk -F'|' -v n="$_name" '$1==n{print;exit}')
+            if [ -n "$_sline" ]; then
+                _cpu=$(printf '%s' "$_sline" | cut -d'|' -f2)
+                _mem=$(printf '%s' "$_sline" | cut -d'|' -f3)
+                _net=$(printf '%s' "$_sline" | cut -d'|' -f4)
+            fi
+        fi
+        local _key
+        case "$_sort" in
+            id)     _key="$_id" ;;
+            status) _key="${_cstate}_${_name}" ;;
+            uptime) [ "$_cstate" = "running" ] && _key="A_${_startedAt}" || _key="Z_${_startedAt}" ;;
+            *)      _key="$_name" ;;
+        esac
+        _rows="${_rows}${_key}"$'\t'"${_name}"$'\t'"${_ttype}"$'\t'"${_cstate}"$'\t'"${_hstatus}"$'\t'"${_cpu}"$'\t'"${_mem}"$'\t'"${_net}"$'\t'"${_image}"$'\n'
+    done <<< "$_names"
+    [ -z "$_rows" ] && { printf "div: no containers match filter\n" >&2; return 1; }
+    printf '%s' "$_rows" | sort | while IFS=$'\t' read -r _k _name _ttype _cstate _hstatus _cpu _mem _net _image; do
+        local _dstatus
+        _dstatus=$(printf '%s' "$_hstatus" | sed 's/^Up /up /' | sed 's/^Exited ([0-9]*) /exit /')
+        printf "%-24s  %-8s  %-8s  %-19s  %-7s  %-20s  %-16s  %s\n" \
+            "${_name:0:23}" "$_ttype" "$_cstate" "${_dstatus:0:18}" "${_cpu:0:6}" \
+            "${_mem:0:19}" "${_net:0:15}" "${_image:0:30}"
+    done
+}
+div() {
+    local _type="" _state="" _sort="name" _dig="" _pick=0
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -s|--single)  _type=single ;;
+            -c|--compose) _type=compose ;;
+            -r|--running) _state=running ;;
+            -x|--stopped) _state=stopped ;;
+            --sort) shift; _sort="${1:-name}" ;;
+            -p|--pick) _pick=1 ;;
+            -h|--help) _div_help; return ;;
+            -*) printf "div: unknown option: %s\nTry: div -h\n" "$1" >&2; return 1 ;;
+            *)  _dig="$1" ;;
+        esac
+        shift
+    done
+    if [ -n "$_dig" ]; then _div_inspect "$_dig"; return; fi
+    if [ "$_pick" = "1" ]; then
+        local _c; _c=$(_div_pick "$_state") || return 1
+        _div_inspect "$_c"; return
+    fi
+    _div_list "$_type" "$_state" "$_sort"
+}
+
 # Open Visual Studio Code.
 # Mac: simple wrapper for the 'code' CLI.
 # Pi/Linux: SSH back to the connecting Mac and open VS Code with Remote SSH

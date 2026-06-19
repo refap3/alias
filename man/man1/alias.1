@@ -438,6 +438,48 @@ the entire log is shown.
 If
 .I nn
 is omitted, the last 10 lines are shown.
+.TP
+.B div " [-s|-c] [-r|-x] [--sort name|status|id|uptime] [-p|-h] [name]"
+Docker info view.
+Without a container name, prints one line per container: name, type (standalone/compose),
+state, status, CPU%, memory usage, network I/O, and image.
+.RS
+.TP
+.B \-s\fR, \fB\-\-single
+Only standalone
+.RB ( "docker run" )
+containers.
+.TP
+.B \-c\fR, \fB\-\-compose
+Only docker compose containers.
+Default shows both.
+.TP
+.B \-r\fR, \fB\-\-running
+Only running containers.
+.TP
+.B \-x\fR, \fB\-\-stopped
+Only stopped/exited containers.
+Default shows both.
+.TP
+.B \-\-sort " name|status|id|uptime"
+Sort order.
+.B name
+(default): alphabetical.
+.B status\fR:
+running first, then stopped.
+.B id\fR:
+by short container ID.
+.B uptime\fR:
+running containers sorted by start time (newest first), stopped after.
+.TP
+.B \-p\fR, \fB\-\-pick
+Interactive numbered picker — select a container to show its detailed view.
+.TP
+.B name
+Show detailed view for this specific container: ID, image, state, compose
+project/service, ports, mounts, networks, environment variables, and live
+resource usage (if running).
+.RE
 .SS VS Code Remote
 .TP
 .B vsc " [path]"
