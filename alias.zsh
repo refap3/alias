@@ -319,7 +319,7 @@ _div_list() {
         local _key
         case "$_sort" in
             id)     _key="$_id" ;;
-            status) _key="${_cstate}_${_name}" ;;
+            status) [ "$_cstate" = "running" ] && _key="A_${_name}" || _key="Z_${_name}" ;;
             uptime) [ "$_cstate" = "running" ] && _key="A_${_startedAt}" || _key="Z_${_startedAt}" ;;
             *)      _key="$_name" ;;
         esac
