@@ -354,23 +354,69 @@ _div_tui_help() {
     printf '  %-34s  %s\n' 'i  by container ID' 'q / ESC  quit'
     printf '  %-34s  %s\n' 'u  by uptime (running first)' 'h / ?  toggle this help'
 }
-_div_tui_dig() {
-    local _names _sel _picked _t _x
-    _names=$(docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null)
+_div_picker_names() {
+    # Returns sorted/filtered "name\tstatus\timage" lines matching current div state
+    local _type="$1" _state="$2" _sort="${3:-name}" _rev="${4:-0}"
+    local _all="-a" _xfilter=""
+    case "$_state" in
+        running) _all="" ;;
+        stopped) _xfilter="--filter status=exited --filter status=created --filter status=dead" ;;
+    esac
+    local _ps _inspect=""
+    _ps=$(docker ps $_all $_xfilter --format '{{.Names}}|{{.ID}}|{{.Status}}|{{.Image}}' 2>/dev/null)
+    [ -z "$_ps" ] && return 1
+    if [ "$_sort" = "uptime" ] || [ -n "$_type" ]; then
+        _inspect=$(docker ps $_all $_xfilter --format '{{.Names}}' 2>/dev/null | \
+            xargs docker inspect \
+            --format '{{slice .Name 1}}|{{index .Config.Labels "com.docker.compose.project"}}|{{.State.StartedAt}}|{{.State.Status}}' \
+            2>/dev/null)
+    fi
+    local _sort_cmd="sort"
+    [ "$_rev" = "1" ] && _sort_cmd="sort -r"
+    while IFS='|' read -r _name _id _hstatus _image; do
+        [ -z "$_name" ] && continue
+        local _key _proj="" _startedAt="" _cstate=""
+        if [ -n "$_inspect" ]; then
+            local _iline
+            _iline=$(printf '%s\n' "$_inspect" | awk -F'|' -v n="$_name" '$1==n{print;exit}')
+            _proj=$(     printf '%s' "$_iline" | cut -d'|' -f2)
+            _startedAt=$(printf '%s' "$_iline" | cut -d'|' -f3)
+            _cstate=$(   printf '%s' "$_iline" | cut -d'|' -f4)
+        fi
+        if [ -n "$_type" ]; then
+            [ "$_type" = "compose" ] && [ -z "$_proj" ] && continue
+            [ "$_type" = "single"  ] && [ -n "$_proj" ] && continue
+        fi
+        case "$_sort" in
+            id)     _key="$_id" ;;
+            status) printf '%s' "$_hstatus" | grep -q '^Up' && _key="A_${_name}" || _key="Z_${_name}" ;;
+            uptime) [ "$_cstate" = "running" ] && _key="A_${_startedAt}" || _key="Z_${_startedAt}" ;;
+            *)      _key="$_name" ;;
+        esac
+        printf '%s\t%s\t%s\t%s\n' "$_key" "$_name" "$_hstatus" "$_image"
+    done <<< "$(printf '%s\n' "$_ps")" | eval "$_sort_cmd" | cut -f2-
+}
+_div_tui_pick() {
+    # Shared picker: shows sorted list, returns selected name; prompt=$1 type=$2 state=$3 sort=$4 rev=$5
+    local _prompt="$1" _type="$2" _state="$3" _sort="$4" _rev="$5"
+    local _names _sel _picked _x
+    _names=$(_div_picker_names "$_type" "$_state" "$_sort" "$_rev")
     if [ -z "$_names" ]; then
         printf 'No containers. Press any key...'
-        read -r _x; return
+        read -r _x; return 1
     fi
     clear
-    printf 'Select container (q to cancel):\n\n'
+    printf '%s\n\n' "$_prompt"
     printf '%s\n' "$_names" | awk -F'\t' '{printf "  %2d)  %-28s  %-22s  %s\n", NR, $1, $2, $3}'
-    printf '\nPick: '
+    printf '\nPick (q to cancel): '
     read -r _sel
-    [ -z "$_sel" ] || [ "$_sel" = "q" ] && return
+    [ -z "$_sel" ] || [ "$_sel" = "q" ] && return 1
     _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
-    if [ -z "$_picked" ]; then printf 'Invalid.\n'; sleep 1; return; fi
-    clear
-    _div_inspect "$_picked"
+    if [ -z "$_picked" ]; then printf 'Invalid.\n'; sleep 1; return 1; fi
+    printf '%s' "$_picked"
+}
+_div_tui_wait_key() {
+    local _t _x
     printf '\n[Press any key to return to div]\n'
     _t=$(stty -g 2>/dev/null)
     stty cbreak -echo 2>/dev/null
@@ -378,30 +424,20 @@ _div_tui_dig() {
     else read -t 60 -n 1 _x 2>/dev/null || true; fi
     stty "$_t" 2>/dev/null
 }
-_div_tui_log() {
-    local _names _sel _picked _t _x
-    _names=$(docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null)
-    if [ -z "$_names" ]; then
-        printf 'No containers. Press any key...'
-        read -r _x; return
-    fi
+_div_tui_dig() {
+    local _type="$1" _state="$2" _sort="$3" _rev="$4" _picked
+    _picked=$(_div_tui_pick "Select container (q to cancel):" "$_type" "$_state" "$_sort" "$_rev") || return
     clear
-    printf 'Select container for logs (q to cancel):\n\n'
-    printf '%s\n' "$_names" | awk -F'\t' '{printf "  %2d)  %-28s  %-22s  %s\n", NR, $1, $2, $3}'
-    printf '\nPick: '
-    read -r _sel
-    [ -z "$_sel" ] || [ "$_sel" = "q" ] && return
-    _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
-    if [ -z "$_picked" ]; then printf 'Invalid.\n'; sleep 1; return; fi
+    _div_inspect "$_picked"
+    _div_tui_wait_key
+}
+_div_tui_log() {
+    local _type="$1" _state="$2" _sort="$3" _rev="$4" _picked
+    _picked=$(_div_tui_pick "Select container for logs (q to cancel):" "$_type" "$_state" "$_sort" "$_rev") || return
     clear
     printf '=== logs: %s (last 20 lines) ===\n\n' "$_picked"
     docker logs --tail 20 "$_picked" 2>&1
-    printf '\n[Press any key to return to div]\n'
-    _t=$(stty -g 2>/dev/null)
-    stty cbreak -echo 2>/dev/null
-    if [ -n "$ZSH_VERSION" ]; then read -t 60 -k 1 _x 2>/dev/null || true
-    else read -t 60 -n 1 _x 2>/dev/null || true; fi
-    stty "$_t" 2>/dev/null
+    _div_tui_wait_key
 }
 # div — docker TUI: live container view; q/ESC quit; s/c type; r/x state; n/t/i/u sort; d dig; l log; h help
 div() {
@@ -460,12 +496,12 @@ div() {
                     u)  [ "$_sort" = "uptime" ] && _sort_rev=$(( 1 - _sort_rev )) || { _sort=uptime; _sort_rev=0; } ;;
                     d)
                         stty "$_old_tty" 2>/dev/null
-                        _div_tui_dig
+                        _div_tui_dig "$_type" "$_state" "$_sort" "$_sort_rev"
                         stty cbreak -echo 2>/dev/null
                         ;;
                     l)
                         stty "$_old_tty" 2>/dev/null
-                        _div_tui_log
+                        _div_tui_log "$_type" "$_state" "$_sort" "$_sort_rev"
                         stty cbreak -echo 2>/dev/null
                         ;;
                 esac
