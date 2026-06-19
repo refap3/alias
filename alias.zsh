@@ -215,26 +215,6 @@ drde() {
 # drinfo [-v] [name]  — list containers (all or matching name): same as dcinfo
 drinfo() { dcinfo "$@"; }
 
-# div [-s|-c] [-r|-x] [--sort name|status|id|uptime] [-p|-h] [name]
-#   Docker info view: one line per container with resource usage
-#   -s, --single   only standalone (docker run) containers
-#   -c, --compose  only docker compose containers (default: both)
-#   -r, --running  only running containers
-#   -x, --stopped  only stopped/exited containers
-#   --sort KEY     sort by: name (default), status, id, uptime
-#   -p, --pick     interactive picker → detailed single-container view
-#   name           show detailed info for this specific container
-_div_help() {
-    printf 'div — docker info view\n'
-    printf 'Usage: div [-s|-c] [-r|-x] [--sort KEY] [-p|-h] [name]\n\n'
-    printf '  -s, --single   only standalone (docker run) containers\n'
-    printf '  -c, --compose  only docker compose containers\n'
-    printf '  -r, --running  only running containers\n'
-    printf '  -x, --stopped  only stopped/exited containers\n'
-    printf '  --sort KEY     name (default) | status | id | uptime\n'
-    printf '  -p, --pick     pick container interactively -> detailed view\n'
-    printf '  name           show detailed view for this container\n'
-}
 _div_inspect() {
     local _name="$1"
     docker inspect "$_name" >/dev/null 2>&1 || {
@@ -287,22 +267,6 @@ _div_inspect() {
             "$_name" 2>/dev/null
         printf '\n'
     fi
-}
-_div_pick() {
-    local _state="$1"
-    local _all="-a"
-    [ "$_state" = "running" ] && _all=""
-    local _names
-    _names=$(docker ps $_all --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null)
-    [ -z "$_names" ] && { printf 'div: no containers found\n' >&2; return 1; }
-    printf '%s\n' "$_names" | awk '{printf "  %2d)  %s\n", NR, $0}' >/dev/tty
-    printf 'Pick [1]: ' >/dev/tty
-    read _sel </dev/tty
-    [ -z "$_sel" ] && { printf 'Cancelled.\n' >/dev/tty; return 1; }
-    local _picked
-    _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
-    [ -z "$_picked" ] && { printf 'div: invalid selection\n' >&2; return 1; }
-    printf '%s' "$_picked"
 }
 _div_list() {
     local _type="$1" _state="$2" _sort="${3:-name}"
@@ -380,8 +344,46 @@ _div_list() {
             "${_mem:0:19}" "${_net:0:15}" "${_image:0:30}"
     done
 }
+_div_tui_help() {
+    printf '\n'
+    printf '  %-32s  %s\n' 'FILTER TYPE' 'FILTER STATE'
+    printf '  %-32s  %s\n' 's  single (docker run) only' 'r  running only'
+    printf '  %-32s  %s\n' 'c  compose stacks only' 'x  stopped/exited only'
+    printf '  %-32s  %s\n' 'a  all types (clear filter)' 'b  both states (clear filter)'
+    printf '\n'
+    printf '  %-32s  %s\n' 'SORT ORDER' 'ACTIONS'
+    printf '  %-32s  %s\n' 'n  by name (default)' 'd  dig into container (full inspect)'
+    printf '  %-32s  %s\n' 't  by status' 'SPACE  force refresh now'
+    printf '  %-32s  %s\n' 'i  by container ID' 'q / ESC  quit'
+    printf '  %-32s  %s\n' 'u  by uptime (running first)' 'h / ?  toggle this help'
+}
+_div_tui_dig() {
+    local _names _sel _picked _t _x
+    _names=$(docker ps -a --format '{{.Names}}\t{{.Status}}\t{{.Image}}' 2>/dev/null)
+    if [ -z "$_names" ]; then
+        printf 'No containers. Press any key...'
+        read -r _x; return
+    fi
+    clear
+    printf 'Select container (q to cancel):\n\n'
+    printf '%s\n' "$_names" | awk -F'\t' '{printf "  %2d)  %-28s  %-22s  %s\n", NR, $1, $2, $3}'
+    printf '\nPick: '
+    read -r _sel
+    [ -z "$_sel" ] || [ "$_sel" = "q" ] && return
+    _picked=$(printf '%s\n' "$_names" | sed -n "${_sel}p" | cut -f1)
+    if [ -z "$_picked" ]; then printf 'Invalid.\n'; sleep 1; return; fi
+    clear
+    _div_inspect "$_picked"
+    printf '\n[Press any key to return to div]\n'
+    _t=$(stty -g 2>/dev/null)
+    stty cbreak -echo 2>/dev/null
+    if [ -n "$ZSH_VERSION" ]; then read -t 60 -k 1 _x 2>/dev/null || true
+    else read -t 60 -n 1 _x 2>/dev/null || true; fi
+    stty "$_t" 2>/dev/null
+}
+# div — docker TUI: live container view; q/ESC quit; s/c type; r/x state; n/t/i/u sort; d dig; h help
 div() {
-    local _type="" _state="" _sort="name" _dig="" _pick=0
+    local _type="" _state="" _sort="name" _help=0 _interval=5 _key _i _old_tty
     while [ $# -gt 0 ]; do
         case "$1" in
             -s|--single)  _type=single ;;
@@ -389,19 +391,60 @@ div() {
             -r|--running) _state=running ;;
             -x|--stopped) _state=stopped ;;
             --sort) shift; _sort="${1:-name}" ;;
-            -p|--pick) _pick=1 ;;
-            -h|--help) _div_help; return ;;
-            -*) printf "div: unknown option: %s\nTry: div -h\n" "$1" >&2; return 1 ;;
-            *)  _dig="$1" ;;
+            -*) printf "div: unknown option: %s\n" "$1" >&2; return 1 ;;
+            *)  _div_inspect "$1"; return ;;  # bare name → one-shot detailed inspect
         esac
         shift
     done
-    if [ -n "$_dig" ]; then _div_inspect "$_dig"; return; fi
-    if [ "$_pick" = "1" ]; then
-        local _c; _c=$(_div_pick "$_state") || return 1
-        _div_inspect "$_c"; return
-    fi
-    _div_list "$_type" "$_state" "$_sort"
+    _old_tty=$(stty -g 2>/dev/null)
+    stty cbreak -echo 2>/dev/null
+    trap 'stty "$_old_tty" 2>/dev/null; trap - INT TERM; clear; return' INT TERM
+    while true; do
+        clear
+        printf '[div]  type:%-8s  state:%-8s  sort:%-8s  [h:help  q:quit]\n' \
+            "${_type:-both}" "${_state:-both}" "$_sort"
+        printf '%s\n' "$(printf '%120s' '' | tr ' ' '-')"
+        if [ "$_help" = "1" ]; then
+            _div_tui_help
+        else
+            _div_list "$_type" "$_state" "$_sort" 2>&1 || true
+        fi
+        _i=0
+        while [ "$_i" -lt "$((_interval * 10))" ]; do
+            _key=""
+            if [ -n "$ZSH_VERSION" ]; then
+                read -t 0.1 -k 1 _key 2>/dev/null || true
+            else
+                read -t 0.1 -n 1 _key 2>/dev/null || true
+            fi
+            if [ -n "$_key" ]; then
+                case "$_key" in
+                    q|$'\e') stty "$_old_tty" 2>/dev/null; trap - INT TERM; clear; return ;;
+                    h|'?')   _help=$(( 1 - _help )) ;;
+                    s)  [ "$_type"  = "single"  ] && _type=""  || _type=single ;;
+                    c)  [ "$_type"  = "compose" ] && _type=""  || _type=compose ;;
+                    a)  _type="" ;;
+                    r)  [ "$_state" = "running" ] && _state="" || _state=running ;;
+                    x)  [ "$_state" = "stopped" ] && _state="" || _state=stopped ;;
+                    b)  _state="" ;;
+                    n)  _sort=name ;;
+                    t)  _sort=status ;;
+                    i)  _sort=id ;;
+                    u)  _sort=uptime ;;
+                    d)
+                        stty "$_old_tty" 2>/dev/null
+                        _div_tui_dig
+                        stty cbreak -echo 2>/dev/null
+                        ;;
+                esac
+                break
+            fi
+            _i=$((_i + 1))
+        done
+    done
+    stty "$_old_tty" 2>/dev/null
+    trap - INT TERM
+    clear
 }
 
 # Open Visual Studio Code.

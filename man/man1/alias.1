@@ -439,46 +439,57 @@ If
 .I nn
 is omitted, the last 10 lines are shown.
 .TP
-.B div " [-s|-c] [-r|-x] [--sort name|status|id|uptime] [-p|-h] [name]"
-Docker info view.
-Without a container name, prints one line per container: name, type (standalone/compose),
-state, status, CPU%, memory usage, network I/O, and image.
+.B div " [-s|-c] [-r|-x] [--sort name|status|id|uptime] [name]"
+Live docker TUI.
+Refreshes every 5 seconds, showing one line per container: name, type
+(standalone/compose), state, status, CPU%, memory, network I/O, and image.
+Pass a container name to get a one-shot detailed inspect instead of the TUI.
 .RS
 .TP
-.B \-s\fR, \fB\-\-single
-Only standalone
+.B \-s
+Filter: standalone
 .RB ( "docker run" )
-containers.
+containers only.
 .TP
-.B \-c\fR, \fB\-\-compose
-Only docker compose containers.
+.B \-c
+Filter: docker compose containers only.
 Default shows both.
 .TP
-.B \-r\fR, \fB\-\-running
-Only running containers.
+.B \-r
+Filter: running containers only.
 .TP
-.B \-x\fR, \fB\-\-stopped
-Only stopped/exited containers.
+.B \-x
+Filter: stopped/exited containers only.
 Default shows both.
 .TP
 .B \-\-sort " name|status|id|uptime"
-Sort order.
-.B name
-(default): alphabetical.
-.B status\fR:
-running first, then stopped.
-.B id\fR:
-by short container ID.
-.B uptime\fR:
-running containers sorted by start time (newest first), stopped after.
+Initial sort order (can be changed live with keyboard).
+.RE
+.PP
+Keyboard commands inside the TUI:
+.RS
 .TP
-.B \-p\fR, \fB\-\-pick
-Interactive numbered picker — select a container to show its detailed view.
+.BR s " / " c " / " a
+Toggle type filter: single only / compose only / all.
 .TP
-.B name
-Show detailed view for this specific container: ID, image, state, compose
-project/service, ports, mounts, networks, environment variables, and live
-resource usage (if running).
+.BR r " / " x " / " b
+Toggle state filter: running / stopped / both.
+.TP
+.BR n " / " t " / " i " / " u
+Sort by: name / status / id / uptime.
+.TP
+.B d
+Dig into a container: numbered picker → full inspect (ports, mounts,
+networks, env, live resources).
+.TP
+.B SPACE
+Force immediate refresh.
+.TP
+.BR h " / " ?
+Toggle help overlay.
+.TP
+.BR q " / " ESC
+Quit.
 .RE
 .SS VS Code Remote
 .TP
