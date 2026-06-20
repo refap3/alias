@@ -349,10 +349,13 @@ _div_tui_help() {
     printf '\n'
     printf '  %-34s  %s\n' 'SORT ORDER (same key = reverse)' 'ACTIONS'
     printf '  %-34s  %s\n' 'n  by name (default)' 'd  dig into container (full inspect)'
-    printf '  %-34s  %s\n' '' 'l  show last 20 log lines'
-    printf '  %-34s  %s\n' 't  by status' 'SPACE  force refresh now'
-    printf '  %-34s  %s\n' 'i  by container ID' 'q / ESC  quit'
-    printf '  %-34s  %s\n' 'u  by uptime (running first)' 'h / ?  toggle this help'
+    printf '  %-34s  %s\n' 't  by status' 'l  show last 20 log lines'
+    printf '  %-34s  %s\n' 'i  by container ID' 'o  start  (compose: whole stack)'
+    printf '  %-34s  %s\n' 'u  by uptime (running first)' 'k  stop   (compose: whole stack)'
+    printf '  %-34s  %s\n' '' 'e  restart (compose: whole stack)'
+    printf '  %-34s  %s\n' '' 'SPACE  force refresh now'
+    printf '  %-34s  %s\n' '' 'q / ESC  quit'
+    printf '  %-34s  %s\n' '' 'h / ?  toggle this help'
 }
 _div_picker_names() {
     # Returns sorted/filtered "name\tstatus\timage" lines matching current div state
@@ -440,7 +443,29 @@ _div_tui_log() {
     docker logs --tail 20 "$_picked" 2>&1
     _div_tui_wait_key
 }
-# div — docker TUI: live container view; q/ESC quit; s/c type; r/x state; n/t/i/u sort; d dig; l log; h help
+_div_tui_ctl() {
+    local _action="$1" _type="$2" _state="$3" _sort="$4" _rev="$5"
+    local _picked _proj _workdir
+    _picked=$(_div_tui_pick "Select container to ${_action} (q to cancel):" "$_type" "$_state" "$_sort" "$_rev") || return
+    clear
+    _proj=$(docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' "$_picked" 2>/dev/null)
+    if [ -n "$_proj" ]; then
+        printf '=== %s compose stack: %s ===\n\n' "$_action" "$_proj"
+        _workdir=$(docker inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' "$_picked" 2>/dev/null)
+        if [ -n "$_workdir" ] && [ -d "$_workdir" ]; then
+            docker compose -p "$_proj" --project-directory "$_workdir" "$_action" 2>&1
+        else
+            # fallback: act on all containers in the project individually
+            docker ps -a --filter "label=com.docker.compose.project=${_proj}" \
+                --format '{{.Names}}' 2>/dev/null | xargs -r docker "$_action" 2>&1
+        fi
+    else
+        printf '=== %s: %s ===\n\n' "$_action" "$_picked"
+        docker "$_action" "$_picked" 2>&1
+    fi
+    _div_tui_wait_key
+}
+# div — docker TUI: live container view; q/ESC quit; s/c type; r/x state; n/t/i/u sort; d dig; l log; o start; k stop; e restart; h help
 div() {
     local _type="" _state="" _sort="name" _sort_rev=0 _help=0 _interval=5
     local _key _i _old_tty _sort_lbl _content
@@ -470,7 +495,7 @@ div() {
         clear
         printf '[div] type:%-8s state:%-8s sort:%-10s| [s]sngl [c]comp [a]all  [r]run [x]stop [b]both\n' \
             "${_type:-both}" "${_state:-both}" "$_sort_lbl"
-        printf '[n]name [t]status [i]id [u]uptime (same=rev)  [d]dig  [l]log(20)  [SPC]refresh  [h/?]help  [q/ESC]quit\n'
+        printf '[n]name [t]status [i]id [u]uptime (same=rev)  [d]dig  [l]log(20)  [o]start [k]stop [e]restart  [SPC]refresh  [h/?]help  [q/ESC]quit\n'
         printf '%s\n' "$(printf '%118s' '' | tr ' ' '-')"
         printf '%s\n' "$_content"
         _i=0
@@ -503,6 +528,21 @@ div() {
                     l)
                         stty "$_old_tty" 2>/dev/null
                         _div_tui_log "$_type" "$_state" "$_sort" "$_sort_rev"
+                        stty cbreak -echo 2>/dev/null
+                        ;;
+                    o)
+                        stty "$_old_tty" 2>/dev/null
+                        _div_tui_ctl start "$_type" "$_state" "$_sort" "$_sort_rev"
+                        stty cbreak -echo 2>/dev/null
+                        ;;
+                    k)
+                        stty "$_old_tty" 2>/dev/null
+                        _div_tui_ctl stop "$_type" "$_state" "$_sort" "$_sort_rev"
+                        stty cbreak -echo 2>/dev/null
+                        ;;
+                    e)
+                        stty "$_old_tty" 2>/dev/null
+                        _div_tui_ctl restart "$_type" "$_state" "$_sort" "$_sort_rev"
                         stty cbreak -echo 2>/dev/null
                         ;;
                 esac

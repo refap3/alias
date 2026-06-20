@@ -242,7 +242,7 @@ sy  p                                                  syp
 | `drd` | Pick a running container → `docker stop` |
 | `drde` | Pick a container → stop, remove container + volumes, optionally remove image |
 | `drinfo [-v] [name]` | Same as `dcinfo` — list containers (plain docker equivalent) |
-| `div [-s\|-c] [-r\|-x] [--sort KEY] [name]` | Live docker TUI (refreshes every 5s): one line per container with name, type (standalone/compose), state, CPU%, mem, net I/O, image. Keyboard: `s/c/a` type filter, `r/x/b` state filter, `n/t/i/u` sort, `d` dig into container (ports/mounts/networks/env/resources), `SPACE` refresh, `h/?` help, `q/ESC` quit. Pass a container name for one-shot full inspect |
+| `div [-s\|-c] [-r\|-x] [--sort KEY] [name]` | Live docker TUI (refreshes every 5s): one line per container with name, type (standalone/compose), state, CPU%, mem, net I/O, image. Keyboard: `s/c/a` type filter, `r/x/b` state filter, `n/t/i/u` sort, `d` dig (ports/mounts/env/resources), `l` logs (last 20), `o` start, `k` stop, `e` restart (compose: whole stack), `SPACE` refresh, `h/?` help, `q/ESC` quit. Pass a container name for one-shot full inspect |
 | `db [choice]` | Open the deb interactive menu (`~/deb/menu`); optional choice arg (e.g. `db b`). Silently skipped if not installed |
 | `piv [hosts_file]` | Launch the terminal ping monitor (`~/deb/pinginfoview`). Queries `192.168.1.203` for `ssb8.local` (→Vienna) and `192.168.1.198` for `pi.hole` (→Aigen); falls back to `hosts.txt`. Uses `dig`→`nslookup`→`/dev/tcp` so detection works without `dnsutils`. Pass an explicit path to override. Prints install instructions if deb repo is missing |
 
@@ -696,7 +696,7 @@ pwsh ~/alias/deploy.ps1
 | `dclog [name] [n]` | Show container logs |
 | `dru/drud/drd/drde` | Docker run: pick container → start/start-d/stop/stop+erase |
 | `drinfo [-v] [name]` | Same as `dcinfo` |
-| `div [-s\|-c] [-r\|-x] [--sort KEY] [name]` | Live docker TUI: container overview + resource usage; keyboard filters/sort/dig |
+| `div [-s\|-c] [-r\|-x] [--sort KEY] [name]` | Live docker TUI: container overview + resource usage; keyboard filters/sort/dig/logs/start/stop/restart |
 | `alh [filter]` | One-line help from comments in all `.ps1` files |
 
 ### Git (gitalias.ps1)

@@ -487,6 +487,18 @@ networks, env, live resources).
 Show last 20 log lines for a selected container (same numbered picker as
 .BR d ).
 .TP
+.B o
+Start a container (or compose stack).
+If the selected container belongs to a compose project, starts the entire stack.
+.TP
+.B k
+Stop a container (or compose stack).
+If the selected container belongs to a compose project, stops the entire stack.
+.TP
+.B e
+Restart a container (or compose stack).
+If the selected container belongs to a compose project, restarts the entire stack.
+.TP
 .B SPACE
 Force immediate refresh.
 .TP
