@@ -46,10 +46,18 @@ Host ssh203.deprec.uk
     LogLevel ERROR
 
 Host mm
-    HostName 192.168.1.47
+    HostName 192.168.1.167
 
 Host es.ssb8.local
     IdentityFile ~/.ssh/id_ed25519
+
+Host owrt 192.168.1.1
+    HostName 192.168.1.1
+    User root
+    IdentityFile ~/.ssh/id_ed25519
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR
 
 Host 192.168.1.* *.ssb8.local *.pi.hole mb.local mm.local mb mm
     ForwardAgent yes
@@ -58,3 +66,6 @@ Host 192.168.1.* *.ssb8.local *.pi.hole mb.local mm.local mb mm
     UserKnownHostsFile /dev/null
     IdentityFile ~/.ssh/id_rsa
     LogLevel ERROR
+Host 192.168.1.72
+    IdentityFile ~/.ssh/id_ed25519
+    User sshd
