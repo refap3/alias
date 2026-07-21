@@ -59,6 +59,12 @@ Host owrt 192.168.1.1
     UserKnownHostsFile /dev/null
     LogLevel ERROR
 
+Host 192.168.1.72
+    IdentityFile ~/.ssh/id_ed25519
+    User sshd
+
+# Keep this wildcard last: ssh resolves each keyword to its first match, so any
+# host needing a different IdentityFile or User must appear above it.
 Host 192.168.1.* *.ssb8.local *.pi.hole mb.local mm.local mb mm
     ForwardAgent yes
     SendEnv -LANG -LC_*
@@ -66,6 +72,3 @@ Host 192.168.1.* *.ssb8.local *.pi.hole mb.local mm.local mb mm
     UserKnownHostsFile /dev/null
     IdentityFile ~/.ssh/id_rsa
     LogLevel ERROR
-Host 192.168.1.72
-    IdentityFile ~/.ssh/id_ed25519
-    User sshd
