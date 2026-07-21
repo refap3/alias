@@ -3,6 +3,8 @@ unsetopt INC_APPEND_HISTORY
 setopt APPEND_HISTORY
 
 export PATH="$HOME/.local/bin:$PATH"
+# Secrets live outside the repo in ~/.secrets (mode 600, untracked).
+[ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
 
 DOTFILES="${${:-$HOME/.zshrc}:A:h}"
 
