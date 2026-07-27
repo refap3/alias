@@ -1177,6 +1177,54 @@ Convert all repos to full history (unshallow). Repos already at full history are
 .B \-shallow
 Set all repos to depth=1 (last commit only).
 .RE
+.TP
+.B superrepo\c
+ [\fB\-i\fP|\fB\-w\fP]
+Interactive installer/uninstaller for every known local repo:
+.IR alias ,
+.IR deb ,
+.IR dockersource ,
+.IR macscp ,
+.I mdedit
+and
+.IR marcujump .
+Prints a numbered list, marking already-installed repos with
+.B [inst]
+and flagging platform-restricted ones (deb is Linux-only, macscp is macOS-only).
+Enter the numbers to act on (\fB1 3 5\fP, commas allowed) or
+.BR all ;
+an empty answer cancels.
+Then pick the action: \fB[i]nstall\fP, \fB[w]ipe\fP or \fB[c]ancel\fP.
+.RS
+.TP
+.B Install
+Runs the repo's one-line installer (downloaded to a temp file and executed with a real stdin, so
+interactive installers such as deb's still prompt correctly).
+Repos without a one-line installer are cloned shallow; a repo-root
+.I install.sh
+is then run if present (dockersource is exempt \(em its install scripts are per-container).
+Already-installed repos are skipped: use
+.B superup
+to update those.
+.TP
+.B Wipe
+Lists every path that will be deleted \(em the repo directory plus everything the repo deployed
+(for alias: \fI~/.zshrc\fP, \fI~/.bashrc\fP, \fI~/.gitalias.zsh\fP, \fI~/.jump.sh\fP, \fI~/.ssh/config\fP;
+for macscp/mdedit: their \fI~/.local/bin\fP launchers) \(em then requires you to type
+.B WIPE
+to confirm. Anything else aborts without deleting.
+Wiping alias removes the shell config that provides
+.B superrepo
+itself; the re-install command is printed afterwards.
+.RE
+.RS
+.TP
+.B \-i
+Skip the action prompt and install the picked repos.
+.TP
+.B \-w
+Skip the action prompt and wipe the picked repos (the WIPE confirmation is still required).
+.RE
 .SH SSH CONFIG
 .I ~/alias/ssh_config
 (symlinked to

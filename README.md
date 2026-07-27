@@ -26,6 +26,34 @@ Updates every installed local repo — alias, deb, dockersource, macscp, mdedit 
 | `-full` | All repos converted to full history (unshallow); already-full repos unaffected |
 | `-shallow` | All repos set to depth=1 (last commit only) |
 
+### Install or wipe repos
+
+```bash
+superrepo
+```
+
+Interactive picker for every known repo — `alias`, `deb`, `dockersource`, `macscp`, `mdedit`, `marcujump`. It prints a numbered list, marks the installed ones with `[inst]`, and flags platform-restricted repos (`deb` is Linux-only, `macscp` is macOS-only):
+
+```
+  1) alias           [inst]  /Users/rainers/alias
+  2) deb               -     /Users/rainers/deb  (linux only)
+  3) dockersource    [inst]  /Users/rainers/dockersource
+```
+
+Pick with numbers (`1 3 5`, commas allowed) or `all`; empty cancels. Then choose `[i]nstall`, `[w]ipe` or `[c]ancel`.
+
+| Action | Behaviour |
+|--------|-----------|
+| Install | Runs each repo's one-line installer (with a real stdin, so interactive installers like deb's still prompt). Repos without one are cloned shallow and their root `install.sh` is run if present (dockersource exempt — its installers are per-container). Already-installed repos are skipped — use `superup` to update those. |
+| Wipe | Lists every path to be deleted — the repo directory plus what it deployed (alias: `~/.zshrc`, `~/.bashrc`, `~/.gitalias.zsh`, `~/.jump.sh`, `~/.ssh/config`; macscp/mdedit: their `~/.local/bin` launchers) — then requires typing `WIPE` to confirm. Anything else aborts. |
+
+| Flag | Behaviour |
+|------|-----------|
+| `-i` | Skip the action prompt, install the picked repos |
+| `-w` | Skip the action prompt, wipe the picked repos (`WIPE` confirmation still required) |
+
+Wiping `alias` removes the shell config that provides `superrepo` itself — the re-install command is printed afterwards.
+
 ### Update individual repos
 
 | Command | Repo | Post-pull step |

@@ -1186,6 +1186,218 @@ superup() {
     [ "$_fail" -eq 0 ]
 }
 
+# Install or wipe local repos (alias, deb, dockersource, macscp, mdedit, marcujump) — interactive picker [-i|-w]
+superrepo() {
+    local _act=""
+    case "${1:-}" in
+        -i|--install) _act=install ;;
+        -w|--wipe)    _act=wipe ;;
+        -h|--help)
+            printf 'Usage: superrepo [-i|-w]\n'
+            printf '  lists all known repos, marks the installed ones, then installs or wipes your picks\n'
+            printf '  -i  skip the action prompt, install the picked repos\n'
+            printf '  -w  skip the action prompt, wipe the picked repos\n'
+            return 0 ;;
+    esac
+
+    # name|dir|clone-url|installer-url ("-" = plain clone)|platform (any|linux|mac)|extra paths removed on wipe
+    _sr_table() {
+        cat <<'EOF'
+alias|~/alias|https://github.com/refap3/alias|https://raw.githubusercontent.com/refap3/alias/master/install.sh|any|~/.zshrc ~/.bashrc ~/.gitalias.zsh ~/.jump.sh ~/.ssh/config
+deb|~/deb|https://github.com/refap3/deb|https://raw.githubusercontent.com/refap3/deb/master/install.sh|linux|
+dockersource|~/dockersource|https://github.com/refap3/dockersource|-|any|
+macscp|~/macscp|https://github.com/refap3/macscp|https://raw.githubusercontent.com/refap3/macscp/main/install.sh|mac|~/.local/bin/macscp ~/.local/bin/macscp-update
+mdedit|~/mdedit|https://github.com/refap3/mdedit|https://raw.githubusercontent.com/refap3/mdedit/main/install.sh|any|~/.local/bin/mdedit ~/.local/bin/mdedit-update
+marcujump|~/marcujump|https://github.com/refap3/marcujump|-|any|
+EOF
+    }
+
+    # ~ -> $HOME for every word of a path list; prints one path per line
+    # (no unquoted-$var splitting -- zsh does not word-split those)
+    _sr_paths() {
+        local _p
+        printf '%s\n' "$1" | tr ' ' '\n' | while IFS= read -r _p; do
+            [ -n "$_p" ] && printf '%s\n' "${_p/#\~/$HOME}"
+        done
+    }
+
+    local _os=linux
+    [ "$(uname -s)" = Darwin ] && _os=mac
+
+    # Print the numbered menu
+    local _n=0 _name _dir _url _inst _plat _extra _mark _note
+    printf '\nsuperrepo -- known repos on this node (%s)\n\n' "$_os"
+    while IFS='|' read -r _name _dir _url _inst _plat _extra; do
+        [ -n "$_name" ] || continue
+        _n=$((_n+1))
+        _dir=$(_sr_paths "$_dir")
+        _mark="   -   "; [ -d "$_dir/.git" ] && _mark=" [inst]"
+        _note=""
+        [ "$_plat" != any ] && [ "$_plat" != "$_os" ] && _note="  ($_plat only)"
+        printf '  %d) %-14s %s  %s%s\n' "$_n" "$_name" "$_mark" "$_dir" "$_note"
+    done <<EOF
+$(_sr_table)
+EOF
+
+    printf '\nSelect repos (e.g. 1 3 5, or "all"), empty to cancel: '
+    local _sel; read -r _sel
+    _sel=$(printf '%s' "$_sel" | tr ',' ' ')
+    [ -n "$_sel" ] || { printf 'Cancelled.\n'; unset -f _sr_table _sr_paths; return 1; }
+
+    # Resolve the selection into a newline list of repo names
+    local _picked="" _rest="$_sel" _tok _i
+    case "$_sel" in
+        all|a|ALL|A) _picked=$(_sr_table | cut -d'|' -f1) ;;
+        *)
+            while [ -n "$_rest" ]; do
+                _tok="${_rest%% *}"
+                case "$_rest" in *' '*) _rest="${_rest#* }" ;; *) _rest="" ;; esac
+                [ -n "$_tok" ] || continue
+                case "$_tok" in
+                    ''|*[!0-9]*) printf 'superrepo: ignoring "%s" -- not a number\n' "$_tok" >&2; continue ;;
+                esac
+                _i=0
+                while IFS='|' read -r _name _dir _url _inst _plat _extra; do
+                    [ -n "$_name" ] || continue
+                    _i=$((_i+1))
+                    [ "$_i" = "$_tok" ] && _picked="$_picked$_name
+"
+                done <<EOF
+$(_sr_table)
+EOF
+            done ;;
+    esac
+    _picked=$(printf '%s' "$_picked" | sed '/^$/d')
+    [ -n "$_picked" ] || { printf 'Nothing selected.\n'; unset -f _sr_table _sr_paths; return 1; }
+
+    printf '\nSelected: %s\n' "$(printf '%s' "$_picked" | tr '\n' ' ')"
+
+    if [ -z "$_act" ]; then
+        printf 'Action -- [i]nstall / [w]ipe / [c]ancel: '
+        local _a; read -r _a
+        case "$_a" in
+            i|I) _act=install ;;
+            w|W) _act=wipe ;;
+            *)   printf 'Cancelled.\n'; unset -f _sr_table _sr_paths; return 1 ;;
+        esac
+    fi
+
+    # Run an installer script with a real stdin when one is available
+    # (installers like deb's prompt, and superrepo may itself be fed from a pipe)
+    _sr_run() {
+        if [ -r /dev/tty ]; then bash "$1" < /dev/tty; else bash "$1"; fi
+    }
+
+    # Look up one table row by name
+    _sr_row() {
+        local _r
+        while IFS= read -r _r; do
+            case "$_r" in "$1|"*) printf '%s' "$_r"; return 0 ;; esac
+        done <<EOF
+$(_sr_table)
+EOF
+        return 1
+    }
+
+    local _pass=0 _skip=0 _fail=0 _p
+
+    if [ "$_act" = wipe ]; then
+        # Collect and show every path before touching anything
+        local _targets=""
+        while IFS= read -r _p; do
+            [ -n "$_p" ] || continue
+            IFS='|' read -r _name _dir _url _inst _plat _extra <<EOF
+$(_sr_row "$_p")
+EOF
+            _targets="$_targets$(_sr_paths "$_dir")
+$(_sr_paths "$_extra")
+"
+        done <<EOF
+$_picked
+EOF
+        _targets=$(printf '%s' "$_targets" | sed '/^$/d')
+        printf '\nThese paths will be DELETED:\n'
+        while IFS= read -r _p; do
+            if [ -e "$_p" ] || [ -L "$_p" ]; then printf '  %s\n' "$_p"; fi
+        done <<EOF
+$_targets
+EOF
+        case "$_picked" in
+            *alias*) printf '\nWARNING: wiping alias removes this shell config (including superrepo itself).\n' ;;
+        esac
+        printf '\nType WIPE to confirm: '
+        local _c; read -r _c
+        if [ "$_c" != WIPE ]; then
+            printf 'Aborted -- nothing deleted.\n'
+            unset -f _sr_table _sr_paths _sr_row _sr_run; return 1
+        fi
+        while IFS= read -r _p; do
+            if [ -e "$_p" ] || [ -L "$_p" ]; then
+                if rm -rf "$_p"; then printf '  removed %s\n' "$_p"; _pass=$((_pass+1))
+                else printf '  FAILED  %s\n' "$_p" >&2; _fail=$((_fail+1)); fi
+            fi
+        done <<EOF
+$_targets
+EOF
+        unset -f _sr_table _sr_paths _sr_row _sr_run
+        printf '\nsuperrepo: wiped %d paths  failed %d\n' "$_pass" "$_fail"
+        case "$_picked" in
+            *alias*) printf 'Re-install with: curl -fsSL https://raw.githubusercontent.com/refap3/alias/master/install.sh | bash\n' ;;
+        esac
+        [ "$_fail" -eq 0 ]
+        return
+    fi
+
+    # install
+    local _tmp
+    while IFS= read -r _p; do
+        [ -n "$_p" ] || continue
+        IFS='|' read -r _name _dir _url _inst _plat _extra <<EOF
+$(_sr_row "$_p")
+EOF
+        _dir=$(_sr_paths "$_dir")
+        printf '\n--- %s\n' "$_name"
+        if [ -d "$_dir/.git" ]; then
+            printf 'already installed at %s -- skipped (use superup to update)\n' "$_dir"
+            _skip=$((_skip+1)); continue
+        fi
+        if [ "$_plat" != any ] && [ "$_plat" != "$_os" ]; then
+            printf '%s is %s-only -- skipped\n' "$_name" "$_plat"
+            _skip=$((_skip+1)); continue
+        fi
+        if [ "$_inst" = "-" ]; then
+            if git clone --depth 1 "$_url" "$_dir"; then
+                # repo without a one-line installer: run its root install.sh if it has one
+                if [ -f "$_dir/install.sh" ] && [ "$_name" != dockersource ]; then
+                    printf 'running %s/install.sh ...\n' "$_dir"
+                    _sr_run "$_dir/install.sh" || true
+                fi
+                _pass=$((_pass+1))
+            else
+                printf '%s: FAILED\n' "$_name" >&2; _fail=$((_fail+1))
+            fi
+        else
+            # Download first, then run with a real stdin so interactive installers work
+            _tmp=$(mktemp "${TMPDIR:-/tmp}/superrepo.XXXXXX") || { _fail=$((_fail+1)); continue; }
+            if curl -fsSL "$_inst" -o "$_tmp" && _sr_run "$_tmp"; then
+                _pass=$((_pass+1))
+            else
+                printf '%s: FAILED\n' "$_name" >&2; _fail=$((_fail+1))
+            fi
+            rm -f "$_tmp"
+        fi
+    done <<EOF
+$_picked
+EOF
+
+    unset -f _sr_table _sr_paths _sr_row _sr_run
+    printf '\nsuperrepo: installed %d  skipped %d  failed %d\n' "$_pass" "$_skip" "$_fail"
+    case "$_picked" in
+        *alias*) printf 'Restart the shell (or: exec $SHELL) to pick up alias changes.\n' ;;
+    esac
+    [ "$_fail" -eq 0 ]
+}
+
 # Open man page for a local repo; partial match for repo and section. -l lists sections. e.g. manr de nw  manr dock -l
 manr() {
     local _repos=(alias deb dockersource macscp mdedit)
