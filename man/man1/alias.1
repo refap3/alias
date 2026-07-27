@@ -1158,9 +1158,10 @@ Pull latest alias repo (shallow, strips old history) and re-run
 .B dbu
 Pull latest deb repo (shallow, strips old history).
 .TP
-.B superup\c
+.B superdate\c
  [\fB\-full\fP|\fB\-shallow\fP]
-Update all installed local repos in one shot: alias, deb, dockersource, macscp, mdedit.
+Update all installed local repos in one shot: alias, deb, dockersource, macscp, mdedit,
+marcujump and claudeCode.
 Skips any repo whose directory does not contain a
 .I .git
 folder (i.e.\& not installed on this node).
@@ -1178,53 +1179,53 @@ Convert all repos to full history (unshallow). Repos already at full history are
 Set all repos to depth=1 (last commit only).
 .RE
 .TP
-.B superrepo\c
- [\fB\-i\fP|\fB\-w\fP]
-Interactive installer/uninstaller for every known local repo:
+.B superinstall\c
+ [\fB\-full\fP|\fB\-shallow\fP]
+Install local repos. Prints a numbered list of every known repo \(em
 .IR alias ,
 .IR deb ,
 .IR dockersource ,
 .IR macscp ,
-.I mdedit
+.IR mdedit ,
+.I marcujump
 and
-.IR marcujump .
-Prints a numbered list, marking already-installed repos with
+.I claudeCode
+(cloned to
+.IR ~/claudeExperiments )
+\(em marking already-installed ones with
 .B [inst]
 and flagging platform-restricted ones (deb is Linux-only, macscp is macOS-only).
-Enter the numbers to act on (\fB1 3 5\fP, commas allowed) or
+Enter the numbers to install (\fB1 3 5\fP, commas allowed) or
 .BR all ;
 an empty answer cancels.
-Then pick the action: \fB[i]nstall\fP, \fB[w]ipe\fP or \fB[c]ancel\fP.
-.RS
-.TP
-.B Install
-Runs the repo's one-line installer (downloaded to a temp file and executed with a real stdin, so
-interactive installers such as deb's still prompt correctly).
-Repos without a one-line installer are cloned shallow; a repo-root
+Each pick is installed with the repo's one-line installer, downloaded to a temp file and executed
+with a real stdin so interactive installers such as deb's still prompt correctly.
+Repos without a one-line installer are cloned; a repo-root
 .I install.sh
 is then run if present (dockersource is exempt \(em its install scripts are per-container).
 Already-installed repos are skipped: use
-.B superup
+.B superdate
 to update those.
-.TP
-.B Wipe
-Lists every path that will be deleted \(em the repo directory plus everything the repo deployed
-(for alias: \fI~/.zshrc\fP, \fI~/.bashrc\fP, \fI~/.gitalias.zsh\fP, \fI~/.jump.sh\fP, \fI~/.ssh/config\fP;
-for macscp/mdedit: their \fI~/.local/bin\fP launchers) \(em then requires you to type
-.B WIPE
-to confirm. Anything else aborts without deleting.
-Wiping alias removes the shell config that provides
-.B superrepo
-itself; the re-install command is printed afterwards.
-.RE
 .RS
 .TP
-.B \-i
-Skip the action prompt and install the picked repos.
+.B \-full
+Clone with full git history (and unshallow what an installer cloned shallow).
 .TP
-.B \-w
-Skip the action prompt and wipe the picked repos (the WIPE confirmation is still required).
+.B \-shallow
+Reduce the installed repo to depth=1. This is also the default for clones superinstall makes itself.
 .RE
+.TP
+.B superwipe
+Uninstall local repos. Same numbered picker as
+.BR superinstall ,
+then lists every path that will be deleted \(em the repo directory plus everything the repo deployed
+(for alias: \fI~/.zshrc\fP, \fI~/.bashrc\fP, \fI~/.gitalias.zsh\fP, \fI~/.jump.sh\fP, \fI~/.ssh/config\fP;
+for macscp/mdedit: their \fI~/.local/bin\fP launchers) \(em and requires you to type
+.B WIPE
+to confirm. Anything else aborts without deleting anything.
+Wiping alias removes the shell config that provides
+.B superwipe
+itself; the re-install command is printed afterwards.
 .SH SSH CONFIG
 .I ~/alias/ssh_config
 (symlinked to
