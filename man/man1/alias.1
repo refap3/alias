@@ -1106,6 +1106,49 @@ and
 .B \-d
 .RI [ N ]
 flags.
+.TP
+.B cmem
+Generate a Claude Code configuration report for the current directory and open the interactive HTML in the browser.
+Outputs
+.I config_YYYY-MM-DD_HHMM.md
+and
+.I config_YYYY-MM-DD_HHMM.html
+to
+.IR ~/.dotfiles/config-reports/ .
+The report always contains the global scope
+.RI ( ~/.claude :
+.IR CLAUDE.md ,
+.IR memory/ ,
+.IR skills/ ,
+.IR agents/ ,
+.IR commands/ ,
+.IR settings.json ,
+.IR settings.local.json ,
+hook rules and hook scripts, permission rules,
+.IR mcp.json ,
+installed plugins and marketplaces) followed by the project scope
+.RI ( CLAUDE.md ,
+.IR CLAUDE.local.md ,
+.IR ~/.claude/projects/<slug>/memory/ ,
+.IR .claude/skills ,
+.IR .claude/agents ,
+.IR .claude/commands ,
+.IR .claude/settings*.json ,
+project hooks and permissions,
+.IR .mcp.json ).
+Full file contents are embedded, collapsed by default in the HTML.
+Secret-looking values (token, api_key, password, secret, credential, JWT and long hex blobs) are replaced with
+.IR \(lqredacted\(rq ;
+.I ${ENV_VAR}
+placeholders are kept.
+Pass a directory argument to report on that project instead of the current one.
+No API calls are made.
+.TP
+.B cmemall
+Same as
+.B cmem
+but covers all Claude Code projects under
+.IR ~/.claude/projects .
 .SH REPO UPDATE
 .TP
 .B alu

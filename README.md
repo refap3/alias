@@ -532,6 +532,9 @@ gstrip        # strip again when done
 | `csess` | Generate MD + interactive HTML session report for the current project (claudeExperiments), then open the HTML |
 | `csessall` | Same as `csess` but covers all Claude Code projects on this machine |
 | `csess -d [N]` | Limit report to last N days; `-d` alone = today only |
+| `cmem` | Generate MD + interactive HTML config report (memory, skills, agents, commands, hooks, MCP, settings) for the current directory, then open the HTML |
+| `cmemall` | Same as `cmem` but covers all Claude Code projects on this machine |
+| `cmem DIR` | Report on `DIR` instead of the current directory |
 
 ### Session reports (`csess` / `csessall`)
 
@@ -557,6 +560,36 @@ csessall --no-summaries
 csess -d 7          # last 7 days
 csessall -d         # today only
 csess -d 3 --no-summaries
+```
+
+### Config reports (`cmem` / `cmemall`)
+
+Reports are written to `~/.dotfiles/config-reports/config_YYYY-MM-DD_HHMM.{md,html}` by
+`~/.dotfiles/tools/extract_config.py`. No API calls, no cost.
+
+Each report has one section per scope. The **global** scope is always included, followed by
+the current project (`cmem`) or every project under `~/.claude/projects` (`cmemall`):
+
+| Scope | What is collected |
+|-------|-------------------|
+| Global (`~/.claude`) | `CLAUDE.md`, `memory/*.md`, `skills/*/SKILL.md`, `agents/`, `commands/`, `settings.json`, `settings.local.json`, hook rules + hook scripts, permission rules, `mcp.json`, installed plugins, plugin marketplaces |
+| Project | `CLAUDE.md`, `CLAUDE.local.md`, `~/.claude/projects/<slug>/memory/*.md`, `.claude/skills`, `.claude/agents`, `.claude/commands`, `.claude/settings*.json`, project hooks, permission rules, `.mcp.json`, session count |
+
+Full file contents are embedded (collapsed by default in the HTML), so the report is a
+complete snapshot of everything that steers Claude Code in that directory.
+
+**Secrets are redacted** — JSON values under key names like `token`, `api_key`, `password`,
+`secret`, `credential` are replaced with `«redacted»`, as are similar assignments and long
+JWT/hex blobs found in Markdown and hook scripts. `${ENV_VAR}` placeholders are kept, since
+they hold no secret.
+
+The HTML report has expand/collapse-all buttons and a live text filter across paths, names
+and file contents.
+
+```bash
+cmem                 # global + current directory
+cmem ~/deb           # global + the ~/deb project
+cmemall              # global + every known project
 ```
 
 ---
@@ -749,4 +782,4 @@ pcc203cv "cd alias; Install-Module Pester -Force -Scope CurrentUser; Invoke-Pest
 
 ### Not ported
 
-`mcv` (Screen Sharing), `piv` (pinginfoview), `manr` (man pages), `db`/`dst` (deb repo scripts), `nwtools` (interactive menu), and Claude CLI aliases (`cdsp`, `csess`) are excluded — macOS-only or depend on unrelated repos.
+`mcv` (Screen Sharing), `piv` (pinginfoview), `manr` (man pages), `db`/`dst` (deb repo scripts), `nwtools` (interactive menu), and Claude CLI aliases (`cdsp`, `csess`, `cmem`) are excluded — macOS-only or depend on unrelated repos.

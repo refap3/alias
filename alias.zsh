@@ -75,6 +75,17 @@ csessall() {
         open "$(ls -t ~/.dotfiles/sessions/*.html | head -1)"
 }
 
+# Claude config report (memory, skills, agents, commands, hooks, MCP, settings) for the current dir; optional DIR argument
+cmem() {
+    python3 ~/.dotfiles/tools/extract_config.py "$@" && \
+        open "$(ls -t ~/.dotfiles/config-reports/*.html | head -1)"
+}
+# Same Claude config report but covering every project under ~/.claude/projects
+cmemall() {
+    python3 ~/.dotfiles/tools/extract_config.py --all "$@" && \
+        open "$(ls -t ~/.dotfiles/config-reports/*.html | head -1)"
+}
+
 # Docker Compose — use plugin (docker compose) when available, fall back to standalone (docker-compose)
 _dc() {
     if [ -f /etc/synoinfo.conf ]; then
