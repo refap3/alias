@@ -15,7 +15,7 @@ Clones a shallow copy (no history) into `~/alias` and runs `deploy.sh`.
 ### Update all repos at once
 
 ```bash
-superdate
+superupdate
 ```
 
 Updates every installed local repo — alias, deb, dockersource, macscp, mdedit, marcujump, claudeCode — in one command. Silently skips any repo not present on the current node, then runs each repo's install/deploy step. For macscp and mdedit, pip deps are only reinstalled if `requirements.txt` changed. Prints a summary: `updated N  skipped N  failed N`.
@@ -44,7 +44,7 @@ Pick with numbers (`1 3 5`, commas allowed) or `all`; empty cancels.
 superinstall [-full|-shallow]
 ```
 
-Runs each picked repo's one-line installer (downloaded to a temp file and executed with a real stdin, so interactive installers like deb's still prompt). Repos without a one-line installer are cloned, then their root `install.sh` is run if present (dockersource exempt — its installers are per-container). Already-installed repos are skipped — use `superdate` to update those.
+Runs each picked repo's one-line installer (downloaded to a temp file and executed with a real stdin, so interactive installers like deb's still prompt). Repos without a one-line installer are cloned, then their root `install.sh` is run if present (dockersource exempt — its installers are per-container). Already-installed repos are skipped — use `superupdate` to update those.
 
 | Flag | Behaviour |
 |------|-----------|

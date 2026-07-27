@@ -1158,7 +1158,7 @@ Pull latest alias repo (shallow, strips old history) and re-run
 .B dbu
 Pull latest deb repo (shallow, strips old history).
 .TP
-.B superdate\c
+.B superupdate\c
  [\fB\-full\fP|\fB\-shallow\fP]
 Update all installed local repos in one shot: alias, deb, dockersource, macscp, mdedit,
 marcujump and claudeCode.
@@ -1204,7 +1204,7 @@ Repos without a one-line installer are cloned; a repo-root
 .I install.sh
 is then run if present (dockersource is exempt \(em its install scripts are per-container).
 Already-installed repos are skipped: use
-.B superdate
+.B superupdate
 to update those.
 .RS
 .TP

@@ -1100,7 +1100,7 @@ dbu() {
 }
 
 # Update all repos (alias, deb, dockersource, macscp, mdedit, marcujump, claudeCode) and run install steps [-full|-shallow]
-superdate() {
+superupdate() {
     local _pass=0 _skip=0 _fail=0 _mode=""
 
     for _a in "$@"; do
@@ -1157,7 +1157,7 @@ superdate() {
 
     local _label=""
     [ -n "$_mode" ] && _label=" ($_mode)"
-    printf 'superdate%s -- updating installed repos ...\n' "$_label"
+    printf 'superupdate%s -- updating installed repos ...\n' "$_label"
 
     local _al="${DOTFILES:-$HOME/alias}"
     local _db="${DEB_DIR:-$HOME/deb}"
@@ -1190,7 +1190,7 @@ superdate() {
     _sup_py mdedit "$_md" "$_mode"
 
     unset -f _sup _sup_py 2>/dev/null || true
-    printf '\nsuperdate: updated %d  skipped %d  failed %d\n' "$_pass" "$_skip" "$_fail"
+    printf '\nsuperupdate: updated %d  skipped %d  failed %d\n' "$_pass" "$_skip" "$_fail"
     [ "$_fail" -eq 0 ]
 }
 
@@ -1341,7 +1341,7 @@ EOF
         _dir=$(_sr_paths "$_dir")
         printf '\n--- %s\n' "$_name"
         if [ -d "$_dir/.git" ]; then
-            printf 'already installed at %s -- skipped (use superdate to update)\n' "$_dir"
+            printf 'already installed at %s -- skipped (use superupdate to update)\n' "$_dir"
             _skip=$((_skip+1)); continue
         fi
         if [ "$_plat" != any ] && [ "$_plat" != "$_os" ]; then
