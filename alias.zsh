@@ -64,26 +64,34 @@ d() {
 alias cdsp='claude --dangerously-skip-permissions'
 alias cdspr='claude --dangerously-skip-permissions --resume'
 
+# Run a Claude report tool, echo its output live, then open the HTML file it reports
+_creport() {
+    local out html
+    out=$(python3 "$@" | tee /dev/stderr) || return
+    html=$(printf '%s\n' "$out" | awk '/^HTML:/ {print $2}' | tail -1)
+    if [ -z "$html" ] || [ ! -f "$html" ]; then
+        echo "creport: no HTML report produced" >&2
+        return 1
+    fi
+    open "$html"
+}
+
 # Session report for current project; --no-summaries skips AI descriptions; -d [N] limits to last N days (-d alone = today)
 csess() {
-    python3 ~/.dotfiles/tools/extract_sessions.py "$@" && \
-        open "$(ls -t ~/.dotfiles/clinternal_sessions/*.html | head -1)"
+    _creport ~/.dotfiles/tools/extract_sessions.py "$@"
 }
 # Session report for all projects; --no-summaries skips AI descriptions; -d [N] limits to last N days (-d alone = today)
 csessall() {
-    python3 ~/.dotfiles/tools/extract_sessions.py --all "$@" && \
-        open "$(ls -t ~/.dotfiles/clinternal_sessions/*.html | head -1)"
+    _creport ~/.dotfiles/tools/extract_sessions.py --all "$@"
 }
 
 # Claude config report (memory, skills, agents, commands, hooks, MCP, settings) for the current dir; optional DIR argument
 cmem() {
-    python3 ~/.dotfiles/tools/extract_config.py "$@" && \
-        open "$(ls -t ~/.dotfiles/clinternal_memory/*.html | head -1)"
+    _creport ~/.dotfiles/tools/extract_config.py "$@"
 }
 # Same Claude config report but covering every project under ~/.claude/projects
 cmemall() {
-    python3 ~/.dotfiles/tools/extract_config.py --all "$@" && \
-        open "$(ls -t ~/.dotfiles/clinternal_memory/*.html | head -1)"
+    _creport ~/.dotfiles/tools/extract_config.py --all "$@"
 }
 
 # Docker Compose — use plugin (docker compose) when available, fall back to standalone (docker-compose)

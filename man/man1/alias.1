@@ -1076,6 +1076,9 @@ and
 .I sessions_YYYY-MM-DD_HHMM.html
 to
 .IR ~/.dotfiles/clinternal_sessions/ .
+The browser is pointed at the path the tool prints on its
+.B HTML:
+line, so the output directory is never hardcoded in the alias.
 Each session includes an AI-generated one-line description (in the summary bar) and a 3\(en5 sentence paragraph (in the expanded panel), produced by
 .B claude-haiku-4-5-20251001
 and cached in
@@ -1115,6 +1118,9 @@ and
 .I config_YYYY-MM-DD_HHMM.html
 to
 .IR ~/.dotfiles/clinternal_memory/ .
+The browser is pointed at the path the tool prints on its
+.B HTML:
+line, so the output directory is never hardcoded in the alias.
 The report always contains the global scope
 .RI ( ~/.claude :
 .IR CLAUDE.md ,
