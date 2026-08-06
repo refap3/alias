@@ -6,7 +6,8 @@ export PATH="$HOME/.local/bin:$PATH"
 # Secrets live outside the repo in ~/.secrets (mode 600, untracked).
 [ -f "$HOME/.secrets" ] && source "$HOME/.secrets"
 
-DOTFILES="${${:-$HOME/.zshrc}:A:h}"
+# Exported so scripts and subshells can find the dotfiles too.
+export DOTFILES="${${:-$HOME/.zshrc}:A:h}"
 
 # Aliases — load all *alias*.zsh files
 for _f in "$DOTFILES"/*alias*.zsh; do [[ -f "$_f" ]] && source "$_f"; done
@@ -15,12 +16,13 @@ unset _f
 # Delayed Git Alias Loader
 function gital() {
     source $DOTFILES/gitalias.zsh
-    echo "Git aliases loaded! (Use 'gh' for help if you have a helper function, or just use the aliases)"
+    echo "Git aliases loaded! List them with 'gal'."
 }
 
-# Optional: Helper function to list these specific aliases (similar to your 'gh')
-function gh() {
-    cat $DOTFILES/gitalias.zsh | grep '^alias' | sort
+# List the git aliases from gitalias.zsh.
+# Named 'gal', not 'gh' — 'gh' belongs to the GitHub CLI.
+function gal() {
+    grep '^alias' "$DOTFILES/gitalias.zsh" | sort
 }
 # Reload all aliases fresh
 function allal() {

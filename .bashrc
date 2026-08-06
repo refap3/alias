@@ -3,8 +3,9 @@ export PATH="$HOME/.local/bin:$PATH"
 # Resolve DOTFILES to the directory where this file actually lives,
 # following the symlink if one exists. readlink is available on macOS
 # without any extra tools; dirname handles the rest.
+# Exported so scripts and subshells can find the dotfiles too.
 _t=$(readlink "$HOME/.bashrc" 2>/dev/null)
-DOTFILES=$(dirname "${_t:-$HOME/.bashrc}")
+export DOTFILES=$(dirname "${_t:-$HOME/.bashrc}")
 unset _t
 
 # Aliases — load all *alias*.zsh files
@@ -13,11 +14,13 @@ unset _f
 
 gital() {
     source $DOTFILES/gitalias.zsh
-    echo "Git aliases loaded!"
+    echo "Git aliases loaded! List them with 'gal'."
 }
 
-gh() {
-    grep '^alias' $DOTFILES/gitalias.zsh | sort
+# List the git aliases from gitalias.zsh.
+# Named 'gal', not 'gh' — 'gh' belongs to the GitHub CLI.
+gal() {
+    grep '^alias' "$DOTFILES/gitalias.zsh" | sort
 }
 
 # Reload all aliases fresh

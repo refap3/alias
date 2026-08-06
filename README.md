@@ -490,7 +490,7 @@ After `syauth`, `syp` and `syc` work without a password.
 
 > **Note:** Synology's default login shell is `/bin/sh` (ash). The `.bashrc` in this repo is written to be sourced from ash without errors. Do not edit `/etc/passwd` directly — DSM manages it and manual edits break SSH auth. To change the shell, use DSM Control Panel or the `admin` account with `chsh`.
 
-**Git** (auto-loaded at login — `sl` to unload, `gital` to reload, `gh` to list):
+**Git** (auto-loaded at login — `sl` to unload, `gital` to reload, `gal` to list):
 
 | Command | Description |
 |---------|-------------|
@@ -558,7 +558,7 @@ gstrip        # strip again when done
 | `allal` | Reload all alias files from scratch |
 | `sl` | Unload git aliases and reload shell profile |
 | `gital` | Reload git aliases |
-| `gh` | List all git aliases |
+| `gal` | List all git aliases (was `gh` — renamed so the GitHub CLI keeps that name) |
 
 ---
 
