@@ -28,7 +28,7 @@ Updates every installed local repo — alias, deb, dockersource, macscp, mdedit,
 
 ## Install and wipe repos
 
-`superinstall` and `superwipe` share one picker. Both print a numbered list of every known repo — `alias`, `deb`, `dockersource`, `macscp`, `mdedit`, `marcujump`, `claudeCode` (cloned to `~/claudeExperiments`) — mark the installed ones with `[inst]`, and flag platform-restricted repos (`deb` is Linux-only, `macscp` is macOS-only):
+`superinstall` and `superwipe` share one picker. Both print a numbered list of every known repo — `alias`, `deb`, `dockersource`, `macscp`, `mdedit`, `marcujump`, `claudeCode` (cloned to `~/claudeExperiments`), `epubtrans` — mark the installed ones with `[inst]`, and flag platform-restricted repos (`deb` is Linux-only, `macscp` is macOS-only):
 
 ```
   1) alias           [inst]  /Users/rainers/alias
@@ -153,6 +153,12 @@ source ~/.zshrc     # or source ~/.bashrc
 | `stripocean.py` | Remove OceanofPDF branding from EPUB files (`soc`) |
 | `nwtools_testplan.md` | Test plan for `nwtools` |
 | `man/man1/alias.1` | Man page — `man alias` (available once alias.zsh is sourced) |
+
+Separate repos installed by `superinstall`:
+
+| Repo | Purpose |
+|------|---------|
+| `~/epubtrans` | Translate EPUBs into another language (`epubtrans`) |
 
 ## Naming convention
 
@@ -655,6 +661,35 @@ soc book.epub --keep-pages    # clean pages but never delete them
 | `--dry-run` | Report what would change, write nothing |
 | `--no-backup` | Skip the `.bak` copy when editing in place |
 | `--keep-pages` | Clean watermark pages instead of deleting them |
+
+---
+
+## EPUB Translation (`epubtrans`)
+
+Translates an EPUB into another language while leaving images, fonts, stylesheets and internal links byte-for-byte unchanged. Lives in its own repo at `~/epubtrans` — install it with `superinstall`. Needs `python3` with `lxml` and `requests`, and `ANTHROPIC_API_KEY` in the environment for the default engine.
+
+```bash
+epubtrans book.epub --dry-run                 # scope and cost estimate, spends nothing
+epubtrans book.epub --sample 40 -o probe.epub # first 40 segments, to check tone
+epubtrans book.epub -l de -o buch.epub \
+    --glossary terms.tsv \
+    --context "Sachbuch, nuechterner Ton" -j 6
+```
+
+| Flag | Effect |
+|------|--------|
+| `-l <lang>` | Target language (default `de`) |
+| `-o <file>` | Output EPUB |
+| `--dry-run` | Segment count, character count, token and cost estimate |
+| `--sample <n>` | Translate only the first n segments |
+| `--glossary <file>` | TSV/JSON term list, injected into the prompt as binding |
+| `--context <text>` | One line on genre and register — large effect on tone |
+| `--max-chars <n>` | Source characters per request |
+| `-e <engine>` | `anthropic` (default), `libretranslate` (offline), `echo` (no-op) |
+| `-j <n>` | Parallel requests; 4–8 is sensible |
+| `--cache <file>` | Share one SQLite segment cache across runs |
+
+Every segment is cached, so interrupted jobs resume and reruns are free. `verify.py` in the repo checks the output against the source for structural drift.
 
 ---
 

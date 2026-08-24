@@ -168,6 +168,10 @@ Interactive network troubleshooting menu (Mac + Pi). Run as
 Removes OceanofPDF branding from EPUB files. Run as
 .BR soc .
 .TP
+.I ~/epubtrans
+Separate repo installed by superinstall; translates EPUBs. Run as
+.BR epubtrans .
+.TP
 .I deploy.sh
 Installer: symlinks dotfiles, detects shell, backs up existing rc files.
 .SH GENERAL ALIASES
@@ -366,6 +370,43 @@ reports without changing anything, and
 cleans watermark pages instead of deleting them.
 Accepts multiple files. Requires
 .BR python3 .
+.TP
+.B epubtrans " <book.epub> [\-l <lang>] [\-o <out.epub>] [\-\-dry\-run] [\-\-sample <n>] [\-\-glossary <file>] [\-\-context <text>] [\-e <engine>] [\-j <n>]"
+Translate an EPUB into another language, leaving images, fonts, stylesheets and
+internal links byte-for-byte unchanged. Runs
+.I ~/epubtrans
+(installed by
+.BR superinstall ).
+.B \-\-dry\-run
+reports segment count, character count and an estimated cost without spending anything;
+.B \-\-sample
+translates only the first
+.I n
+segments so tone and terminology can be checked first;
+.B \-\-glossary
+takes a TSV or JSON term list that is injected into the prompt as binding;
+.B \-l
+sets the target language (default
+.BR de ),
+.B \-e
+picks the engine
+.RB ( anthropic ,
+.BR libretranslate ,
+.BR echo )
+and
+.B \-j
+sets the number of parallel requests (4\(en8 is sensible).
+Every segment is cached in SQLite next to the output, so interrupted jobs resume and reruns are free.
+The
+.B anthropic
+engine needs
+.I ANTHROPIC_API_KEY
+in the environment. Requires
+.B python3
+with
+.I lxml
+and
+.IR requests .
 .TP
 .B lo
 Exit the shell (alias for
@@ -1228,11 +1269,12 @@ Install local repos. Prints a numbered list of every known repo \(em
 .IR dockersource ,
 .IR macscp ,
 .IR mdedit ,
-.I marcujump
-and
+.IR marcujump ,
 .I claudeCode
 (cloned to
 .IR ~/claudeExperiments )
+and
+.I epubtrans
 \(em marking already-installed ones with
 .B [inst]
 and flagging platform-restricted ones (deb is Linux-only, macscp is macOS-only).

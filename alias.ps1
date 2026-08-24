@@ -427,6 +427,13 @@ function dclog {
 # soc — strip OceanofPDF branding from EPUB files
 function soc { python3 "$HOME/alias/stripocean.py" @args }
 
+# epubtrans — translate an EPUB into another language
+function epubtrans {
+    $old = $env:PYTHONPATH
+    $env:PYTHONPATH = if ($old) { "$HOME/epubtrans" + [IO.Path]::PathSeparator + $old } else { "$HOME/epubtrans" }
+    try { python3 -m epubtrans.cli @args } finally { $env:PYTHONPATH = $old }
+}
+
 # ── Help ──────────────────────────────────────────────────────────────────────
 
 # alh [filter] — show one-line help for all functions from comments

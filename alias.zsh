@@ -1090,6 +1090,9 @@ alias nw='~/alias/nwtools'
 # Strip OceanofPDF branding from EPUB files (soc <file.epub> [-o out] [--dry-run] [--no-backup] [--keep-pages])
 alias soc='python3 ~/alias/stripocean.py'
 
+# Translate an EPUB into another language (epubtrans <book.epub> [-l de] [-o out.epub] [--dry-run] [--sample N])
+alias epubtrans='PYTHONPATH="$HOME/epubtrans${PYTHONPATH:+:$PYTHONPATH}" python3 -m epubtrans.cli'
+
 # Pull latest deb repo (shallow, strips old history)
 dbu() {
     local dir="${DEB_DIR:-$HOME/deb}"
@@ -1218,6 +1221,7 @@ macscp|~/macscp|https://github.com/refap3/macscp|https://raw.githubusercontent.c
 mdedit|~/mdedit|https://github.com/refap3/mdedit|https://raw.githubusercontent.com/refap3/mdedit/main/install.sh|any|~/.local/bin/mdedit ~/.local/bin/mdedit-update
 marcujump|~/marcujump|https://github.com/refap3/marcujump|-|any|
 claudeCode|~/claudeExperiments|https://github.com/refap3/claudeCode|-|any|
+epubtrans|~/epubtrans|https://github.com/refap3/epubtrans|-|any|
 EOF
 }
 
@@ -1323,7 +1327,7 @@ _sr_depth() {
     return 0
 }
 
-# Install local repos (alias, deb, dockersource, macscp, mdedit, marcujump, claudeCode) — interactive picker [-full|-shallow]
+# Install local repos (alias, deb, dockersource, macscp, mdedit, marcujump, claudeCode, epubtrans) — interactive picker [-full|-shallow]
 superinstall() {
     local _mode=""
     for _a in "$@"; do
