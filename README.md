@@ -150,6 +150,7 @@ source ~/.zshrc     # or source ~/.bashrc
 | `jump.sh` | Directory jump function (`j`) |
 | `deploy.sh` | Install script — 4 variants: zsh/bash × home/custom |
 | `nwtools` | Interactive network troubleshooting menu (Mac + Pi) |
+| `stripocean.py` | Remove OceanofPDF branding from EPUB files (`soc`) |
 | `nwtools_testplan.md` | Test plan for `nwtools` |
 | `man/man1/alias.1` | Man page — `man alias` (available once alias.zsh is sourced) |
 
@@ -633,6 +634,27 @@ cmem                 # global + current directory
 cmem ~/deb           # global + the ~/deb project
 cmemall              # global + every known project
 ```
+
+---
+
+## EPUB Cleanup (`soc`)
+
+Removes every trace of OceanofPDF branding from EPUB files — links, watermark pages, branded assets, OPF metadata, and the leftover empty markup. Standard library only, Python 3.8+.
+
+```bash
+soc book.epub                 # in place, keeps book.epub.bak
+soc book.epub -o clean.epub   # write to a new file
+soc *.epub --dry-run          # report only, change nothing
+soc book.epub --no-backup     # no .bak copy
+soc book.epub --keep-pages    # clean pages but never delete them
+```
+
+| Flag | Effect |
+|------|--------|
+| `-o <file>` | Write result to a new file instead of in place |
+| `--dry-run` | Report what would change, write nothing |
+| `--no-backup` | Skip the `.bak` copy when editing in place |
+| `--keep-pages` | Clean watermark pages instead of deleting them |
 
 ---
 

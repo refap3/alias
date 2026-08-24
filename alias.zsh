@@ -1087,6 +1087,9 @@ piv() {
 # Interactive network troubleshooting menu (ipconfig/arp/dns/ping/bw)
 alias nw='~/alias/nwtools'
 
+# Strip OceanofPDF branding from EPUB files (soc <file.epub> [-o out] [--dry-run] [--no-backup] [--keep-pages])
+alias soc='python3 ~/alias/stripocean.py'
+
 # Pull latest deb repo (shallow, strips old history)
 dbu() {
     local dir="${DEB_DIR:-$HOME/deb}"

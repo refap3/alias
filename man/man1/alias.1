@@ -164,6 +164,10 @@ jump function for fast navigation.
 Interactive network troubleshooting menu (Mac + Pi). Run as
 .BR nw .
 .TP
+.I stripocean.py
+Removes OceanofPDF branding from EPUB files. Run as
+.BR soc .
+.TP
 .I deploy.sh
 Installer: symlinks dotfiles, detects shell, backs up existing rc files.
 .SH GENERAL ALIASES
@@ -344,6 +348,24 @@ Prints a one-line install instruction if the deb repo is not present.
 .B nw
 Launch the interactive network tools menu
 .RI ( ~/alias/nwtools ).
+.TP
+.B soc " <file.epub> [-o <out>] [--dry-run] [--no-backup] [--keep-pages]"
+Strip every trace of OceanofPDF branding from an EPUB: branded links, watermark
+pages and their manifest/spine/guide/TOC entries, branded assets and file names,
+branding-only OPF metadata, and the leftover empty markup.
+Edits in place and keeps a
+.I .bak
+copy unless
+.B --no-backup
+is given;
+.B -o
+writes to a new file instead,
+.B --dry-run
+reports without changing anything, and
+.B --keep-pages
+cleans watermark pages instead of deleting them.
+Accepts multiple files. Requires
+.BR python3 .
 .TP
 .B lo
 Exit the shell (alias for

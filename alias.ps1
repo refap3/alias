@@ -424,6 +424,9 @@ function dclog {
     }
 }
 
+# soc — strip OceanofPDF branding from EPUB files
+function soc { python3 "$HOME/alias/stripocean.py" @args }
+
 # ── Help ──────────────────────────────────────────────────────────────────────
 
 # alh [filter] — show one-line help for all functions from comments
