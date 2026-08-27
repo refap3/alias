@@ -676,6 +676,8 @@ epubtrans book.epub -l de \
     --context "Sachbuch, nuechterner Ton" -j 6
 ```
 
+`--dry-run` prices the run at the rates of the model you picked, so comparing two models costs nothing. The model is part of the cache key, so switching means a full fresh pass.
+
 `-o` is optional. Without it the output is named after what was done: `book.de.epub` for a translation, `book.summ-deep.epub` for a summary, `book.de.summ-deep.epub` for both. Parts that do not apply are left out, so two runs at different settings never overwrite each other.
 
 | Flag | Effect |
@@ -688,6 +690,7 @@ epubtrans book.epub -l de \
 | `--context <text>` | One line on genre and register — large effect on tone |
 | `--max-chars <n>` | Source characters per request |
 | `-e <engine>` | `anthropic` (default), `libretranslate` (offline), `echo` (no-op) |
+| `-m <model>` | Claude model. `claude-sonnet-5` (default), `claude-opus-5` for the best prose at ~2.5x the cost, `claude-haiku-4-5` for cheap drafts |
 | `-j <n>` | Parallel requests; 4–8 is sensible |
 | `--cache <file>` | Share one SQLite segment cache across runs |
 

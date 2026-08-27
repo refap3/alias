@@ -371,7 +371,7 @@ cleans watermark pages instead of deleting them.
 Accepts multiple files. Requires
 .BR python3 .
 .TP
-.B epubtrans " <book.epub> [\-l <lang>] [\-o <out.epub>] [\-\-dry\-run] [\-\-sample <n>] [\-\-glossary <file>] [\-\-context <text>] [\-e <engine>] [\-j <n>] [\-\-summarize [<amount>]] [\-\-digest]"
+.B epubtrans " <book.epub> [\-l <lang>] [\-o <out.epub>] [\-\-dry\-run] [\-\-sample <n>] [\-\-glossary <file>] [\-\-context <text>] [\-e <engine>] [\-m <model>] [\-j <n>] [\-\-summarize [<amount>]] [\-\-digest]"
 Translate an EPUB into another language, or condense it, leaving images, fonts,
 stylesheets and internal links byte-for-byte unchanged. Runs
 .I ~/epubtrans
@@ -392,7 +392,18 @@ sets the target language (default
 picks the engine
 .RB ( anthropic ,
 .BR libretranslate ,
-.BR echo )
+.BR echo ),
+.B \-m
+picks the Claude model \(em
+.B claude\-sonnet\-5
+by default,
+.B claude\-opus\-5
+for the best prose at roughly 2.5 times the cost, or
+.B claude\-haiku\-4\-5
+for a cheap draft; the model is part of the cache key, so changing it means a
+full fresh pass, and
+.B \-\-dry\-run
+prices the run at the chosen model's rates
 and
 .B \-j
 sets the number of parallel requests (4\(en8 is sensible).
