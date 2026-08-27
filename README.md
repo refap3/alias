@@ -158,7 +158,7 @@ Separate repos installed by `superinstall`:
 
 | Repo | Purpose |
 |------|---------|
-| `~/epubtrans` | Translate EPUBs into another language (`epubtrans`) |
+| `~/epubtrans` | Translate EPUBs into another language, or condense them (`epubtrans`) |
 
 ## Naming convention
 
@@ -664,9 +664,9 @@ soc book.epub --keep-pages    # clean pages but never delete them
 
 ---
 
-## EPUB Translation (`epubtrans`)
+## EPUB Translation and Summarising (`epubtrans`)
 
-Translates an EPUB into another language while leaving images, fonts, stylesheets and internal links byte-for-byte unchanged. Lives in its own repo at `~/epubtrans` — install it with `superinstall`. Needs `python3` with `lxml` and `requests`, and `ANTHROPIC_API_KEY` in the environment for the default engine.
+Translates an EPUB into another language — or condenses it — while leaving images, fonts, stylesheets and internal links byte-for-byte unchanged. Lives in its own repo at `~/epubtrans` — install it with `superinstall`. Needs `python3` with `lxml` and `requests`, and `ANTHROPIC_API_KEY` in the environment for the default engine.
 
 ```bash
 epubtrans book.epub --dry-run                 # scope and cost estimate, spends nothing
@@ -690,6 +690,30 @@ epubtrans book.epub -l de -o buch.epub \
 | `--cache <file>` | Share one SQLite segment cache across runs |
 
 Every segment is cached, so interrupted jobs resume and reruns are free. `verify.py` in the repo checks the output against the source for structural drift.
+
+### Summarising
+
+`--summarize` condenses the book instead of reproducing it in full. Add `-l` and it summarises straight into the target language in one pass; leave `-l` off and the summary stays in the source language.
+
+```bash
+epubtrans book.epub --summarize -L medium -o short.epub          # half the length
+epubtrans book.epub --summarize -L deep -l de -o kurz.epub       # a third, in German
+epubtrans book.epub --summarize --summary-mode digest -o dig.epub # one summary per chapter
+```
+
+| Flag | Effect |
+|------|--------|
+| `--summarize` | Turn summarising on. Without it the flags below are refused |
+| `-L <level>` | `light` keeps 67%, `medium` 50% (default), `deep` 33% of the text |
+| `--ratio <f>` | Explicit fraction to **keep**, 0.05–0.95; overrides `-L` |
+| `--summary-mode` | `inline` shortens prose in place, `digest` writes one summary per chapter |
+| `--keep <list>` | Never compress these: `dialogue,quotes,names,headings,lists,numbers,terms` |
+| `--no-drop` | Shorten blocks but never delete one (cannot go below 55% kept) |
+| `--digest-images` | `keep` (default) or `drop`, digest mode only |
+
+Headings, `alt` text and navigation documents are never summarised, so the table of contents keeps working. Summaries are cached separately per level, so re-running at the same setting is free. Check the result with `verify.py book.epub short.epub --summary --same-language`, which reports the compaction actually achieved and fails if any link target was lost.
+
+Only `anthropic` and `echo` can summarise; `libretranslate` translates only.
 
 ---
 

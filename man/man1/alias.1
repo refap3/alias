@@ -371,9 +371,9 @@ cleans watermark pages instead of deleting them.
 Accepts multiple files. Requires
 .BR python3 .
 .TP
-.B epubtrans " <book.epub> [\-l <lang>] [\-o <out.epub>] [\-\-dry\-run] [\-\-sample <n>] [\-\-glossary <file>] [\-\-context <text>] [\-e <engine>] [\-j <n>]"
-Translate an EPUB into another language, leaving images, fonts, stylesheets and
-internal links byte-for-byte unchanged. Runs
+.B epubtrans " <book.epub> [\-l <lang>] [\-o <out.epub>] [\-\-dry\-run] [\-\-sample <n>] [\-\-glossary <file>] [\-\-context <text>] [\-e <engine>] [\-j <n>] [\-\-summarize] [\-L <level>] [\-\-ratio <f>] [\-\-summary\-mode <mode>]"
+Translate an EPUB into another language, or condense it, leaving images, fonts,
+stylesheets and internal links byte-for-byte unchanged. Runs
 .I ~/epubtrans
 (installed by
 .BR superinstall ).
@@ -397,6 +397,50 @@ and
 .B \-j
 sets the number of parallel requests (4\(en8 is sensible).
 Every segment is cached in SQLite next to the output, so interrupted jobs resume and reruns are free.
+.B \-\-summarize
+condenses the book instead of reproducing it in full;
+.B \-L
+picks how hard \(em
+.B light
+keeps 67%,
+.B medium
+50% (the default) and
+.B deep
+33% of the text \(em while
+.B \-\-ratio
+takes an explicit fraction to keep (0.05\(en0.95) and overrides
+.BR \-L .
+.B \-\-summary\-mode
+chooses between
+.B inline
+(shorten the prose where it stands, keeping formatting and images) and
+.B digest
+(replace each chapter with a written summary of it).
+Combine
+.B \-\-summarize
+with
+.B \-l
+to summarise and translate in one pass; without
+.B \-l
+the summary stays in the source language.
+.B \-\-keep
+lists classes never to compress
+.RB ( dialogue ,
+.BR quotes ,
+.BR names ,
+.BR headings ,
+.BR lists ,
+.BR numbers ,
+.BR terms )
+and
+.B \-\-no\-drop
+shortens blocks without ever deleting one.
+Headings, alt text and navigation documents are never summarised, so the table of
+contents keeps working. Only the
+.B anthropic
+and
+.B echo
+engines can summarise.
 The
 .B anthropic
 engine needs
