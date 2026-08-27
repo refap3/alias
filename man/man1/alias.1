@@ -428,8 +428,11 @@ or
 .IR book.de.summ\-deep.epub ,
 leaving out the parts that do not apply, so runs at different settings never
 overwrite each other.
-Headings, quotations, names, alt text and navigation documents are never
-summarised, so the table of contents keeps working. Only the
+Chapter headings, quotations, names, alt text and navigation documents are never
+summarised, so the table of contents keeps working \(em headings are found by
+what the table of contents points at, not by assuming they are
+.B h1
+tags, since many books style them as ordinary paragraphs. Only the
 .B anthropic
 and
 .B echo

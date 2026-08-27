@@ -708,7 +708,7 @@ epubtrans book.epub --summarize light --digest   # per chapter      → book.sum
 | `--summarize [amount]` | Condense. `light` keeps 67%, `medium` 50% (the default), `deep` 33%, or give a fraction such as `0.45` |
 | `--digest` | Write one summary per chapter instead of shortening the prose in place |
 
-Headings, quotations, names, `alt` text and navigation documents are never summarised, so the table of contents keeps working. Anything finer — tone, what to protect, what to cut first — goes in `--context` as a sentence, not a flag. Summaries are cached separately per setting, so re-running at the same one is free. Check the result with `verify.py book.epub book.summ-deep.epub --summary --same-language`, which reports the compaction achieved and fails if any link target was lost.
+Chapter headings, quotations, names, `alt` text and navigation documents are never summarised, so the table of contents keeps working — headings are found by what the TOC points at, not by assuming they are `<h1>` tags, because many books style them as ordinary paragraphs. Anything finer — tone, what to protect, what to cut first — goes in `--context` as a sentence, not a flag. Summaries are cached separately per setting, so re-running at the same one is free. Check the result with `verify.py book.epub book.summ-deep.epub --summary --same-language`, which reports the compaction achieved and fails if any link target was lost.
 
 Only `anthropic` and `echo` can summarise; `libretranslate` translates only.
 
