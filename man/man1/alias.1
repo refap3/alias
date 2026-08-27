@@ -371,7 +371,7 @@ cleans watermark pages instead of deleting them.
 Accepts multiple files. Requires
 .BR python3 .
 .TP
-.B epubtrans " <book.epub> [\-l <lang>] [\-o <out.epub>] [\-\-dry\-run] [\-\-sample <n>] [\-\-glossary <file>] [\-\-context <text>] [\-e <engine>] [\-j <n>] [\-\-summarize] [\-L <level>] [\-\-ratio <f>] [\-\-summary\-mode <mode>]"
+.B epubtrans " <book.epub> [\-l <lang>] [\-o <out.epub>] [\-\-dry\-run] [\-\-sample <n>] [\-\-glossary <file>] [\-\-context <text>] [\-e <engine>] [\-j <n>] [\-\-summarize [<amount>]] [\-\-digest]"
 Translate an EPUB into another language, or condense it, leaving images, fonts,
 stylesheets and internal links byte-for-byte unchanged. Runs
 .I ~/epubtrans
@@ -398,24 +398,18 @@ and
 sets the number of parallel requests (4\(en8 is sensible).
 Every segment is cached in SQLite next to the output, so interrupted jobs resume and reruns are free.
 .B \-\-summarize
-condenses the book instead of reproducing it in full;
-.B \-L
-picks how hard \(em
+condenses the book instead of reproducing it in full. Its optional argument is how
+much of the text to
+.IR keep :
 .B light
-keeps 67%,
+(67%),
 .B medium
-50% (the default) and
+(50%, the default),
 .B deep
-33% of the text \(em while
-.B \-\-ratio
-takes an explicit fraction to keep (0.05\(en0.95) and overrides
-.BR \-L .
-.B \-\-summary\-mode
-chooses between
-.B inline
-(shorten the prose where it stands, keeping formatting and images) and
-.B digest
-(replace each chapter with a written summary of it).
+(33%), or a fraction such as
+.BR 0.45 .
+.B \-\-digest
+writes one summary per chapter instead of shortening the prose in place.
 Combine
 .B \-\-summarize
 with
@@ -423,20 +417,19 @@ with
 to summarise and translate in one pass; without
 .B \-l
 the summary stays in the source language.
-.B \-\-keep
-lists classes never to compress
-.RB ( dialogue ,
-.BR quotes ,
-.BR names ,
-.BR headings ,
-.BR lists ,
-.BR numbers ,
-.BR terms )
-and
-.B \-\-no\-drop
-shortens blocks without ever deleting one.
-Headings, alt text and navigation documents are never summarised, so the table of
-contents keeps working. Only the
+Anything finer \(em tone, what to protect, what to cut first \(em goes in
+.B \-\-context
+as a sentence.
+.B \-o
+is optional throughout: the output is named for what was done, as
+.IR book.de.epub ,
+.I book.summ\-deep.epub
+or
+.IR book.de.summ\-deep.epub ,
+leaving out the parts that do not apply, so runs at different settings never
+overwrite each other.
+Headings, quotations, names, alt text and navigation documents are never
+summarised, so the table of contents keeps working. Only the
 .B anthropic
 and
 .B echo

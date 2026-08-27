@@ -1090,7 +1090,7 @@ alias nw='~/alias/nwtools'
 # Strip OceanofPDF branding from EPUB files (soc <file.epub> [-o out] [--dry-run] [--no-backup] [--keep-pages])
 alias soc='python3 ~/alias/stripocean.py'
 
-# Translate or condense an EPUB (epubtrans <book.epub> [-l de] [-o out.epub] [--dry-run] [--sample N] [--summarize -L light|medium|deep] [--summary-mode inline|digest])
+# Translate or condense an EPUB (epubtrans <book.epub> [-l de] [--summarize light|medium|deep|0.45] [--digest] [--dry-run] [--sample N]; output name is automatic)
 alias epubtrans='PYTHONPATH="$HOME/epubtrans${PYTHONPATH:+:$PYTHONPATH}" python3 -m epubtrans.cli'
 
 # Pull latest deb repo (shallow, strips old history)

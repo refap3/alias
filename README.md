@@ -671,15 +671,17 @@ Translates an EPUB into another language — or condenses it — while leaving i
 ```bash
 epubtrans book.epub --dry-run                 # scope and cost estimate, spends nothing
 epubtrans book.epub --sample 40 -o probe.epub # first 40 segments, to check tone
-epubtrans book.epub -l de -o buch.epub \
+epubtrans book.epub -l de \
     --glossary terms.tsv \
     --context "Sachbuch, nuechterner Ton" -j 6
 ```
 
+`-o` is optional. Without it the output is named after what was done: `book.de.epub` for a translation, `book.summ-deep.epub` for a summary, `book.de.summ-deep.epub` for both. Parts that do not apply are left out, so two runs at different settings never overwrite each other.
+
 | Flag | Effect |
 |------|--------|
 | `-l <lang>` | Target language (default `de`) |
-| `-o <file>` | Output EPUB |
+| `-o <file>` | Output EPUB (optional — see the naming convention above) |
 | `--dry-run` | Segment count, character count, token and cost estimate |
 | `--sample <n>` | Translate only the first n segments |
 | `--glossary <file>` | TSV/JSON term list, injected into the prompt as binding |
@@ -693,25 +695,20 @@ Every segment is cached, so interrupted jobs resume and reruns are free. `verify
 
 ### Summarising
 
-`--summarize` condenses the book instead of reproducing it in full. Add `-l` and it summarises straight into the target language in one pass; leave `-l` off and the summary stays in the source language.
+`--summarize` condenses the book instead of reproducing it in full. The value after it is how much of the text to **keep** — a level name or a number. Add `-l` and it summarises straight into the target language in one pass; leave `-l` off and the summary stays in the source language.
 
 ```bash
-epubtrans book.epub --summarize -L medium -o short.epub          # half the length
-epubtrans book.epub --summarize -L deep -l de -o kurz.epub       # a third, in German
-epubtrans book.epub --summarize --summary-mode digest -o dig.epub # one summary per chapter
+epubtrans book.epub --summarize                  # half the length  → book.summ-medium.epub
+epubtrans book.epub --summarize deep -l de       # a third, German  → book.de.summ-deep.epub
+epubtrans book.epub --summarize light --digest   # per chapter      → book.summ-digest-light.epub
 ```
 
 | Flag | Effect |
 |------|--------|
-| `--summarize` | Turn summarising on. Without it the flags below are refused |
-| `-L <level>` | `light` keeps 67%, `medium` 50% (default), `deep` 33% of the text |
-| `--ratio <f>` | Explicit fraction to **keep**, 0.05–0.95; overrides `-L` |
-| `--summary-mode` | `inline` shortens prose in place, `digest` writes one summary per chapter |
-| `--keep <list>` | Never compress these: `dialogue,quotes,names,headings,lists,numbers,terms` |
-| `--no-drop` | Shorten blocks but never delete one (cannot go below 55% kept) |
-| `--digest-images` | `keep` (default) or `drop`, digest mode only |
+| `--summarize [amount]` | Condense. `light` keeps 67%, `medium` 50% (the default), `deep` 33%, or give a fraction such as `0.45` |
+| `--digest` | Write one summary per chapter instead of shortening the prose in place |
 
-Headings, `alt` text and navigation documents are never summarised, so the table of contents keeps working. Summaries are cached separately per level, so re-running at the same setting is free. Check the result with `verify.py book.epub short.epub --summary --same-language`, which reports the compaction actually achieved and fails if any link target was lost.
+Headings, quotations, names, `alt` text and navigation documents are never summarised, so the table of contents keeps working. Anything finer — tone, what to protect, what to cut first — goes in `--context` as a sentence, not a flag. Summaries are cached separately per setting, so re-running at the same one is free. Check the result with `verify.py book.epub book.summ-deep.epub --summary --same-language`, which reports the compaction achieved and fails if any link target was lost.
 
 Only `anthropic` and `echo` can summarise; `libretranslate` translates only.
 
