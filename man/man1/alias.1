@@ -396,7 +396,13 @@ picks the engine
 and
 .B \-j
 sets the number of parallel requests (4\(en8 is sensible).
-Every segment is cached in SQLite next to the output, so interrupted jobs resume and reruns are free.
+Every segment is cached in SQLite next to the output, so interrupted jobs resume
+and reruns are free. A summary run does not reuse a translation run's prose \(em a
+translation is not a compaction \(em so a German summary is cheapest, and reads
+best, as a single
+.B \-\-summarize
+.B \-l
+pass rather than a translation followed by a compaction.
 .B \-\-summarize
 condenses the book instead of reproducing it in full. Its optional argument is how
 much of the text to
